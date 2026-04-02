@@ -1,23 +1,27 @@
 <?php
 
-use App\Livewire\FailedWebhookList;
-use App\Livewire\FieldMappingManager;
-use App\Livewire\EventFilterManager;
-use App\Livewire\MessageTemplateManager;
-use App\Livewire\NotificationRuleManager;
-use App\Livewire\AlertRuleManager;
-use App\Livewire\SettingsPanel;
+use App\Http\Controllers\IntegrationManualController;
+use App\Http\Controllers\IntegrationProbeController;
 use App\Livewire\AccessControlManager;
-use App\Livewire\UserManager;
-use App\Livewire\WebhookDashboard;
-use App\Livewire\WebhookLogDetail;
-use App\Livewire\WebhookLogList;
-use App\Livewire\WhatsappNumberManager;
+use App\Livewire\AlertRuleManager;
 use App\Livewire\Auth\ForgotPasswordPage;
 use App\Livewire\Auth\LoginPage;
 use App\Livewire\Auth\RegisterPage;
 use App\Livewire\Auth\ResetPasswordPage;
 use App\Livewire\Auth\VerifyEmailPage;
+use App\Livewire\EventFilterManager;
+use App\Livewire\FailedWebhookList;
+use App\Livewire\FieldMappingManager;
+use App\Livewire\IntegrationManualPage;
+use App\Livewire\IntegrationTestPanel;
+use App\Livewire\MessageTemplateManager;
+use App\Livewire\NotificationRuleManager;
+use App\Livewire\SettingsPanel;
+use App\Livewire\UserManager;
+use App\Livewire\WebhookDashboard;
+use App\Livewire\WebhookLogDetail;
+use App\Livewire\WebhookLogList;
+use App\Livewire\WhatsappNumberManager;
 use App\Models\User;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
@@ -29,6 +33,9 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 
 Route::redirect('/', '/monitor');
+
+Route::get('/manual', [IntegrationManualController::class, 'show'])->name('manual.public');
+Route::get('/manual/descargar-pdf', [IntegrationManualController::class, 'downloadPdf'])->name('manual.pdf');
 
 Route::middleware('guest')->group(function (): void {
     Route::get('/login', LoginPage::class)->name('login');
@@ -129,11 +136,15 @@ Route::post('/logout', function (Request $request) {
 })->middleware('auth')->name('logout');
 
 Route::middleware(['auth', 'verified'])->group(function (): void {
+    Route::get('/monitor/manual', IntegrationManualPage::class)->middleware('permission:monitor.view')->name('manual.app');
     Route::get('/monitor', WebhookDashboard::class)->middleware('permission:monitor.view');
     Route::get('/monitor/logs', WebhookLogList::class)->middleware('permission:logs.view');
     Route::get('/monitor/logs/{webhookLogId}', WebhookLogDetail::class)->middleware('permission:logs.view');
     Route::get('/monitor/failed', FailedWebhookList::class)->middleware('permission:failed.view');
     Route::get('/monitor/settings', SettingsPanel::class)->middleware('permission:settings.manage');
+    Route::get('/monitor/integration-tests', IntegrationTestPanel::class)->middleware('permission:settings.manage')->name('integration-tests.panel');
+    Route::post('/monitor/integration-probes/bitrix-sample', [IntegrationProbeController::class, 'bitrixSample'])->middleware(['permission:settings.manage', 'throttle:15,60'])->name('integration-probes.bitrix-sample');
+    Route::get('/monitor/integration-probes/connectivity', [IntegrationProbeController::class, 'connectivity'])->middleware(['permission:settings.manage', 'throttle:60,1'])->name('integration-probes.connectivity');
     Route::get('/monitor/mappings', FieldMappingManager::class)->middleware('permission:mappings.manage');
     Route::get('/monitor/notifications', NotificationRuleManager::class)->middleware('permission:notifications.manage');
     Route::get('/monitor/templates', MessageTemplateManager::class)->middleware('permission:templates.manage');

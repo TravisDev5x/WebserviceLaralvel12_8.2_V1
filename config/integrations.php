@@ -21,12 +21,14 @@ $defaultSourceAliases = [
     'employment_status' => ['employmentStatus', 'estatusLaboral', 'estatus_laboral', 'ESTATUS LABORAL', 'ESTATUS_LABORAL'],
     'last_salary' => ['lastSalary', 'ultimoSalario', 'ultimo_salario', 'ULTIMO SALARIO', 'ULTIMO_SALARIO'],
     'state' => ['state', 'estado', 'ESTADO'],
+    'email' => ['email', 'mail', 'correo', 'CORREO', 'e_mail', 'EMAIL', 'emailAddress', 'correoElectronico'],
 ];
 
 $defaultBitrixFields = [
     'title' => 'TITLE',
     'comments' => 'COMMENTS',
     'phone' => 'PHONE',
+    'email' => 'EMAIL',
     'first_name' => ['NAME', 'UF_CRM_1774547362498'],
     'last_name' => ['LAST_NAME', 'UF_CRM_1774547381695'],
     'middle_last_name' => 'UF_CRM_1774547397576',

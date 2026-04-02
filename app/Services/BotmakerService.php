@@ -15,7 +15,7 @@ class BotmakerService
     private readonly ClientInterface $httpClient;
 
     /**
-     * @param array<string, mixed> $config
+     * @param  array<string, mixed>  $config
      */
     public function __construct(
         ?ClientInterface $httpClient = null,
@@ -28,7 +28,7 @@ class BotmakerService
     }
 
     /**
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      */
     public function parseIncomingPayload(array $data): array
@@ -60,6 +60,7 @@ class BotmakerService
             'employment_status' => (string) $this->pickByKey($merged, 'employment_status'),
             'last_salary' => (string) $this->pickByKey($merged, 'last_salary'),
             'state' => (string) $this->pickByKey($merged, 'state'),
+            'email' => $this->resolveEmailFromMerged($merged),
             'contact_id' => (string) ($data['contactId'] ?? ''),
             'customer_id' => (string) ($data['customerId'] ?? ''),
             'raw' => $data,
@@ -90,7 +91,7 @@ class BotmakerService
     }
 
     /**
-     * @param array<int|string, mixed> $params
+     * @param  array<int|string, mixed>  $params
      * @return array{success: bool, http_status: int, body: string}
      */
     public function sendTemplate(string $phone, string $template, array $params): array
@@ -106,7 +107,7 @@ class BotmakerService
     }
 
     /**
-     * @param array<string, mixed> $payload
+     * @param  array<string, mixed>  $payload
      * @return array{success: bool, http_status: int, body: string}
      */
     private function sendRequest(string $url, array $payload, string $operation): array
@@ -153,9 +154,6 @@ class BotmakerService
         }
     }
 
-    /**
-     * @param mixed $default
-     */
     private function botmakerConfig(string $key, mixed $default = null): mixed
     {
         if ($this->config !== []) {
@@ -171,7 +169,26 @@ class BotmakerService
     }
 
     /**
-     * @param array<string, mixed> $source
+     * @param  array<string, mixed>  $merged
+     */
+    private function resolveEmailFromMerged(array $merged): string
+    {
+        $fromAliases = $this->pickByKey($merged, 'email');
+        if (is_string($fromAliases) && trim($fromAliases) !== '') {
+            return trim($fromAliases);
+        }
+
+        foreach (['email', 'correo', 'mail', 'e_mail', 'emailAddress'] as $key) {
+            if (isset($merged[$key]) && is_string($merged[$key]) && trim($merged[$key]) !== '') {
+                return trim($merged[$key]);
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * @param  array<string, mixed>  $source
      */
     private function pickByKey(array $source, string $key): mixed
     {
@@ -186,8 +203,8 @@ class BotmakerService
     }
 
     /**
-     * @param array<string, mixed> $source
-     * @param array<int, string> $keys
+     * @param  array<string, mixed>  $source
+     * @param  array<int, string>  $keys
      */
     private function pick(array $source, array $keys): mixed
     {

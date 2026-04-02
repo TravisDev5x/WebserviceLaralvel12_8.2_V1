@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
-use App\Models\FieldMapping;
 use App\Models\FailedWebhook;
+use App\Models\FieldMapping;
 use App\Models\WebhookLog;
 use App\Services\Bitrix24Service;
 use App\Services\BotmakerService;
+use App\Support\MapBotmakerCanonicalToBitrixLead;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\InteractsWithQueue;
@@ -40,8 +41,7 @@ class ProcessBotmakerPayload implements ShouldQueue
     public function handle(
         Bitrix24Service $bitrix24Service,
         BotmakerService $botmakerService,
-    ): void
-    {
+    ): void {
         $startedAt = microtime(true);
 
         $this->markAsProcessing();
@@ -87,7 +87,6 @@ class ProcessBotmakerPayload implements ShouldQueue
     }
 
     /**
-     * @param mixed $payload
      * @return array<string, mixed>
      */
     private function normalizePayload(mixed $payload): array
@@ -106,7 +105,7 @@ class ProcessBotmakerPayload implements ShouldQueue
     }
 
     /**
-     * @param array<string, mixed> $parsed
+     * @param  array<string, mixed>  $parsed
      * @return array<string, mixed>
      */
     private function mapLeadData(array $parsed): array
@@ -119,192 +118,12 @@ class ProcessBotmakerPayload implements ShouldQueue
             }
         }
 
-        $firstName = trim((string) ($parsed['first_name'] ?? ''));
-        $lastName = trim((string) ($parsed['last_name'] ?? ''));
-        $middleLastName = trim((string) ($parsed['middle_last_name'] ?? ''));
-        $fullName = trim($firstName.' '.$lastName.' '.$middleLastName);
-        $phone = trim((string) ($parsed['phone'] ?? ''));
-        $message = trim((string) ($parsed['message'] ?? ''));
-        $event = (string) ($parsed['event'] ?? 'Lead desde Botmaker');
-        $currency = (string) config_dynamic('botmaker.salary_currency', config('integrations.botmaker_to_bitrix.currency', 'MXN'));
-        $bitrixFields = config_dynamic('botmaker.bitrix_fields', config('integrations.botmaker_to_bitrix.bitrix_fields', []));
-
-        if (! is_array($bitrixFields)) {
-            return [];
-        }
-
-        $canonical = [
-            'title' => $fullName !== '' ? "Lead Botmaker - {$fullName}" : $event,
-            'comments' => $message,
-            'phone' => $phone,
-            'first_name' => $firstName,
-            'last_name' => $lastName,
-            'middle_last_name' => $middleLastName,
-            'birth_date' => (string) ($parsed['birth_date'] ?? ''),
-            'weeks_quoted' => (string) ($parsed['weeks_quoted'] ?? ''),
-            'employment_status' => (string) ($parsed['employment_status'] ?? ''),
-            'last_salary' => (string) ($parsed['last_salary'] ?? ''),
-            'state' => (string) ($parsed['state'] ?? ''),
-        ];
-
-        $lead = [];
-
-        foreach ($canonical as $sourceKey => $rawValue) {
-            $targets = $this->getTargetsFor($bitrixFields, $sourceKey);
-            if ($targets === []) {
-                continue;
-            }
-
-            $value = $rawValue;
-
-            if (in_array($sourceKey, ['weeks_quoted', 'employment_status', 'state'], true)) {
-                $value = $this->mapEnumValue($sourceKey, (string) $rawValue);
-            }
-
-            if ($sourceKey === 'birth_date') {
-                $value = $this->normalizeDate((string) $rawValue);
-            }
-
-            if ($sourceKey === 'last_salary') {
-                $value = $this->normalizeMoney((string) $rawValue, $currency);
-            }
-
-            if ($sourceKey === 'phone') {
-                $value = $this->normalizePhoneField((string) $rawValue);
-            }
-
-            if ($value === null || $value === '') {
-                continue;
-            }
-
-            foreach ($targets as $targetKey) {
-                $lead[$targetKey] = $value;
-            }
-        }
-
-        return $lead;
-    }
-
-    private function normalizeDate(string $value): ?string
-    {
-        $value = trim($value);
-        if ($value === '') {
-            return null;
-        }
-
-        $formats = ['Y-m-d', 'd/m/Y', 'd-m-Y'];
-        foreach ($formats as $format) {
-            $date = \DateTimeImmutable::createFromFormat($format, $value);
-            if ($date instanceof \DateTimeImmutable) {
-                return $date->format('Y-m-d');
-            }
-        }
-
-        try {
-            return (new \DateTimeImmutable($value))->format('Y-m-d');
-        } catch (\Throwable) {
-            return null;
-        }
-    }
-
-    private function normalizeMoney(string $value, string $currency): ?string
-    {
-        $value = trim($value);
-        if ($value === '') {
-            return null;
-        }
-
-        $normalized = str_replace([',', '$', 'MXN', 'mxn', ' '], '', $value);
-        $numeric = preg_replace('/[^\d.]/', '', $normalized) ?? '';
-        if ($numeric === '') {
-            return null;
-        }
-
-        return $numeric.'|'.strtoupper(trim($currency));
+        return MapBotmakerCanonicalToBitrixLead::fromParsed($parsed);
     }
 
     /**
-     * @param array<string, mixed> $bitrixFields
-     * @return array<int, string>
-     */
-    private function getTargetsFor(array $bitrixFields, string $sourceKey): array
-    {
-        $value = $bitrixFields[$sourceKey] ?? null;
-        if (is_string($value) && trim($value) !== '') {
-            return [trim($value)];
-        }
-
-        if (is_array($value)) {
-            $targets = array_values(array_filter(
-                array_map(static fn (mixed $item): string => is_string($item) ? trim($item) : '', $value),
-                static fn (string $item): bool => $item !== '',
-            ));
-
-            return $targets;
-        }
-
-        return [];
-    }
-
-    private function mapEnumValue(string $sourceKey, string $value): ?string
-    {
-        $normalized = $this->normalizeText($value);
-        if ($normalized === '') {
-            return null;
-        }
-
-        $enumMaps = config_dynamic('botmaker.enum_maps', config('integrations.botmaker_to_bitrix.enum_maps', []));
-        $map = is_array($enumMaps) ? ($enumMaps[$sourceKey] ?? []) : [];
-        if (! is_array($map)) {
-            return null;
-        }
-
-        foreach ($map as $label => $id) {
-            if (! is_string($label)) {
-                continue;
-            }
-
-            if ($this->normalizeText($label) === $normalized) {
-                return is_string($id) || is_numeric($id) ? (string) $id : null;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * @return array<int, array{VALUE: string, VALUE_TYPE: string}>|null
-     */
-    private function normalizePhoneField(string $value): ?array
-    {
-        $digits = preg_replace('/\D+/', '', $value) ?? '';
-        if ($digits === '') {
-            return null;
-        }
-
-        return [[
-            'VALUE' => $digits,
-            'VALUE_TYPE' => 'WORK',
-        ]];
-    }
-
-    private function normalizeText(string $value): string
-    {
-        $value = trim($value);
-        if ($value === '') {
-            return '';
-        }
-
-        $ascii = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $value);
-        $base = $ascii !== false ? $ascii : $value;
-        $upper = strtoupper($base);
-
-        return preg_replace('/\s+/', ' ', $upper) ?? $upper;
-    }
-
-    /**
-     * @param array<string,mixed> $source
-     * @param array<int, \App\Models\FieldMapping> $mappings
+     * @param  array<string,mixed>  $source
+     * @param  array<int, FieldMapping>  $mappings
      * @return array<string,mixed>
      */
     private function applyDynamicMappings(array $source, array $mappings): array
@@ -336,7 +155,7 @@ class ProcessBotmakerPayload implements ShouldQueue
     }
 
     /**
-     * @param array{success: bool, http_status: int, body: string} $response
+     * @param  array{success: bool, http_status: int, body: string}  $response
      */
     private function finalizeFromResponse(array $response, float $startedAt): void
     {

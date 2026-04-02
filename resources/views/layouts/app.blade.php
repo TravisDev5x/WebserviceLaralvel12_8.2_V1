@@ -242,6 +242,17 @@
             color: var(--app-text);
         }
 
+        .manual-doc .manual-block { margin-bottom: 1.5rem; }
+        .manual-doc h2 { font-size: 1.2rem; margin: 0 0 0.6rem; line-height: 1.3; }
+        .manual-doc h3 { font-size: 0.95rem; margin: 1rem 0 0.4rem; color: var(--app-muted); font-weight: 600; }
+        .manual-doc p, .manual-doc li { line-height: 1.5; font-size: 0.92rem; }
+        .manual-doc ul, .manual-doc ol { margin: 0.4rem 0; padding-left: 1.2rem; }
+        .manual-doc code { font-size: 0.84em; padding: 0.1rem 0.3rem; border-radius: 0.25rem; background: var(--app-row); }
+        .manual-doc .doc-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 520px; }
+        .manual-doc .doc-table th, .manual-doc .doc-table td {
+            border: 1px solid var(--app-border); padding: 0.45rem 0.5rem; text-align: left; vertical-align: top;
+        }
+
         @media (min-width: 1025px) {
             .menu-toggle-btn {
                 display: none !important;
@@ -319,6 +330,12 @@
                                         <span>Tablero</span>
                                     </a>
                                 </li>
+                                <li>
+                                    <a class="sidebar-link" href="{{ url('/monitor/manual') }}" data-tooltip="Manual Bitrix24 y Botmaker" data-side="right" @if(request()->is('monitor/manual')) aria-current="page" @endif>
+                                        <i data-lucide="book-open"></i>
+                                        <span>Manual de integración</span>
+                                    </a>
+                                </li>
                             @endif
                             @if($canLogs)
                                 <li>
@@ -341,6 +358,12 @@
                                     <a class="sidebar-link" href="{{ url('/monitor/settings') }}" data-tooltip="Configuración técnica de integraciones" data-side="right" @if(request()->is('monitor/settings*')) aria-current="page" @endif>
                                         <i data-lucide="settings"></i>
                                         <span>Configuración</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="sidebar-link" href="{{ route('integration-tests.panel') }}" data-tooltip="Pruebas Bitrix, Botmaker y JSON" data-side="right" @if(request()->is('monitor/integration-tests') || request()->is('monitor/integration-probes*')) aria-current="page" @endif>
+                                        <i data-lucide="flask-conical"></i>
+                                        <span>Pruebas de integración</span>
                                     </a>
                                 </li>
                             @endif

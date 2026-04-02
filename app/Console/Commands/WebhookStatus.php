@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Models\FailedWebhook;
 use App\Models\WebhookLog;
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\RequestException;
+use App\Services\IntegrationProbeService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
 
@@ -17,28 +15,21 @@ class WebhookStatus extends Command
 
     protected $description = 'Muestra estado general de webhooks e integraciones';
 
-    public function handle(): int
+    public function handle(IntegrationProbeService $integrationProbeService): int
     {
         $this->newLine();
         $this->info('=== Estado del Middleware de Webhooks ===');
 
-        $todayStart = now()->startOfDay();
-        $todayEnd = now()->endOfDay();
-
-        $totalToday = WebhookLog::query()->whereBetween('created_at', [$todayStart, $todayEnd])->count();
-        $sentToday = WebhookLog::query()->whereBetween('created_at', [$todayStart, $todayEnd])->where('status', WebhookLog::STATUS_SENT)->count();
-        $failedToday = WebhookLog::query()->whereBetween('created_at', [$todayStart, $todayEnd])->failed()->count();
-        $inQueueToday = WebhookLog::query()->whereBetween('created_at', [$todayStart, $todayEnd])->whereIn('status', [WebhookLog::STATUS_RECEIVED, WebhookLog::STATUS_PROCESSING])->count();
-        $failedPending = FailedWebhook::query()->pending()->count();
+        $summary = $integrationProbeService->webhookSummaryToday();
 
         $this->newLine();
         $this->info('Sección 1 — Resumen del día');
         $this->table(['Metricas', 'Valor'], [
-            ['Total webhooks hoy', (string) $totalToday],
-            ['Exitosos (sent)', (string) $sentToday],
-            ['Fallidos (failed)', (string) $failedToday],
-            ['En cola (processing/received)', (string) $inQueueToday],
-            ['Failed webhooks pendientes de reintento', (string) $failedPending],
+            ['Total webhooks hoy', (string) $summary['today']['total']],
+            ['Exitosos (sent)', (string) $summary['today']['sent']],
+            ['Fallidos (failed)', (string) $summary['today']['failed']],
+            ['En cola (processing/received)', (string) $summary['today']['in_queue']],
+            ['Failed webhooks pendientes de reintento', (string) $summary['failed_pending']],
         ]);
 
         $lastReceived = WebhookLog::query()->recent(168)->latest()->first();
@@ -54,9 +45,9 @@ class WebhookStatus extends Command
         $this->newLine();
         $this->info('Sección 3 — Verificación de servicios');
 
-        $botmakerCheck = $this->checkBotmaker();
-        $bitrixCheck = $this->checkBitrix();
-        $stuckCheck = $this->checkQueueStuck();
+        $botmakerCheck = $integrationProbeService->probeBotmakerApi();
+        $bitrixCheck = $integrationProbeService->probeBitrixApi();
+        $stuckCheck = $integrationProbeService->probeQueueStuck();
 
         $this->printHealth('Botmaker API', $botmakerCheck['ok'], $botmakerCheck['message']);
         $this->printHealth('Bitrix24 API', $bitrixCheck['ok'], $bitrixCheck['message']);
@@ -65,97 +56,6 @@ class WebhookStatus extends Command
         $this->newLine();
 
         return self::SUCCESS;
-    }
-
-    /**
-     * @return array{ok: bool, message: string}
-     */
-    private function checkBotmaker(): array
-    {
-        $baseUrl = rtrim((string) config_dynamic('botmaker.api_url', config('services.botmaker.api_url', '')), '/');
-        $token = trim((string) config_dynamic('botmaker.api_token', config('services.botmaker.api_token', '')));
-
-        if ($baseUrl === '' || $token === '') {
-            return ['ok' => false, 'message' => 'ERROR (config incompleta)'];
-        }
-
-        $client = new Client(['timeout' => 10]);
-
-        try {
-            $response = $client->request('GET', $baseUrl, [
-                'headers' => [
-                    'Authorization' => 'Bearer '.$token,
-                    'Accept' => 'application/json',
-                ],
-            ]);
-            $status = $response->getStatusCode();
-
-            return [
-                'ok' => $status >= 200 && $status < 300,
-                'message' => "OK (HTTP {$status})",
-            ];
-        } catch (RequestException $exception) {
-            $status = $exception->getResponse()?->getStatusCode();
-
-            return [
-                'ok' => false,
-                'message' => $status !== null ? "ERROR (HTTP {$status})" : 'ERROR (sin respuesta)',
-            ];
-        } catch (\Throwable $exception) {
-            return ['ok' => false, 'message' => 'ERROR ('.$exception->getMessage().')'];
-        }
-    }
-
-    /**
-     * @return array{ok: bool, message: string}
-     */
-    private function checkBitrix(): array
-    {
-        $baseUrl = rtrim((string) config_dynamic('bitrix24.webhook_url', config('services.bitrix24.webhook_url', '')), '/');
-        if ($baseUrl === '') {
-            return ['ok' => false, 'message' => 'ERROR (config incompleta)'];
-        }
-
-        $client = new Client(['timeout' => 10]);
-        $url = "{$baseUrl}/crm.lead.list?start=0&limit=1";
-
-        try {
-            $response = $client->request('GET', $url, [
-                'headers' => ['Accept' => 'application/json'],
-            ]);
-            $status = $response->getStatusCode();
-
-            return [
-                'ok' => $status >= 200 && $status < 300,
-                'message' => "OK (HTTP {$status})",
-            ];
-        } catch (RequestException $exception) {
-            $status = $exception->getResponse()?->getStatusCode();
-
-            return [
-                'ok' => false,
-                'message' => $status !== null ? "ERROR (HTTP {$status})" : 'ERROR (sin respuesta)',
-            ];
-        } catch (\Throwable $exception) {
-            return ['ok' => false, 'message' => 'ERROR ('.$exception->getMessage().')'];
-        }
-    }
-
-    /**
-     * @return array{ok: bool, message: string}
-     */
-    private function checkQueueStuck(): array
-    {
-        $stuckCount = WebhookLog::query()
-            ->whereIn('status', [WebhookLog::STATUS_RECEIVED, WebhookLog::STATUS_PROCESSING])
-            ->where('created_at', '<=', now()->subMinutes(10))
-            ->count();
-
-        if ($stuckCount > 0) {
-            return ['ok' => false, 'message' => "ATENCION: {$stuckCount} jobs atorados"];
-        }
-
-        return ['ok' => true, 'message' => 'OK'];
     }
 
     private function printHealth(string $service, bool $ok, string $message): void

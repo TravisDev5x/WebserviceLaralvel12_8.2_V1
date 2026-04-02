@@ -28,7 +28,11 @@
         <button class="btn" type="submit" style="width: 100%;">Entrar</button>
     </form>
 
-    <div style="display: flex; justify-content: space-between; margin-top: 0.9rem; font-size: 0.92rem;">
+    <p style="text-align: center; margin: 0.9rem 0 0; font-size: 0.92rem;">
+        <a href="{{ route('manual.public') }}">Manual de integración (Bitrix24 y Botmaker)</a>
+    </p>
+
+    <div style="display: flex; justify-content: space-between; margin-top: 0.75rem; font-size: 0.92rem;">
         <a href="{{ route('register') }}">Crear cuenta</a>
         <a href="{{ route('password.request') }}">Olvidé mi contraseña</a>
     </div>
