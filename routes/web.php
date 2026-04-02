@@ -1,0 +1,145 @@
+<?php
+
+use App\Livewire\FailedWebhookList;
+use App\Livewire\FieldMappingManager;
+use App\Livewire\EventFilterManager;
+use App\Livewire\MessageTemplateManager;
+use App\Livewire\NotificationRuleManager;
+use App\Livewire\AlertRuleManager;
+use App\Livewire\SettingsPanel;
+use App\Livewire\AccessControlManager;
+use App\Livewire\UserManager;
+use App\Livewire\WebhookDashboard;
+use App\Livewire\WebhookLogDetail;
+use App\Livewire\WebhookLogList;
+use App\Livewire\WhatsappNumberManager;
+use App\Livewire\Auth\ForgotPasswordPage;
+use App\Livewire\Auth\LoginPage;
+use App\Livewire\Auth\RegisterPage;
+use App\Livewire\Auth\ResetPasswordPage;
+use App\Livewire\Auth\VerifyEmailPage;
+use App\Models\User;
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Str;
+
+Route::redirect('/', '/monitor');
+
+Route::middleware('guest')->group(function (): void {
+    Route::get('/login', LoginPage::class)->name('login');
+    Route::get('/register', RegisterPage::class)->name('register');
+    Route::get('/forgot-password', ForgotPasswordPage::class)->name('password.request');
+    Route::get('/reset-password/{token}', ResetPasswordPage::class)->name('password.reset');
+
+    Route::post('/login', function (Request $request) {
+        $validated = $request->validate([
+            'login' => ['required', 'string', 'max:255'],
+            'password' => ['required', 'string'],
+            'remember' => ['nullable', 'boolean'],
+        ]);
+
+        $login = trim((string) $validated['login']);
+        $normalizedLogin = Str::lower($login);
+        $password = (string) $validated['password'];
+        $remember = (bool) ($validated['remember'] ?? false);
+        $attemptKey = 'login:attempts:'.$request->ip().'|'.$normalizedLogin;
+        $lockKey = 'login:lock:'.$request->ip().'|'.$normalizedLogin;
+
+        if (RateLimiter::tooManyAttempts($lockKey, 1)) {
+            $seconds = RateLimiter::availableIn($lockKey);
+            $minutes = max(1, (int) ceil($seconds / 60));
+
+            return back()
+                ->withErrors(['login' => "Demasiados intentos. Intente de nuevo en {$minutes} minutos."])
+                ->onlyInput('login');
+        }
+
+        $user = filter_var($login, FILTER_VALIDATE_EMAIL)
+            ? User::query()->where('email', strtolower($login))->first()
+            : User::query()->where('employee_number', $login)->first();
+
+        if ($user !== null && Hash::check($password, (string) $user->password)) {
+            if (! $user->is_active) {
+                return back()->withErrors(['login' => 'Tu usuario está desactivado.'])->onlyInput('login');
+            }
+            Auth::login($user, $remember);
+            $request->session()->regenerate();
+            $user->forceFill(['last_login_at' => now()])->save();
+            RateLimiter::clear($attemptKey);
+            RateLimiter::clear($lockKey);
+
+            return redirect()->intended('/monitor');
+        }
+
+        RateLimiter::hit($attemptKey, 300);
+        if (RateLimiter::attempts($attemptKey) >= 5) {
+            RateLimiter::clear($attemptKey);
+            RateLimiter::hit($lockKey, 900);
+
+            return back()
+                ->withErrors(['login' => 'Demasiados intentos. Intente de nuevo en 15 minutos.'])
+                ->onlyInput('login');
+        }
+
+        return back()->withErrors(['login' => 'Credenciales inválidas.'])->onlyInput('login');
+    })->name('login.perform');
+
+    Route::post('/forgot-password', function (Request $request) {
+        $validated = $request->validate([
+            'login' => ['required', 'string', 'max:255'],
+        ]);
+
+        $login = trim((string) $validated['login']);
+        $email = filter_var($login, FILTER_VALIDATE_EMAIL)
+            ? strtolower($login)
+            : User::query()->where('employee_number', $login)->value('email');
+
+        if (! is_string($email) || $email === '') {
+            return back()->withErrors(['login' => 'No encontramos una cuenta asociada.']);
+        }
+
+        $status = Password::sendResetLink(['email' => $email]);
+
+        return $status === Password::RESET_LINK_SENT
+            ? back()->with('status', __($status))
+            : back()->withErrors(['login' => __($status)]);
+    })->name('password.email');
+});
+
+Route::middleware('auth')->group(function (): void {
+    Route::get('/email/verify', VerifyEmailPage::class)->name('verification.notice');
+    Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
+        $request->fulfill();
+
+        return redirect('/monitor');
+    })->middleware(['signed', 'throttle:6,1'])->name('verification.verify');
+});
+
+Route::post('/logout', function (Request $request) {
+    Auth::logout();
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+
+    return redirect()->route('login');
+})->middleware('auth')->name('logout');
+
+Route::middleware(['auth', 'verified'])->group(function (): void {
+    Route::get('/monitor', WebhookDashboard::class)->middleware('permission:monitor.view');
+    Route::get('/monitor/logs', WebhookLogList::class)->middleware('permission:logs.view');
+    Route::get('/monitor/logs/{webhookLogId}', WebhookLogDetail::class)->middleware('permission:logs.view');
+    Route::get('/monitor/failed', FailedWebhookList::class)->middleware('permission:failed.view');
+    Route::get('/monitor/settings', SettingsPanel::class)->middleware('permission:settings.manage');
+    Route::get('/monitor/mappings', FieldMappingManager::class)->middleware('permission:mappings.manage');
+    Route::get('/monitor/notifications', NotificationRuleManager::class)->middleware('permission:notifications.manage');
+    Route::get('/monitor/templates', MessageTemplateManager::class)->middleware('permission:templates.manage');
+    Route::get('/monitor/whatsapp-numbers', WhatsappNumberManager::class)->middleware('permission:whatsapp.manage');
+    Route::get('/monitor/event-filters', EventFilterManager::class)->middleware('permission:filters.manage');
+    Route::get('/monitor/alerts', AlertRuleManager::class)->middleware('permission:alerts.manage');
+    Route::get('/monitor/users', UserManager::class)->middleware('permission:users.manage');
+    Route::get('/monitor/access-control', AccessControlManager::class)->middleware('permission:users.manage');
+});
