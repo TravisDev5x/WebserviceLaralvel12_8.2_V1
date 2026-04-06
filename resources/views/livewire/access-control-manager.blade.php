@@ -73,11 +73,39 @@
                 <thead>
                     <tr>
                         <th scope="col">ID</th>
-                        <th scope="col"><button type="button" class="th-sort-btn" wire:click="sortUsersBy('name')" title="Ordenar por nombre">Nombre@if($userSortBy === 'name')<span aria-hidden="true">{{ $userSortDir === 'asc' ? ' ↑' : ' ↓' }}</span>@endif</button></th>
-                        <th scope="col"><button type="button" class="th-sort-btn" wire:click="sortUsersBy('email')" title="Ordenar por correo">Email@if($userSortBy === 'email')<span aria-hidden="true">{{ $userSortDir === 'asc' ? ' ↑' : ' ↓' }}</span>@endif</button></th>
-                        <th scope="col"><button type="button" class="th-sort-btn" wire:click="sortUsersBy('employee_number')" title="Ordenar por número">Número@if($userSortBy === 'employee_number')<span aria-hidden="true">{{ $userSortDir === 'asc' ? ' ↑' : ' ↓' }}</span>@endif</button></th>
+                        <th scope="col">
+                            <button type="button" class="th-sort-btn" wire:click="sortUsersBy('name')" title="Ordenar por nombre">
+                                Nombre
+                                @if($userSortBy === 'name')
+                                    <span aria-hidden="true">{{ $userSortDir === 'asc' ? ' ↑' : ' ↓' }}</span>
+                                @endif
+                            </button>
+                        </th>
+                        <th scope="col">
+                            <button type="button" class="th-sort-btn" wire:click="sortUsersBy('email')" title="Ordenar por correo">
+                                Email
+                                @if($userSortBy === 'email')
+                                    <span aria-hidden="true">{{ $userSortDir === 'asc' ? ' ↑' : ' ↓' }}</span>
+                                @endif
+                            </button>
+                        </th>
+                        <th scope="col">
+                            <button type="button" class="th-sort-btn" wire:click="sortUsersBy('employee_number')" title="Ordenar por número">
+                                Número
+                                @if($userSortBy === 'employee_number')
+                                    <span aria-hidden="true">{{ $userSortDir === 'asc' ? ' ↑' : ' ↓' }}</span>
+                                @endif
+                            </button>
+                        </th>
                         <th scope="col">Estado</th>
-                        <th scope="col"><button type="button" class="th-sort-btn" wire:click="sortUsersBy('role')" title="Ordenar por rol">Rol@if($userSortBy === 'role')<span aria-hidden="true">{{ $userSortDir === 'asc' ? ' ↑' : ' ↓' }}</span>@endif</button></th>
+                        <th scope="col">
+                            <button type="button" class="th-sort-btn" wire:click="sortUsersBy('role')" title="Ordenar por rol">
+                                Rol
+                                @if($userSortBy === 'role')
+                                    <span aria-hidden="true">{{ $userSortDir === 'asc' ? ' ↑' : ' ↓' }}</span>
+                                @endif
+                            </button>
+                        </th>
                         <th scope="col">Acciones</th>
                     </tr>
                 </thead>
