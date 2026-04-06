@@ -132,6 +132,111 @@
             border-bottom: 1px solid var(--app-border);
         }
 
+        .users-list-section .table-clean thead th {
+            font-weight: 600;
+            color: var(--app-muted);
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .users-list-section .table-clean th .th-sort-btn {
+            background: transparent;
+            border: none;
+            padding: 0;
+            margin: 0;
+            font: inherit;
+            font-size: inherit;
+            font-weight: 600;
+            color: inherit;
+            cursor: pointer;
+            text-align: left;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.2rem;
+        }
+
+        .users-list-section .table-clean th .th-sort-btn:hover {
+            color: var(--app-text);
+        }
+
+        .users-section-head {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            margin-bottom: 0.85rem;
+        }
+
+        .users-section-head-main {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.55rem 1rem;
+            min-width: 0;
+        }
+
+        .users-section-head-main h3 {
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .users-meta-badges {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .users-filters-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 0.6rem;
+            margin-bottom: 0.65rem;
+        }
+
+        .users-search-wrap {
+            flex: 1 1 200px;
+            min-width: min(100%, 200px);
+            max-width: 340px;
+        }
+
+        .users-filters-selects {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.5rem;
+            flex: 1 1 280px;
+        }
+
+        .users-filters-selects > div {
+            flex: 0 1 auto;
+        }
+
+        .users-filters-selects .select {
+            min-width: 9.5rem;
+            max-width: 100%;
+        }
+
+        .users-clear-wrap {
+            flex-shrink: 0;
+            margin-left: auto;
+            padding-top: 1.02rem;
+        }
+
+        @media (max-width: 640px) {
+            .users-clear-wrap {
+                margin-left: 0;
+                width: 100%;
+                padding-top: 0;
+            }
+            .users-clear-wrap .btn {
+                width: 100%;
+            }
+        }
+
         .muted {
             color: var(--app-muted);
         }

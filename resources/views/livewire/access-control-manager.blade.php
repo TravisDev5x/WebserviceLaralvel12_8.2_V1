@@ -12,55 +12,75 @@
         </div>
     @endif
 
-    <section class="card card-pad" style="margin-bottom:1rem;">
-        <div style="display:flex; align-items:center; justify-content:space-between; gap:.75rem; flex-wrap:wrap; margin-bottom:.75rem;">
-            <h3 style="margin:0;">Listado de usuarios</h3>
+    <section class="card card-pad users-list-section" style="margin-bottom:1rem;">
+        <div class="users-section-head">
+            <div class="users-section-head-main">
+                <h3>Listado de usuarios</h3>
+                <div class="users-meta-badges">
+                    <span class="badge-soft">Total: {{ $users->total() }}</span>
+                    <span class="badge-soft">Pág. {{ $users->currentPage() }} / {{ $users->lastPage() }}</span>
+                    @if($userSearch !== '')
+                        <span class="badge-soft">"{{ $userSearch }}"</span>
+                    @endif
+                </div>
+            </div>
             <button class="btn btn-primary" wire:click="openCreateUser" type="button" data-tooltip="Registrar un nuevo usuario">
                 <span style="display:inline-flex; align-items:center; gap:.35rem;"><i data-lucide="user-plus"></i>Nuevo usuario</span>
             </button>
         </div>
-        <div class="grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom:.75rem;">
-            <div><input class="input" type="text" wire:model.live.debounce.300ms="userSearch" placeholder="Buscar usuario"></div>
-            <div>
-                <select class="select" wire:model.live="userRoleFilter">
-                    <option value="all">Todos los roles</option>
-                    @foreach($roles as $role)
-                        <option value="{{ $role->slug }}">{{ $role->name }} ({{ $role->slug }})</option>
-                    @endforeach
-                </select>
+        <div class="users-filters-row">
+            <div class="users-search-wrap">
+                <label class="muted" style="display:block; font-size:.72rem; margin-bottom:.25rem;">Buscar</label>
+                <input class="input" type="text" wire:model.live.debounce.300ms="userSearch" placeholder="Nombre, email o número…" style="width:100%;">
             </div>
-            <div>
-                <select class="select" wire:model.live="userStatusFilter">
-                    <option value="all">Todos</option>
-                    <option value="active">Activos</option>
-                    <option value="inactive">Inactivos</option>
-                    <option value="deleted">Dados de baja</option>
-                </select>
+            <div class="users-filters-selects">
+                <div>
+                    <label class="muted" style="display:block; font-size:.72rem; margin-bottom:.25rem;">Rol</label>
+                    <select class="select" wire:model.live="userRoleFilter">
+                        <option value="all">Todos los roles</option>
+                        @foreach($roles as $role)
+                            <option value="{{ $role->slug }}">{{ $role->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="muted" style="display:block; font-size:.72rem; margin-bottom:.25rem;">Estado</label>
+                    <select class="select" wire:model.live="userStatusFilter">
+                        <option value="all">Todos</option>
+                        <option value="active">Activos</option>
+                        <option value="inactive">Inactivos</option>
+                        <option value="deleted">Dados de baja</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="muted" style="display:block; font-size:.72rem; margin-bottom:.25rem;">Por página</label>
+                    <select class="select" wire:model.live="usersPerPage">
+                        <option value="10">10</option>
+                        <option value="12">12</option>
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                    </select>
+                </div>
             </div>
-            <div>
-                <select class="select" wire:model.live="usersPerPage">
-                    <option value="10">10 por página</option>
-                    <option value="12">12 por página</option>
-                    <option value="20">20 por página</option>
-                    <option value="50">50 por página</option>
-                </select>
-            </div>
-            <div>
+            <div class="users-clear-wrap">
                 <button class="btn" wire:click="clearUserFilters" type="button" data-tooltip="Limpiar todos los filtros">
                     <span style="display:inline-flex; align-items:center; gap:.35rem;"><i data-lucide="eraser"></i>Limpiar filtros</span>
                 </button>
             </div>
         </div>
-        <div style="display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:.75rem;">
-            <span class="badge-soft">Total: {{ $users->total() }}</span>
-            <span class="badge-soft">Página {{ $users->currentPage() }} de {{ $users->lastPage() }}</span>
-            @if($userSearch !== '')
-                <span class="badge-soft">Búsqueda: "{{ $userSearch }}"</span>
-            @endif
-        </div>
         <div class="table-wrap">
             <table class="table-clean">
-                <thead><tr><th>ID</th><th><button class="btn btn-ghost" wire:click="sortUsersBy('name')" type="button" data-tooltip="Ordenar por nombre">Nombre</button></th><th><button class="btn btn-ghost" wire:click="sortUsersBy('email')" type="button" data-tooltip="Ordenar por correo">Email</button></th><th><button class="btn btn-ghost" wire:click="sortUsersBy('employee_number')" type="button" data-tooltip="Ordenar por número">Número</button></th><th>Estado</th><th><button class="btn btn-ghost" wire:click="sortUsersBy('role')" type="button" data-tooltip="Ordenar por rol">Rol</button></th><th>Acciones</th></tr></thead>
+                <thead>
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col"><button type="button" class="th-sort-btn" wire:click="sortUsersBy('name')" title="Ordenar por nombre">Nombre@if($userSortBy === 'name')<span aria-hidden="true">{{ $userSortDir === 'asc' ? ' ↑' : ' ↓' }}</span>@endif</button></th>
+                        <th scope="col"><button type="button" class="th-sort-btn" wire:click="sortUsersBy('email')" title="Ordenar por correo">Email@if($userSortBy === 'email')<span aria-hidden="true">{{ $userSortDir === 'asc' ? ' ↑' : ' ↓' }}</span>@endif</button></th>
+                        <th scope="col"><button type="button" class="th-sort-btn" wire:click="sortUsersBy('employee_number')" title="Ordenar por número">Número@if($userSortBy === 'employee_number')<span aria-hidden="true">{{ $userSortDir === 'asc' ? ' ↑' : ' ↓' }}</span>@endif</button></th>
+                        <th scope="col">Estado</th>
+                        <th scope="col"><button type="button" class="th-sort-btn" wire:click="sortUsersBy('role')" title="Ordenar por rol">Rol@if($userSortBy === 'role')<span aria-hidden="true">{{ $userSortDir === 'asc' ? ' ↑' : ' ↓' }}</span>@endif</button></th>
+                        <th scope="col">Acciones</th>
+                    </tr>
+                </thead>
                 <tbody>
                 @forelse($users as $user)
                     <tr>
