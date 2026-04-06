@@ -136,7 +136,7 @@
     <div class="page-header">
         <div>
             <h2 class="page-title">Mi perfil</h2>
-            <p class="page-subtitle">Datos de tu cuenta y seguridad. Puedes editarlos aquí sin usar el listado de usuarios.</p>
+            <p class="page-subtitle">Datos de tu cuenta y seguridad.</p>
         </div>
     </div>
 
