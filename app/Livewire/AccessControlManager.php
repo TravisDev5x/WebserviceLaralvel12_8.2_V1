@@ -17,31 +17,69 @@ class AccessControlManager extends Component
     use WithPagination;
 
     public string $userSearch = '';
+
     public string $userRoleFilter = 'all';
+
     public string $userStatusFilter = 'all';
+
     public int $usersPerPage = 12;
+
     public string $userSortBy = 'created_at';
+
     public string $userSortDir = 'desc';
+
     public ?int $editingUserId = null;
+
     public string $editUserName = '';
+
     public string $editUserEmail = '';
+
     public string $editUserEmployeeNumber = '';
+
     public string $editUserRole = 'viewer';
+
     public bool $editUserIsActive = true;
+
     public bool $showUserEditor = false;
+
+    public bool $showCreateUserModal = false;
+
+    public string $createUserName = '';
+
+    public string $createUserEmail = '';
+
+    public string $createUserEmployeeNumber = '';
+
+    public string $createUserPassword = '';
+
+    public string $createUserPasswordConfirmation = '';
+
+    public string $createUserRole = 'viewer';
+
     public ?int $passwordUserId = null;
+
     public string $newPassword = '';
+
     public string $newPasswordConfirmation = '';
+
     public bool $showPasswordEditor = false;
+
     public ?int $confirmUserId = null;
+
     public string $confirmAction = '';
+
     public bool $showConfirmActionModal = false;
 
     public ?int $editingRoleId = null;
+
     public string $roleName = '';
+
     public string $roleSlug = '';
+
     public string $roleDescription = '';
+
     public bool $roleIsActive = true;
+
     /** @var array<int, string> */
     public array $selectedPermissions = [];
 
@@ -104,6 +142,65 @@ class AccessControlManager extends Component
         }
         $user->is_active = ! $user->is_active;
         $user->save();
+    }
+
+    public function openCreateUser(): void
+    {
+        $this->reset([
+            'createUserName',
+            'createUserEmail',
+            'createUserEmployeeNumber',
+            'createUserPassword',
+            'createUserPasswordConfirmation',
+        ]);
+        $this->createUserRole = 'viewer';
+        $this->showCreateUserModal = true;
+    }
+
+    public function closeCreateUser(): void
+    {
+        $this->reset([
+            'createUserName',
+            'createUserEmail',
+            'createUserEmployeeNumber',
+            'createUserPassword',
+            'createUserPasswordConfirmation',
+        ]);
+        $this->createUserRole = 'viewer';
+        $this->showCreateUserModal = false;
+    }
+
+    public function createUser(): void
+    {
+        $data = $this->validate([
+            'createUserName' => ['required', 'string', 'max:255'],
+            'createUserEmail' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'createUserEmployeeNumber' => ['required', 'string', 'max:100', 'unique:users,employee_number'],
+            'createUserPassword' => ['required', 'string', 'min:8', 'same:createUserPasswordConfirmation'],
+            'createUserPasswordConfirmation' => ['required', 'string', 'min:8'],
+            'createUserRole' => ['required', 'string', 'exists:roles,slug'],
+        ], [], [
+            'createUserName' => 'nombre',
+            'createUserEmail' => 'correo',
+            'createUserEmployeeNumber' => 'número de empleado',
+            'createUserPassword' => 'contraseña',
+            'createUserPasswordConfirmation' => 'confirmación',
+        ]);
+
+        $user = User::query()->create([
+            'name' => trim((string) $data['createUserName']),
+            'email' => strtolower(trim((string) $data['createUserEmail'])),
+            'employee_number' => trim((string) $data['createUserEmployeeNumber']),
+            'password' => (string) $data['createUserPassword'],
+            'role' => (string) $data['createUserRole'],
+            'is_active' => true,
+        ]);
+
+        $user->sendEmailVerificationNotification();
+
+        $this->closeCreateUser();
+        $this->resetPage('users_page');
+        session()->flash('user_created', 'Usuario creado. Se envió correo de verificación si está configurado.');
     }
 
     public function editUser(int $userId): void
@@ -188,6 +285,7 @@ class AccessControlManager extends Component
     {
         if (auth()->id() === $userId) {
             $this->addError('userSearch', 'No puedes darte de baja a ti mismo.');
+
             return;
         }
         $user = User::query()->findOrFail($userId);
@@ -200,6 +298,7 @@ class AccessControlManager extends Component
     {
         if (auth()->id() === $userId) {
             $this->addError('userSearch', 'No puedes darte de baja a ti mismo.');
+
             return;
         }
         $this->confirmUserId = $userId;
@@ -288,6 +387,7 @@ class AccessControlManager extends Component
         }
         if ($permissions === []) {
             $this->addError('selectedPermissions', 'Selecciona al menos un permiso.');
+
             return;
         }
 
@@ -312,10 +412,12 @@ class AccessControlManager extends Component
             ->when($this->userStatusFilter !== 'all', function (Builder $q): void {
                 if ($this->userStatusFilter === 'deleted') {
                     $q->onlyTrashed();
+
                     return;
                 }
                 if ($this->userStatusFilter === 'active') {
                     $q->where('is_active', true)->whereNull('deleted_at');
+
                     return;
                 }
                 if ($this->userStatusFilter === 'inactive') {

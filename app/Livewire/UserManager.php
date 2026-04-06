@@ -15,8 +15,83 @@ class UserManager extends Component
     use WithPagination;
 
     public string $search = '';
+
     public string $roleFilter = 'all';
+
     public string $statusFilter = 'all';
+
+    public bool $showCreateUserModal = false;
+
+    public string $newUserName = '';
+
+    public string $newUserEmail = '';
+
+    public string $newUserEmployeeNumber = '';
+
+    public string $newUserPassword = '';
+
+    public string $newUserPasswordConfirmation = '';
+
+    public string $newUserRole = 'viewer';
+
+    public function openCreateUser(): void
+    {
+        $this->reset([
+            'newUserName',
+            'newUserEmail',
+            'newUserEmployeeNumber',
+            'newUserPassword',
+            'newUserPasswordConfirmation',
+        ]);
+        $this->newUserRole = 'viewer';
+        $this->showCreateUserModal = true;
+    }
+
+    public function closeCreateUser(): void
+    {
+        $this->reset([
+            'newUserName',
+            'newUserEmail',
+            'newUserEmployeeNumber',
+            'newUserPassword',
+            'newUserPasswordConfirmation',
+        ]);
+        $this->newUserRole = 'viewer';
+        $this->showCreateUserModal = false;
+    }
+
+    public function createUser(): void
+    {
+        $data = $this->validate([
+            'newUserName' => ['required', 'string', 'max:255'],
+            'newUserEmail' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'newUserEmployeeNumber' => ['required', 'string', 'max:100', 'unique:users,employee_number'],
+            'newUserPassword' => ['required', 'string', 'min:8', 'same:newUserPasswordConfirmation'],
+            'newUserPasswordConfirmation' => ['required', 'string', 'min:8'],
+            'newUserRole' => ['required', 'string', 'in:admin,operator,viewer'],
+        ], [], [
+            'newUserName' => 'nombre',
+            'newUserEmail' => 'correo',
+            'newUserEmployeeNumber' => 'número de empleado',
+            'newUserPassword' => 'contraseña',
+            'newUserPasswordConfirmation' => 'confirmación',
+        ]);
+
+        $user = User::query()->create([
+            'name' => trim((string) $data['newUserName']),
+            'email' => strtolower(trim((string) $data['newUserEmail'])),
+            'employee_number' => trim((string) $data['newUserEmployeeNumber']),
+            'password' => (string) $data['newUserPassword'],
+            'role' => (string) $data['newUserRole'],
+            'is_active' => true,
+        ]);
+
+        $user->sendEmailVerificationNotification();
+
+        $this->closeCreateUser();
+        $this->resetPage();
+        session()->flash('user_created', 'Usuario creado. Se envió correo de verificación si está configurado.');
+    }
 
     public function toggleActive(int $id): void
     {
