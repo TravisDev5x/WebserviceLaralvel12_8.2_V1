@@ -21,7 +21,14 @@
             --app-muted: #6b7280;
             --app-border: #e5e7eb;
         }
-        body { margin: 0; min-height: 100vh; background: var(--app-bg); color: var(--app-text); }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: var(--app-bg);
+            color: var(--app-text);
+        }
         .docs-header {
             position: sticky; top: 0; z-index: 20;
             background: var(--app-surface);
@@ -31,7 +38,7 @@
             max-width: 900px; margin: 0 auto; padding: 0.85rem 1.25rem;
             display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;
         }
-        .docs-main { max-width: 900px; margin: 0 auto; padding: 1.25rem 1.25rem 2.5rem; }
+        .docs-main { max-width: 900px; margin: 0 auto; padding: 1.25rem 1.25rem 2.5rem; flex: 1 0 auto; width: 100%; box-sizing: border-box; }
         .muted { color: var(--app-muted); }
         .manual-doc .manual-block { margin-bottom: 2rem; }
         .manual-doc h2 { font-size: 1.35rem; margin: 0 0 0.75rem; line-height: 1.25; }
@@ -50,6 +57,16 @@
         }
         .manual-doc .doc-table thead { background: var(--app-surface); }
         .docs-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+        .global-app-footer {
+            padding: 0.75rem 1.25rem;
+            border-top: 1px solid var(--app-border);
+            text-align: center;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            color: var(--app-muted);
+            background: var(--app-surface);
+        }
     </style>
 </head>
 <body>
@@ -74,6 +91,7 @@
     <main class="docs-main manual-doc">
         @yield('content')
     </main>
+    @include('partials.global-footer')
     <script>
         (function () {
             var root = document.documentElement;

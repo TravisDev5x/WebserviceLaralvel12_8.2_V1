@@ -59,6 +59,9 @@
         .app-content-wrap {
             background: var(--app-bg);
             min-width: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
         .app-header-inner {
@@ -77,6 +80,19 @@
             max-width: 1240px;
             margin: 0 auto;
             padding: 1.25rem 1.4rem 1.6rem;
+            flex: 1 0 auto;
+        }
+
+        .global-app-footer {
+            margin-top: auto;
+            padding: 0.75rem 1.4rem;
+            border-top: 1px solid var(--app-border);
+            text-align: center;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            color: var(--app-muted);
+            background: var(--app-surface);
         }
 
         .page-header {
@@ -578,6 +594,7 @@
             <main class="content-shell">
                 {{ $slot }}
             </main>
+            @include('partials.global-footer')
         </div>
     </div>
 

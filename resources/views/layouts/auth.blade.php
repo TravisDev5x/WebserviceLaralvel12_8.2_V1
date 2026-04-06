@@ -9,15 +9,34 @@
         body {
             margin: 0;
             min-height: 100vh;
-            display: grid;
-            place-items: center;
+            display: flex;
+            flex-direction: column;
             background: #f5f7fb;
             color: #0f172a;
         }
 
         .auth-shell {
-            width: min(100%, 460px);
+            flex: 1;
+            display: grid;
+            place-items: center;
+            width: 100%;
             padding: 1rem;
+            box-sizing: border-box;
+        }
+
+        .auth-shell-inner {
+            width: min(100%, 460px);
+        }
+
+        .global-app-footer {
+            padding: 0.75rem 1rem;
+            border-top: 1px solid #e5e7eb;
+            text-align: center;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            color: #64748b;
+            background: #fff;
         }
 
         .auth-card {
@@ -31,8 +50,11 @@
 </head>
 <body>
     <main class="auth-shell">
-        {{ $slot }}
+        <div class="auth-shell-inner">
+            {{ $slot }}
+        </div>
     </main>
+    @include('partials.global-footer')
     @livewireScripts
 </body>
 </html>
