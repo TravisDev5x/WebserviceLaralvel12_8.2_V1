@@ -77,8 +77,8 @@
 
         .app-header-inner {
             height: 100%;
-            max-width: 1240px;
-            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
             padding: 0 1.4rem;
             display: flex;
             align-items: center;
@@ -88,14 +88,15 @@
 
         .content-shell {
             width: 100%;
-            max-width: 1240px;
-            margin: 0 auto;
+            box-sizing: border-box;
             padding: 1.25rem 1.4rem 1.6rem;
             flex: 1 0 auto;
         }
 
         .global-app-footer {
             margin-top: auto;
+            width: 100%;
+            box-sizing: border-box;
             padding: 0.75rem 1.4rem;
             border-top: 1px solid var(--app-border);
             text-align: center;
@@ -441,6 +442,10 @@
 
             .content-shell {
                 padding: 1rem 0.9rem 1.3rem;
+            }
+
+            .global-app-footer {
+                padding: 0.75rem 0.9rem;
             }
 
             .page-header {
