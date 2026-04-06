@@ -86,6 +86,128 @@
             gap: 0.75rem;
         }
 
+        .header-user-menu {
+            position: relative;
+            flex-shrink: 0;
+            max-width: 14rem;
+        }
+
+        .header-user-menu-trigger {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            max-width: 100%;
+            padding: 0.25rem 0.4rem;
+            margin: 0;
+            border: none;
+            border-radius: 0.45rem;
+            background: transparent;
+            color: var(--app-muted);
+            font: inherit;
+            font-size: 0.84rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: left;
+            transition: background-color 0.12s ease, color 0.12s ease;
+        }
+
+        .header-user-menu-trigger:hover,
+        .header-user-menu:focus-within .header-user-menu-trigger {
+            background: var(--app-row);
+            color: var(--app-text);
+        }
+
+        .header-user-menu-trigger-text {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            min-width: 0;
+        }
+
+        .header-user-menu-trigger .header-user-menu-chevron {
+            width: 0.95rem;
+            height: 0.95rem;
+            flex-shrink: 0;
+            opacity: 0.75;
+            transition: transform 0.15s ease;
+        }
+
+        .header-user-menu:hover .header-user-menu-chevron,
+        .header-user-menu:focus-within .header-user-menu-chevron {
+            transform: rotate(180deg);
+        }
+
+        .header-user-menu-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            padding-top: 0.35rem;
+            min-width: min(17rem, calc(100vw - 2rem));
+            z-index: 50;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-0.2rem);
+            transition: opacity 0.14s ease, transform 0.14s ease, visibility 0.14s;
+            pointer-events: none;
+        }
+
+        .header-user-menu:hover .header-user-menu-dropdown,
+        .header-user-menu:focus-within .header-user-menu-dropdown {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        .header-user-menu-card {
+            background: var(--app-surface);
+            border: 1px solid var(--app-border);
+            border-radius: 0.6rem;
+            box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.18);
+            padding: 0.75rem 0.85rem;
+        }
+
+        html[data-theme="light"] .header-user-menu-card {
+            box-shadow: 0 0.4rem 1.25rem rgba(15, 23, 42, 0.12);
+        }
+
+        .header-user-menu-head {
+            margin-bottom: 0.65rem;
+            padding-bottom: 0.55rem;
+            border-bottom: 1px solid var(--app-border);
+        }
+
+        .header-user-menu-head strong {
+            display: block;
+            font-size: 0.88rem;
+            margin-bottom: 0.2rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .header-user-menu-head .header-user-menu-email {
+            display: block;
+            font-size: 0.72rem;
+            line-height: 1.35;
+            word-break: break-all;
+        }
+
+        .header-user-menu-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+
+        .header-user-menu-actions .btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .header-user-menu-actions form {
+            margin: 0;
+        }
+
         .content-shell {
             width: 100%;
             box-sizing: border-box;
@@ -661,11 +783,27 @@
                     </div>
                     <div style="display: flex; gap: 0.5rem; align-items: center;">
                         @auth
-                            <a class="muted" href="{{ route('profile.edit') }}" style="font-size: 0.84rem; text-decoration: none; max-width: 12rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="Mi perfil">{{ auth()->user()->name }}</a>
-                            <form method="POST" action="{{ route('logout') }}" style="margin: 0;">
-                                @csrf
-                                <button class="btn" type="submit">Salir</button>
-                            </form>
+                            <div class="header-user-menu">
+                                <button type="button" class="header-user-menu-trigger" id="header-user-menu-trigger" aria-haspopup="true" aria-expanded="false" aria-controls="header-user-menu-panel" title="Menú de cuenta">
+                                    <span class="header-user-menu-trigger-text">{{ auth()->user()->name }}</span>
+                                    <i data-lucide="chevron-down" class="header-user-menu-chevron" aria-hidden="true"></i>
+                                </button>
+                                <div class="header-user-menu-dropdown" id="header-user-menu-panel" role="region" aria-label="Menú de cuenta">
+                                    <div class="header-user-menu-card">
+                                        <div class="header-user-menu-head">
+                                            <strong>{{ auth()->user()->name }}</strong>
+                                            <span class="muted header-user-menu-email">{{ auth()->user()->email }}</span>
+                                        </div>
+                                        <div class="header-user-menu-actions">
+                                            <a class="btn btn-primary" href="{{ route('profile.edit') }}">Mi perfil</a>
+                                            <form method="POST" action="{{ route('logout') }}">
+                                                @csrf
+                                                <button class="btn" type="submit">Cerrar sesión</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         @endauth
                         <button id="menu-toggle-btn" class="btn menu-toggle-btn" type="button" aria-label="Abrir menu lateral">
                             <i data-lucide="menu"></i>
