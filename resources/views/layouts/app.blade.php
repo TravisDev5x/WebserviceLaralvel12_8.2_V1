@@ -91,12 +91,16 @@
             z-index: 1;
         }
 
+        .sidebar-account-menu:hover {
+            z-index: 100;
+        }
+
         .sidebar-account-menu .sidebar-link {
             width: 100%;
         }
 
         .sidebar-account-menu:focus-within {
-            z-index: 5;
+            z-index: 100;
         }
 
         .sidebar-account-menu:focus-within .sidebar-link {
@@ -125,7 +129,7 @@
             bottom: 0;
             padding-left: 0.35rem;
             min-width: min(16.5rem, calc(100vw - var(--sidebar-width) - 2.5rem));
-            z-index: 60;
+            z-index: 200;
             opacity: 0;
             visibility: hidden;
             transform: translateX(-0.25rem);
@@ -492,12 +496,12 @@
             overflow: visible;
         }
 
+        /* overflow-y:hidden hace que overflow-x pase a auto y recorta el flyout de Mi perfil */
         .app-sidebar nav {
             height: 100%;
             display: flex;
             flex-direction: column;
-            overflow-x: visible;
-            overflow-y: hidden;
+            overflow: visible;
         }
 
         .sidebar-scroll-area {
