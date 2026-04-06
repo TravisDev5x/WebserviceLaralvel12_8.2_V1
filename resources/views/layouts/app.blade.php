@@ -279,7 +279,23 @@
 
         .app-sidebar nav {
             height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .sidebar-scroll-area {
+            flex: 1 1 auto;
+            min-height: 0;
             overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .sidebar-account-block {
+            flex-shrink: 0;
+            margin-top: auto;
+            padding-top: 0.65rem;
+            border-top: 1px solid var(--app-border);
         }
 
         .sidebar-title {
@@ -429,19 +445,7 @@
     <div class="app-layout">
         <aside id="main-navigation" class="app-sidebar" aria-label="Navegacion principal">
             <nav aria-label="Sidebar navigation">
-                <section>
-                    <div role="group" aria-labelledby="group-label-account">
-                        <h3 id="group-label-account" class="sidebar-title">Cuenta</h3>
-                        <ul class="sidebar-nav">
-                            <li>
-                                <a class="sidebar-link" href="{{ route('profile.edit') }}" data-tooltip="Tu nombre y contraseña" data-side="right" @if(request()->is('monitor/profile')) aria-current="page" @endif>
-                                    <i data-lucide="circle-user"></i>
-                                    <span>Mi perfil</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                </section>
+                <div class="sidebar-scroll-area">
                 <section>
                     @php($canMonitor = user_can('monitor.view'))
                     @php($canLogs = user_can('logs.view'))
@@ -560,6 +564,20 @@
                         </ul>
                     </div>
                 </section>
+                </div>
+                <div class="sidebar-account-block">
+                    <div role="group" aria-labelledby="group-label-account">
+                        <h3 id="group-label-account" class="sidebar-title">Cuenta</h3>
+                        <ul class="sidebar-nav">
+                            <li>
+                                <a class="sidebar-link" href="{{ route('profile.edit') }}" data-tooltip="Tu nombre y contraseña" data-side="right" @if(request()->is('monitor/profile')) aria-current="page" @endif>
+                                    <i data-lucide="circle-user"></i>
+                                    <span>Mi perfil</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
             </nav>
         </aside>
 
