@@ -16,6 +16,7 @@ use App\Livewire\IntegrationManualPage;
 use App\Livewire\IntegrationTestPanel;
 use App\Livewire\MessageTemplateManager;
 use App\Livewire\NotificationRuleManager;
+use App\Livewire\ProfilePage;
 use App\Livewire\SettingsPanel;
 use App\Livewire\UserManager;
 use App\Livewire\WebhookDashboard;
@@ -136,6 +137,7 @@ Route::post('/logout', function (Request $request) {
 })->middleware('auth')->name('logout');
 
 Route::middleware(['auth', 'verified'])->group(function (): void {
+    Route::get('/monitor/profile', ProfilePage::class)->name('profile.edit');
     Route::get('/monitor/manual', IntegrationManualPage::class)->middleware('permission:monitor.view')->name('manual.app');
     Route::get('/monitor', WebhookDashboard::class)->middleware('permission:monitor.view');
     Route::get('/monitor/logs', WebhookLogList::class)->middleware('permission:logs.view');

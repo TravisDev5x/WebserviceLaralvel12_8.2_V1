@@ -414,6 +414,19 @@
         <aside id="main-navigation" class="app-sidebar" aria-label="Navegacion principal">
             <nav aria-label="Sidebar navigation">
                 <section>
+                    <div role="group" aria-labelledby="group-label-account">
+                        <h3 id="group-label-account" class="sidebar-title">Cuenta</h3>
+                        <ul class="sidebar-nav">
+                            <li>
+                                <a class="sidebar-link" href="{{ route('profile.edit') }}" data-tooltip="Tu nombre y contraseña" data-side="right" @if(request()->is('monitor/profile')) aria-current="page" @endif>
+                                    <i data-lucide="circle-user"></i>
+                                    <span>Mi perfil</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+                <section>
                     @php($canMonitor = user_can('monitor.view'))
                     @php($canLogs = user_can('logs.view'))
                     @php($canFailed = user_can('failed.view'))
@@ -543,7 +556,7 @@
                     </div>
                     <div style="display: flex; gap: 0.5rem; align-items: center;">
                         @auth
-                            <span class="muted" style="font-size: 0.84rem;">{{ auth()->user()->name }}</span>
+                            <a class="muted" href="{{ route('profile.edit') }}" style="font-size: 0.84rem; text-decoration: none; max-width: 12rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="Mi perfil">{{ auth()->user()->name }}</a>
                             <form method="POST" action="{{ route('logout') }}" style="margin: 0;">
                                 @csrf
                                 <button class="btn" type="submit">Salir</button>
