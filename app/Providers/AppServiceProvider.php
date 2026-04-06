@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -22,5 +23,9 @@ class AppServiceProvider extends ServiceProvider
     {
         Paginator::defaultView('vendor.pagination.basecoat');
         Paginator::defaultSimpleView('vendor.pagination.simple-basecoat');
+
+        View::composer('layouts.app', function (\Illuminate\View\View $view): void {
+            $view->with('breadcrumbs', monitor_breadcrumbs());
+        });
     }
 }

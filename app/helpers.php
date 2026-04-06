@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-use App\Models\Setting;
 use App\Models\Role;
+use App\Models\Setting;
+use Illuminate\Support\Str;
 
 if (! function_exists('config_dynamic')) {
     function config_dynamic(string $dotKey, mixed $default = null): mixed
@@ -58,5 +59,75 @@ if (! function_exists('user_can')) {
             'operator' => $permission !== 'users.manage',
             default => in_array($permission, ['monitor.view', 'logs.view', 'failed.view'], true),
         };
+    }
+}
+
+if (! function_exists('monitor_breadcrumbs')) {
+    /**
+     * Migas de pan para rutas /monitor*. El último ítem lleva url null (página actual).
+     *
+     * @return list<array{label: string, url: string|null}>
+     */
+    function monitor_breadcrumbs(): array
+    {
+        if (! request()->is('monitor*')) {
+            return [];
+        }
+
+        $path = request()->path();
+
+        $trail = [];
+        $dashboardUrl = url('/monitor');
+        $onDashboard = $path === 'monitor';
+
+        if (! $onDashboard) {
+            $trail[] = ['label' => 'Tablero', 'url' => $dashboardUrl];
+        }
+
+        $map = [
+            'monitor' => ['Tablero'],
+            'monitor/manual' => ['Manual de integración'],
+            'monitor/profile' => ['Mi perfil'],
+            'monitor/logs' => ['Registros de Webhooks'],
+            'monitor/failed' => ['Webhooks fallidos'],
+            'monitor/settings' => ['Configuración'],
+            'monitor/integration-tests' => ['Pruebas de integración'],
+            'monitor/mappings' => ['Mapeo de campos'],
+            'monitor/notifications' => ['Reglas de notificación'],
+            'monitor/templates' => ['Plantillas'],
+            'monitor/whatsapp-numbers' => ['Números WhatsApp'],
+            'monitor/event-filters' => ['Filtros de eventos'],
+            'monitor/alerts' => ['Alertas por correo'],
+            'monitor/users' => ['Usuarios y roles'],
+            'monitor/access-control' => ['Usuarios, roles y permisos'],
+        ];
+
+        if (isset($map[$path])) {
+            foreach ($map[$path] as $label) {
+                $trail[] = ['label' => $label, 'url' => null];
+            }
+
+            return $trail;
+        }
+
+        if (preg_match('#^monitor/logs/(\d+)$#', $path, $m)) {
+            $trail[] = ['label' => 'Registros de Webhooks', 'url' => url('/monitor/logs')];
+            $trail[] = ['label' => 'Detalle #'.$m[1], 'url' => null];
+
+            return $trail;
+        }
+
+        $suffix = Str::after($path, 'monitor/');
+        if ($suffix !== '' && $suffix !== $path) {
+            $trail[] = ['label' => Str::headline(str_replace(['-', '_'], ' ', $suffix)), 'url' => null];
+
+            return $trail;
+        }
+
+        if ($path === 'monitor') {
+            $trail[] = ['label' => 'Tablero', 'url' => null];
+        }
+
+        return $trail;
     }
 }

@@ -107,6 +107,61 @@
             background: var(--app-surface);
         }
 
+        .app-breadcrumb {
+            margin: -0.35rem 0 0.85rem;
+        }
+
+        .app-breadcrumb-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.35rem 0.45rem;
+            font-size: 0.8rem;
+            line-height: 1.35;
+            color: var(--app-muted);
+        }
+
+        .app-breadcrumb-item {
+            display: inline-flex;
+            align-items: center;
+            max-width: 100%;
+        }
+
+        .app-breadcrumb-link {
+            color: var(--app-muted);
+            text-decoration: none;
+            border-radius: 0.25rem;
+            transition: color 0.12s ease, background-color 0.12s ease;
+        }
+
+        .app-breadcrumb-link:hover {
+            color: var(--app-text);
+        }
+
+        .app-breadcrumb-current {
+            color: var(--app-text);
+            font-weight: 600;
+            word-break: break-word;
+        }
+
+        .app-breadcrumb-sep {
+            display: inline-flex;
+            align-items: center;
+            flex-shrink: 0;
+            color: var(--app-muted);
+            opacity: 0.75;
+            list-style: none;
+        }
+
+        .app-breadcrumb-chevron {
+            display: block;
+            width: 0.95rem;
+            height: 0.95rem;
+        }
+
         .page-header {
             display: flex;
             align-items: center;
@@ -626,6 +681,9 @@
             </header>
 
             <main class="content-shell">
+                @if(! empty($breadcrumbs ?? []))
+                    <x-breadcrumb :items="$breadcrumbs" />
+                @endif
                 {{ $slot }}
             </main>
             @include('partials.global-footer')
