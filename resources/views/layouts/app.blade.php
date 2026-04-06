@@ -798,7 +798,7 @@
                         <ul class="sidebar-nav">
                             <li>
                                 <div class="sidebar-account-menu">
-                                    <a class="sidebar-link" href="{{ route('profile.edit') }}" id="sidebar-account-menu-trigger" aria-haspopup="true" aria-controls="sidebar-account-flyout" data-tooltip="Cuenta: pasar el ratón o Tab para abrir el panel" data-side="right" @if(request()->is('monitor/profile')) aria-current="page" @endif>
+                                    <a class="sidebar-link" href="{{ route('profile.edit') }}" id="sidebar-account-menu-trigger" aria-haspopup="true" aria-controls="sidebar-account-flyout" @if(request()->is('monitor/profile')) aria-current="page" @endif>
                                         <i data-lucide="circle-user"></i>
                                         <span>Mi perfil</span>
                                         <i data-lucide="chevron-right" class="sidebar-account-menu-chevron" aria-hidden="true"></i>
