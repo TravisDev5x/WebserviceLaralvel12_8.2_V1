@@ -8,33 +8,22 @@
     </ul>
 </section>
 
-<section class="manual-block" id="requisitos-servidor">
-    <h2>2. Requisitos del servidor (middleware)</h2>
-    <ul>
-        <li>PHP 8.2+, extensiones habituales de Laravel (openssl, pdo, mbstring, etc.).</li>
-        <li>Base de datos (MySQL/MariaDB recomendado) con migraciones ejecutadas.</li>
-        <li><strong>Worker de colas activo:</strong> <code>php artisan queue:work --queue=webhooks</code> (o equivalente en producción). Sin esto, los webhooks quedan “aceptados” pero <strong>no se procesan</strong>.</li>
-        <li>URL pública HTTPS hacia <code>/webhook/botmaker</code> y <code>/webhook/bitrix24</code>.</li>
-        <li>Variables de entorno configuradas (apartado 5).</li>
-    </ul>
-</section>
-
 <section class="manual-block" id="bitrix-requisitos">
-    <h2>3. Bitrix24 — qué debes configurar (explícito)</h2>
+    <h2>2. Bitrix24 — qué debes configurar (explícito)</h2>
 
-    <h3>3.1 Webhook de entrada hacia esta aplicación</h3>
+    <h3>2.1 Webhook de entrada hacia esta aplicación</h3>
     <p>Bitrix debe poder enviar peticiones <strong>POST</strong> a:</p>
     <p><code>{{ $appBaseUrl }}/webhook/bitrix24</code></p>
     <p>Configura en Bitrix24 un <strong>webhook saliente</strong> (suscripción a eventos del CRM) que apunte a esa URL. La ruta exacta depende de tu <code>APP_URL</code> en <code>.env</code>.</p>
 
-    <h3>3.2 Seguridad: token compartido (obligatorio)</h3>
+    <h3>2.2 Seguridad: token compartido (obligatorio)</h3>
     <p>En el cuerpo JSON del webhook, Bitrix envía normalmente un bloque <code>auth</code>. Esta aplicación exige que el campo:</p>
     <p><code>auth.application_token</code></p>
     <p>sea <strong>exactamente igual</strong> al valor que guardes en tu servidor como:</p>
     <p><code>BITRIX24_WEBHOOK_SECRET</code> (en <code>.env</code> o en Configuración del panel).</p>
     <p>Si no coinciden, la respuesta será <strong>401 Invalid signature</strong> y no se procesará el evento.</p>
 
-    <h3>3.3 Formato mínimo del JSON que valida la aplicación</h3>
+    <h3>2.3 Formato mínimo del JSON que valida la aplicación</h3>
     <p>Para que el webhook sea aceptado (antes de filtros y cola), el payload debe incluir:</p>
     <ul>
         <li><code>event</code>: cadena no vacía (nombre del evento de Bitrix).</li>
@@ -43,7 +32,7 @@
     </ul>
     <p><strong>Nota:</strong> el parseo de teléfono y mensajes para Bitrix→Botmaker asume estructuras típicas de lead (<code>PHONE</code>, <code>COMMENTS</code>, <code>NAME</code>, etc.). Si tu portal usa campos distintos, deberás ajustar <strong>mapeos dinámicos</strong> en el panel (<em>Mapeo de campos</em> para plataforma Bitrix24) o el código.</p>
 
-    <h3>3.4 Webhook de salida (REST) hacia Bitrix24</h3>
+    <h3>2.4 Webhook de salida (REST) hacia Bitrix24</h3>
     <p>Para crear/actualizar leads desde el flujo Botmaker→Bitrix, necesitas una URL de webhook de Bitrix24 con permisos de CRM, por ejemplo:</p>
     <p><code>https://TU_PORTAL.bitrix24.com/rest/USUARIO/CODIGO_SECRETO/</code></p>
     <p>Esa URL completa va en <code>BITRIX24_WEBHOOK_URL</code>. La aplicación llamará métodos como <code>crm.lead.add</code>, <code>crm.lead.update</code> y <code>crm.contact.list</code> mediante POST a <code>{WEBHOOK_URL}/{metodo}</code>.</p>
@@ -51,25 +40,25 @@
 </section>
 
 <section class="manual-block" id="botmaker-requisitos">
-    <h2>4. Botmaker — qué debes configurar (explícito)</h2>
+    <h2>3. Botmaker — qué debes configurar (explícito)</h2>
 
-    <h3>4.1 Webhook de entrada hacia esta aplicación</h3>
+    <h3>3.1 Webhook de entrada hacia esta aplicación</h3>
     <p>Botmaker debe enviar eventos <strong>POST</strong> a:</p>
     <p><code>{{ $appBaseUrl }}/webhook/botmaker</code></p>
 
-    <h3>4.2 Seguridad: cabecera de firma (obligatorio)</h3>
+    <h3>3.2 Seguridad: cabecera de firma (obligatorio)</h3>
     <p>Cada petición debe incluir la cabecera HTTP:</p>
     <p><code>X-Botmaker-Signature: &lt;valor_secreto&gt;</code></p>
     <p>Ese valor debe ser <strong>idéntico</strong> (comparación segura) a <code>BOTMAKER_WEBHOOK_SECRET</code> en tu servidor. Si falta o no coincide → <strong>401 Invalid signature</strong>.</p>
 
-    <h3>4.3 Formato mínimo del JSON que valida la aplicación</h3>
+    <h3>3.3 Formato mínimo del JSON que valida la aplicación</h3>
     <ul>
         <li><code>event</code> o <code>type</code>: cadena no vacía que identifique el evento.</li>
         <li>Teléfono o contacto: al menos uno de <code>whatsappNumber</code>, <code>contact.phone</code>, <code>phone</code>, <code>contactId</code> o <code>customerId</code> (como cadena identificable).</li>
     </ul>
     <p>La aplicación fusiona datos de <code>messages</code>, <code>clientPayload</code>, <code>context</code>, <code>attributes</code> y <code>variables</code> para obtener nombre, apellidos, fechas, etc. Conviene que el flujo del bot rellene esos datos de forma coherente con tus <strong>mapeos</strong>.</p>
 
-    <h3>4.4 API de salida (envío de WhatsApp desde Bitrix→Botmaker)</h3>
+    <h3>3.4 API de salida (envío de WhatsApp desde Bitrix→Botmaker)</h3>
     <p>Debes disponer de:</p>
     <ul>
         <li><code>BOTMAKER_API_URL</code>: por defecto <code>https://go.botmaker.com/api/v1.0</code></li>
@@ -79,13 +68,13 @@
     <p><code>{BOTMAKER_API_URL}/chats-actions/send-messages</code></p>
     <p>con cuerpo JSON que incluye <code>chatPlatform: whatsapp</code>, <code>whatsappNumber</code> normalizado y el texto del mensaje. Si en el panel defines un <strong>número/canal por defecto</strong> (WhatsApp), se envía también <code>chatChannelId</code> cuando corresponde.</p>
 
-    <h3>4.5 Correo electrónico (E-mail) hacia Bitrix</h3>
+    <h3>3.5 Correo electrónico (E-mail) hacia Bitrix</h3>
     <p>El flujo Botmaker→Bitrix puede enviar el <strong>EMAIL</strong> estándar del lead en Bitrix (mismo formato multivalor que <code>PHONE</code>: <code>VALUE</code> + <code>VALUE_TYPE: WORK</code>). Los alias de origen incluyen <code>email</code>, <code>correo</code>, <code>mail</code>, etc. (configurable en <code>config/integrations.php</code> o JSON en <code>.env</code>). El valor debe ser un correo válido; si no lo es, el campo no se envía.</p>
     <p>Si en tu portal el correo obligatorio es un <strong>campo personalizado</strong> (<code>UF_CRM_*</code>), define en el mapeo <code>email</code> → ese código (y comprueba en Bitrix si el campo admite formato múltiple o solo texto plano).</p>
 </section>
 
 <section class="manual-block" id="variables-entorno">
-    <h2>5. Variables de entorno (.env) — referencia rápida</h2>
+    <h2>4. Variables de entorno (.env) — referencia rápida</h2>
     <div class="table-wrap">
         <table class="table-clean doc-table">
             <thead>
@@ -109,9 +98,9 @@
 </section>
 
 <section class="manual-block" id="flujos">
-    <h2>6. Flujos paso a paso</h2>
+    <h2>5. Flujos paso a paso</h2>
 
-    <h3>6.1 Botmaker → Bitrix24</h3>
+    <h3>5.1 Botmaker → Bitrix24</h3>
     <ol>
         <li>Llega POST a <code>/webhook/botmaker</code> con firma válida.</li>
         <li>Se crea un registro en <em>Registros de Webhooks</em> con <code>correlation_id</code>.</li>
@@ -122,7 +111,7 @@
         <li>El resultado (éxito o error) queda en el mismo registro de webhook.</li>
     </ol>
 
-    <h3>6.2 Bitrix24 → Botmaker</h3>
+    <h3>5.2 Bitrix24 → Botmaker</h3>
     <ol>
         <li>Llega POST a <code>/webhook/bitrix24</code> con <code>auth.application_token</code> válido.</li>
         <li>Registro en base de datos y, si aplica, filtros.</li>
@@ -132,7 +121,7 @@
 </section>
 
 <section class="manual-block" id="panel">
-    <h2>7. Panel web (/monitor)</h2>
+    <h2>6. Panel web (/monitor)</h2>
     <p>Tras iniciar sesión y verificar correo, según tu rol verás secciones como:</p>
     <ul>
         <li><strong>Tablero</strong> — resumen del día y últimos eventos.</li>
@@ -151,7 +140,7 @@
 </section>
 
 <section class="manual-block" id="limites">
-    <h2>8. Límites y buenas prácticas</h2>
+    <h2>7. Límites y buenas prácticas</h2>
     <ul>
         <li><strong>Rate limit:</strong> hasta 120 solicitudes por minuto por IP en rutas <code>/webhook/*</code>.</li>
         <li><strong>Reintentos:</strong> los jobs usan backoff configurable (<code>retry.*</code> en settings o config).</li>
@@ -161,7 +150,7 @@
 </section>
 
 <section class="manual-block" id="comandos">
-    <h2>9. Comandos útiles</h2>
+    <h2>8. Comandos útiles</h2>
     <ul>
         <li><code>php artisan webhook:status</code> — resumen de actividad del día, últimos eventos y comprobación de Botmaker API, Bitrix API y cola (usa <code>IntegrationProbeService</code>).</li>
         <li><code>php artisan bitrix:test-lead</code> — crea un <strong>lead real</strong> en Bitrix24 con todos los campos del mapeo estándar (incluido EMAIL). Opción <code>--show-fields</code> imprime el JSON enviado a <code>crm.lead.add</code>. Misma lógica que el botón del panel «Pruebas de integración».</li>
@@ -170,10 +159,10 @@
 </section>
 
 <section class="manual-block" id="pruebas-webservice">
-    <h2>10. Pruebas desde el webservice (panel y JSON)</h2>
+    <h2>9. Pruebas desde el webservice (panel y JSON)</h2>
     <p>Además de Artisan, puedes probar integraciones con la <strong>misma sesión</strong> del panel (cookies de Laravel).</p>
 
-    <h3>10.1 Panel web</h3>
+    <h3>9.1 Panel web</h3>
     <p>Ruta: <code>{{ $appBaseUrl }}/monitor/integration-tests</code>. Requiere usuario autenticado, correo verificado y permiso <strong>gestionar configuración</strong> (<code>settings.manage</code>).</p>
     <ul>
         <li><strong>Crear lead de prueba:</strong> llama a Bitrix <code>crm.lead.add</code> con datos de ejemplo (nombre, teléfono, email, campos personalizados del mapeo por defecto, listas, etc.). Úsalo solo en entornos controlados.</li>
@@ -181,7 +170,7 @@
     </ul>
     <p>Las llamadas a Bitrix pueden tardar varios segundos (timeout HTTP configurable). Si algo falla, revisa la consola del navegador y <code>storage/logs/laravel.log</code>.</p>
 
-    <h3>10.2 Endpoints JSON (HTTP)</h3>
+    <h3>9.2 Endpoints JSON (HTTP)</h3>
     <p>Para Postman, scripts internos o orquestadores que compartan la sesión del navegador:</p>
     <ul>
         <li><code>POST {{ $appBaseUrl }}/monitor/integration-probes/bitrix-sample</code> — crea el lead de prueba; respuesta JSON con <code>success</code>, <code>lead_id</code>, <code>fields</code>, <code>body</code>, etc. Requiere cabecera <code>X-XSRF-TOKEN</code> (valor de la cookie <code>XSRF-TOKEN</code>) y cookie de sesión. Límite aproximado: 15 peticiones por minuto (throttle).</li>
@@ -189,6 +178,6 @@
     </ul>
     <p>No están pensados para integración pública sin autenticación; no sustituyen a los webhooks oficiales <code>/webhook/botmaker</code> y <code>/webhook/bitrix24</code>.</p>
 
-    <h3>10.3 Servicio interno</h3>
+    <h3>9.3 Servicio interno</h3>
     <p>La lógica compartida vive en <code>App\Services\IntegrationProbeService</code>, usada por los comandos, el panel Livewire y el controlador JSON.</p>
 </section>
