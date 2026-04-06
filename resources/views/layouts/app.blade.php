@@ -88,10 +88,20 @@
 
         .sidebar-account-menu {
             position: relative;
+            z-index: 1;
         }
 
         .sidebar-account-menu .sidebar-link {
             width: 100%;
+        }
+
+        .sidebar-account-menu:focus-within {
+            z-index: 5;
+        }
+
+        .sidebar-account-menu:focus-within .sidebar-link {
+            outline: 2px solid var(--app-border);
+            outline-offset: 2px;
         }
 
         .sidebar-account-menu-chevron {
@@ -136,8 +146,14 @@
         .sidebar-account-menu:focus-within .sidebar-account-menu-dropdown {
             opacity: 1;
             visibility: visible;
-            transform: translateX(0);
             pointer-events: auto;
+        }
+
+        @media (min-width: 1025px) {
+            .sidebar-account-menu:hover .sidebar-account-menu-dropdown,
+            .sidebar-account-menu:focus-within .sidebar-account-menu-dropdown {
+                transform: translateX(0);
+            }
         }
 
         .account-flyout-card {
@@ -197,9 +213,9 @@
                 top: auto;
                 margin-bottom: 0.25rem;
                 padding-left: 0;
-                padding-bottom: 0;
+                padding-bottom: 0.35rem;
                 min-width: min(16.5rem, calc(100vw - 2rem));
-                transform: translateY(0.25rem);
+                transform: translateY(0.35rem);
             }
 
             .sidebar-account-menu-dropdown::before {
@@ -208,11 +224,11 @@
                 top: 100%;
                 bottom: auto;
                 width: 100%;
-                height: 0.35rem;
+                height: 0.4rem;
             }
 
-            body.sidebar-open .sidebar-account-menu:hover .sidebar-account-menu-dropdown,
-            body.sidebar-open .sidebar-account-menu:focus-within .sidebar-account-menu-dropdown {
+            .sidebar-account-menu:hover .sidebar-account-menu-dropdown,
+            .sidebar-account-menu:focus-within .sidebar-account-menu-dropdown {
                 transform: translateY(0);
             }
         }
@@ -473,6 +489,7 @@
             border-right: 1px solid var(--app-border);
             padding: 0.85rem 0.6rem;
             z-index: 35;
+            overflow: visible;
         }
 
         .app-sidebar nav {
@@ -495,6 +512,8 @@
             margin-top: auto;
             padding-top: 0.65rem;
             border-top: 1px solid var(--app-border);
+            overflow: visible;
+            position: relative;
         }
 
         .sidebar-title {
@@ -610,6 +629,7 @@
                 width: min(88vw, 18rem);
                 transform: translateX(-100%);
                 transition: transform .2s ease;
+                overflow: visible;
             }
 
             body.sidebar-open .app-sidebar {
@@ -774,19 +794,19 @@
                         <ul class="sidebar-nav">
                             <li>
                                 <div class="sidebar-account-menu">
-                                    <a class="sidebar-link" href="{{ route('profile.edit') }}" data-tooltip="Cuenta y cierre de sesión" data-side="right" @if(request()->is('monitor/profile')) aria-current="page" @endif>
+                                    <a class="sidebar-link" href="{{ route('profile.edit') }}" id="sidebar-account-menu-trigger" aria-haspopup="true" aria-controls="sidebar-account-flyout" data-tooltip="Cuenta: pasar el ratón o Tab para abrir el panel" data-side="right" @if(request()->is('monitor/profile')) aria-current="page" @endif>
                                         <i data-lucide="circle-user"></i>
                                         <span>Mi perfil</span>
                                         <i data-lucide="chevron-right" class="sidebar-account-menu-chevron" aria-hidden="true"></i>
                                     </a>
-                                    <div class="sidebar-account-menu-dropdown" role="region" aria-label="Acciones de cuenta">
+                                    <div class="sidebar-account-menu-dropdown" id="sidebar-account-flyout" role="region" aria-label="Acciones de cuenta">
                                         <div class="account-flyout-card">
                                             <div class="account-flyout-head">
-                                                <strong>{{ auth()->user()->name }}</strong>
+                                                <strong id="sidebar-account-flyout-title">{{ auth()->user()->name }}</strong>
                                                 <span class="muted account-flyout-email">{{ auth()->user()->email }}</span>
                                             </div>
-                                            <div class="account-flyout-actions">
-                                                <a class="btn btn-primary" href="{{ route('profile.edit') }}">Mi perfil</a>
+                                            <div class="account-flyout-actions" role="group" aria-labelledby="sidebar-account-flyout-title">
+                                                <a class="btn btn-primary" href="{{ route('profile.edit') }}">Ir a mi perfil</a>
                                                 <form method="POST" action="{{ route('logout') }}">
                                                     @csrf
                                                     <button class="btn" type="submit">Cerrar sesión</button>
