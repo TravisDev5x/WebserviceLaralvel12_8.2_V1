@@ -4,6 +4,17 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $title ?? 'Monitor de Webhooks' }}</title>
+    {{-- Tema antes del primer pintado: evita flash al recargar o cambiar de módulo --}}
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem('ui-theme') || 'dark';
+                var h = document.documentElement;
+                h.setAttribute('data-theme', t);
+                h.style.colorScheme = t === 'light' ? 'light' : 'dark';
+            } catch (e) {}
+        })();
+    </script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/basecoat-css@0.3.11/dist/basecoat.cdn.min.css">
     <script src="https://cdn.jsdelivr.net/npm/basecoat-css@0.3.11/dist/js/basecoat.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/basecoat-css@0.3.11/dist/js/sidebar.min.js" defer></script>
@@ -623,20 +634,15 @@
             const btn = document.getElementById('theme-toggle');
             const btnText = document.getElementById('theme-toggle-text');
             const btnIcon = document.getElementById('theme-toggle-icon');
-            const savedTheme = localStorage.getItem('ui-theme');
-            const initialTheme = savedTheme || 'dark';
-            let lucideRenderTimer = null;
-
-            root.setAttribute('data-theme', initialTheme);
+            let lucideDebounceTimer = null;
 
             const renderIcons = () => {
                 if (window.lucide) window.lucide.createIcons();
             };
-            const scheduleRenderIcons = () => {
-                if (lucideRenderTimer) {
-                    window.clearTimeout(lucideRenderTimer);
-                }
-                lucideRenderTimer = window.setTimeout(renderIcons, 30);
+
+            const scheduleRenderIconsDebounced = () => {
+                if (lucideDebounceTimer) window.clearTimeout(lucideDebounceTimer);
+                lucideDebounceTimer = window.setTimeout(renderIcons, 120);
             };
 
             const refreshThemeButton = () => {
@@ -646,46 +652,45 @@
                 renderIcons();
             };
 
-            refreshThemeButton();
-            renderIcons();
+            function bindAppShell() {
+                refreshThemeButton();
+                renderIcons();
 
-            if (btn) {
-                btn.addEventListener('click', () => {
-                    const nextTheme = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-                    root.setAttribute('data-theme', nextTheme);
-                    localStorage.setItem('ui-theme', nextTheme);
-                    refreshThemeButton();
+                if (btn) {
+                    btn.addEventListener('click', () => {
+                        const nextTheme = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+                        root.setAttribute('data-theme', nextTheme);
+                        root.style.colorScheme = nextTheme === 'light' ? 'light' : 'dark';
+                        try {
+                            localStorage.setItem('ui-theme', nextTheme);
+                        } catch (e) {}
+                        refreshThemeButton();
+                    });
+                }
+
+                const menuButton = document.getElementById('menu-toggle-btn');
+                const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+                const closeSidebar = () => document.body.classList.remove('sidebar-open');
+                const toggleSidebar = () => document.body.classList.toggle('sidebar-open');
+
+                if (menuButton) menuButton.addEventListener('click', toggleSidebar);
+                if (sidebarBackdrop) sidebarBackdrop.addEventListener('click', closeSidebar);
+
+                window.addEventListener('resize', () => {
+                    if (window.innerWidth > 1024) closeSidebar();
                 });
+
+                document.addEventListener('livewire:init', scheduleRenderIconsDebounced);
+                document.addEventListener('livewire:initialized', scheduleRenderIconsDebounced);
+                document.addEventListener('livewire:navigated', scheduleRenderIconsDebounced);
+                document.addEventListener('livewire:update', scheduleRenderIconsDebounced);
             }
 
-            const menuButton = document.getElementById('menu-toggle-btn');
-            const sidebarBackdrop = document.getElementById('sidebar-backdrop');
-            const closeSidebar = () => document.body.classList.remove('sidebar-open');
-            const toggleSidebar = () => document.body.classList.toggle('sidebar-open');
-
-            if (menuButton) {
-                menuButton.addEventListener('click', toggleSidebar);
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', bindAppShell);
+            } else {
+                bindAppShell();
             }
-
-            if (sidebarBackdrop) {
-                sidebarBackdrop.addEventListener('click', closeSidebar);
-            }
-
-            window.addEventListener('resize', () => {
-                if (window.innerWidth > 1024) closeSidebar();
-            });
-
-            // Livewire puede reconstruir nodos y borrar SVGs de Lucide.
-            document.addEventListener('livewire:init', scheduleRenderIcons);
-            document.addEventListener('livewire:initialized', scheduleRenderIcons);
-            document.addEventListener('livewire:navigated', scheduleRenderIcons);
-            document.addEventListener('livewire:update', scheduleRenderIcons);
-
-            // Respaldo: detecta cambios en el DOM y vuelve a pintar iconos.
-            const observer = new MutationObserver(() => {
-                scheduleRenderIcons();
-            });
-            observer.observe(document.body, { childList: true, subtree: true });
         })();
     </script>
 </body>

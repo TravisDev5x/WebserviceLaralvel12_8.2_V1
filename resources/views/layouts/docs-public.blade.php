@@ -4,6 +4,16 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $title ?? 'Manual de integración' }}</title>
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem('ui-theme') || 'dark';
+                var h = document.documentElement;
+                h.setAttribute('data-theme', t);
+                h.style.colorScheme = t === 'light' ? 'light' : 'dark';
+            } catch (e) {}
+        })();
+    </script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/basecoat-css@0.3.11/dist/basecoat.cdn.min.css">
     <script src="https://cdn.jsdelivr.net/npm/basecoat-css@0.3.11/dist/js/basecoat.min.js" defer></script>
     <style>
@@ -95,13 +105,12 @@
     <script>
         (function () {
             var root = document.documentElement;
-            var saved = localStorage.getItem('ui-theme') || 'dark';
-            root.setAttribute('data-theme', saved);
             var btn = document.getElementById('docs-theme-toggle');
             if (btn) btn.addEventListener('click', function () {
                 var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
                 root.setAttribute('data-theme', next);
-                localStorage.setItem('ui-theme', next);
+                root.style.colorScheme = next === 'light' ? 'light' : 'dark';
+                try { localStorage.setItem('ui-theme', next); } catch (e) {}
             });
         })();
     </script>
