@@ -15,9 +15,10 @@
                 <div style="min-width: 0; flex: 1;">
                     <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
                         <h3 style="margin: 0; font-size: 1.05rem;">Conexión Botmaker</h3>
-                        @if($botmakerConfigured)<span class="badge-soft" style="border-color: #16a34a; color: #16a34a;">Conectado</span>@else<span class="badge-soft" style="border-color: #dc2626; color: #dc2626;">Sin configurar</span>@endif
+                        @if($botmakerConfigured)<span class="badge-soft" style="border-color: #16a34a; color: #16a34a;">Configurado</span>@else<span class="badge-soft" style="border-color: #dc2626; color: #dc2626;">Requiere configuración</span>@endif
                     </div>
                     <p class="muted" style="margin: 0; font-size: 0.88rem; line-height: 1.45;">Configura la conexión con la API de Botmaker para enviar y recibir mensajes de WhatsApp.</p>
+                    <p class="muted" style="margin:.35rem 0 0; font-size:.78rem;">Actualizado {{ $botmakerUpdatedAt ? \Illuminate\Support\Carbon::parse($botmakerUpdatedAt)->diffForHumans() : 'nunca' }}</p>
                 </div>
             </div>
         </a>
@@ -27,9 +28,10 @@
                 <div style="min-width: 0; flex: 1;">
                     <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
                         <h3 style="margin: 0; font-size: 1.05rem;">Conexión Bitrix24</h3>
-                        @if($bitrixConfigured)<span class="badge-soft" style="border-color: #16a34a; color: #16a34a;">Conectado</span>@else<span class="badge-soft" style="border-color: #dc2626; color: #dc2626;">Sin configurar</span>@endif
+                        @if($bitrixConfigured)<span class="badge-soft" style="border-color: #16a34a; color: #16a34a;">Configurado</span>@else<span class="badge-soft" style="border-color: #eab308; color: #a16207;">Verificar</span>@endif
                     </div>
                     <p class="muted" style="margin: 0; font-size: 0.88rem; line-height: 1.45;">Configura la conexión con Bitrix24 CRM para crear y actualizar leads.</p>
+                    <p class="muted" style="margin:.35rem 0 0; font-size:.78rem;">Actualizado {{ $bitrixUpdatedAt ? \Illuminate\Support\Carbon::parse($bitrixUpdatedAt)->diffForHumans() : 'nunca' }}</p>
                 </div>
             </div>
         </a>

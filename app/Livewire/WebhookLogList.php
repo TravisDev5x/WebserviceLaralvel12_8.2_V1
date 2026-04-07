@@ -25,6 +25,8 @@ class WebhookLogList extends Component
 
     public string $dateTo = '';
 
+    public string $search = '';
+
     public function updatingDirectionFilter(): void
     {
         $this->resetPage();
@@ -41,6 +43,11 @@ class WebhookLogList extends Component
     }
 
     public function updatingDateTo(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingSearch(): void
     {
         $this->resetPage();
     }
@@ -119,6 +126,14 @@ class WebhookLogList extends Component
             })
             ->when($this->dateTo !== '', function (Builder $query): void {
                 $query->whereDate('created_at', '<=', $this->dateTo);
+            })
+            ->when(trim($this->search) !== '', function (Builder $query): void {
+                $term = '%'.trim($this->search).'%';
+                $query->where(function (Builder $inner) use ($term): void {
+                    $inner->where('external_id', 'like', $term)
+                        ->orWhere('payload_in', 'like', $term)
+                        ->orWhere('source_event', 'like', $term);
+                });
             });
     }
 }

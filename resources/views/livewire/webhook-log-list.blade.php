@@ -15,22 +15,22 @@
     </div>
 
     <section class="card card-pad" style="margin-bottom: 1rem;">
+        <div style="display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:.75rem;">
+            <button type="button" class="btn btn-sm {{ $directionFilter === 'all' ? 'btn-primary' : '' }}" wire:click="$set('directionFilter','all')">Todas</button>
+            <button type="button" class="btn btn-sm {{ $directionFilter === 'botmaker_to_bitrix' ? 'btn-primary' : '' }}" wire:click="$set('directionFilter','botmaker_to_bitrix')">WhatsApp -> CRM</button>
+            <button type="button" class="btn btn-sm {{ $directionFilter === 'bitrix_to_botmaker' ? 'btn-primary' : '' }}" wire:click="$set('directionFilter','bitrix_to_botmaker')">CRM -> WhatsApp</button>
+        </div>
+        <div style="display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:.75rem;">
+            @foreach ($statuses as $value => $label)
+                @php($isActive = $statusFilter === $value)
+                @php($badgeColor = match($value){'sent'=>'#16a34a','failed'=>'#dc2626','processing'=>'#ca8a04','received'=>'#2563eb',default=>'#64748b'})
+                <button type="button" class="badge-soft" style="border-color:{{ $badgeColor }}; color:{{ $isActive ? '#fff' : $badgeColor }}; background:{{ $isActive ? $badgeColor : 'transparent' }};" wire:click="$set('statusFilter','{{ $value }}')">{{ $label }}</button>
+            @endforeach
+        </div>
         <div class="grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
             <div>
-                <label for="directionFilter">Dirección</label>
-                <select id="directionFilter" class="select" wire:model.live="directionFilter">
-                    @foreach ($directions as $value => $label)
-                        <option value="{{ $value }}">{{ $label }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div>
-                <label for="statusFilter">Estado</label>
-                <select id="statusFilter" class="select" wire:model.live="statusFilter">
-                    @foreach ($statuses as $value => $label)
-                        <option value="{{ $value }}">{{ $label }}</option>
-                    @endforeach
-                </select>
+                <label for="search">Buscar por teléfono o nombre</label>
+                <input id="search" class="input" type="text" wire:model.live.debounce.400ms="search" placeholder="Ej. 5544... o Juan">
             </div>
             <div>
                 <label for="dateFrom">Desde</label>
@@ -51,9 +51,9 @@
                         <th>ID</th>
                         <th>Dirección</th>
                         <th>Evento</th>
-                        <th>ID Externo</th>
+                        <th>Contacto</th>
                         <th>Estado</th>
-                        <th>Código HTTP</th>
+                        <th>Resultado</th>
                         <th>Procesamiento ms</th>
                         <th>Fecha</th>
                     </tr>
@@ -61,6 +61,13 @@
                 <tbody>
                     @forelse ($webhooks as $webhook)
                         @php
+                            $payload = is_array($webhook->payload_in) ? $webhook->payload_in : [];
+                            $contactName = trim((string) (($payload['firstName'] ?? '').' '.($payload['lastName'] ?? '')));
+                            $contactPhone = (string) ($payload['whatsappNumber'] ?? $payload['contact']['phone'] ?? $payload['phone'] ?? '');
+                            $contact = $contactName !== '' ? $contactName : ($contactPhone !== '' ? $contactPhone : ($webhook->external_id ?: '-'));
+                            $resultText = $webhook->status === 'sent'
+                                ? 'Lead creado ✓'
+                                : ($webhook->error_message ? 'Error: '.\Illuminate\Support\Str::limit($webhook->error_message, 42) : (($webhook->http_status ? "HTTP {$webhook->http_status}" : 'Sin respuesta')));
                             $badgeStyle = match ($webhook->status) {
                                 'sent' => 'background: #d1fae5; color: #065f46; padding: 2px 8px; border-radius: 12px;',
                                 'failed' => 'background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 12px;',
@@ -72,9 +79,9 @@
                             <td>{{ $webhook->id }}</td>
                             <td>{{ $webhook->direction }}</td>
                             <td>{{ $webhook->source_event }}</td>
-                            <td>{{ $webhook->external_id ?: '-' }}</td>
+                            <td>{{ $contact }}</td>
                             <td><span style="{{ $badgeStyle }}">{{ $webhook->status }}</span></td>
-                            <td>{{ $webhook->http_status ?: '-' }}</td>
+                            <td>{{ $resultText }}</td>
                             <td>{{ $webhook->processing_ms ?: '-' }}</td>
                             <td>{{ $webhook->created_at?->format('Y-m-d H:i:s') }}</td>
                         </tr>

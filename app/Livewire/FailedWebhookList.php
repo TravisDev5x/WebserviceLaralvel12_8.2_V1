@@ -66,6 +66,38 @@ class FailedWebhookList extends Component
         $failedWebhook->markAsResolved();
     }
 
+    public function retryAllPending(): void
+    {
+        if (! user_can('failed.manage')) {
+            return;
+        }
+
+        $rows = FailedWebhook::query()
+            ->with('webhookLog')
+            ->whereIn('status', [FailedWebhook::STATUS_PENDING, FailedWebhook::STATUS_EXHAUSTED])
+            ->limit(50)
+            ->get();
+
+        foreach ($rows as $failedWebhook) {
+            if ($failedWebhook->webhookLog === null) {
+                continue;
+            }
+
+            if ($failedWebhook->direction === WebhookDirection::BotmakerToBitrix->value) {
+                ProcessBotmakerPayload::dispatch($failedWebhook->webhookLog)->onQueue('webhooks');
+            }
+
+            if ($failedWebhook->direction === WebhookDirection::BitrixToBotmaker->value) {
+                ProcessBitrix24Payload::dispatch($failedWebhook->webhookLog)->onQueue('webhooks');
+            }
+
+            $failedWebhook->update([
+                'status' => FailedWebhook::STATUS_RETRYING,
+                'next_retry_at' => null,
+            ]);
+        }
+    }
+
     public function render(): View
     {
         $failedWebhooks = FailedWebhook::query()

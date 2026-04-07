@@ -9,6 +9,7 @@ use App\Enums\WebhookStatus;
 use App\Models\FailedWebhook;
 use App\Models\WebhookLog;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Carbon;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -46,10 +47,12 @@ class WebhookDashboard extends Component
                 return [
                     'id' => $log->id,
                     'direction' => $this->directionLabel((string) $log->direction),
+                    'direction_icon' => $this->directionIcon((string) $log->direction),
                     'source_event' => (string) $log->source_event,
                     'status' => (string) $log->status,
-                    'lead_id' => $this->extractLeadId($log),
-                    'created_at' => optional($log->created_at)?->format('Y-m-d H:i:s'),
+                    'status_label' => $this->statusLabel((string) $log->status),
+                    'contact' => $this->extractContact($log),
+                    'created_at' => $this->humanDate($log->created_at),
                 ];
             });
 
@@ -64,20 +67,63 @@ class WebhookDashboard extends Component
         ]);
     }
 
-    private function extractLeadId(WebhookLog $log): string
+    private function extractContact(WebhookLog $log): string
     {
         $payload = is_array($log->payload_in) ? $log->payload_in : [];
-        $leadId = $payload['data']['FIELDS']['ID'] ?? $log->external_id;
+        $name = trim((string) (($payload['firstName'] ?? '').' '.($payload['lastName'] ?? '')));
+        $phone = (string) ($payload['whatsappNumber'] ?? $payload['contact']['phone'] ?? $payload['phone'] ?? '');
+        $leadId = (string) ($payload['data']['FIELDS']['ID'] ?? $log->external_id ?? '');
 
-        return (string) ($leadId ?? '-');
+        if ($name !== '') {
+            return $name;
+        }
+        if ($phone !== '') {
+            return $phone;
+        }
+
+        return $leadId !== '' ? "#{$leadId}" : '-';
     }
 
     private function directionLabel(string $direction): string
     {
         return match ($direction) {
-            WebhookDirection::BotmakerToBitrix->value => WebhookDirection::BotmakerToBitrix->label(),
-            WebhookDirection::BitrixToBotmaker->value => WebhookDirection::BitrixToBotmaker->label(),
+            WebhookDirection::BotmakerToBitrix->value => 'WhatsApp -> CRM',
+            WebhookDirection::BitrixToBotmaker->value => 'CRM -> WhatsApp',
             default => $direction,
         };
+    }
+
+    private function directionIcon(string $direction): string
+    {
+        return $direction === WebhookDirection::BotmakerToBitrix->value ? '->' : '<-';
+    }
+
+    private function statusLabel(string $status): string
+    {
+        return match ($status) {
+            WebhookStatus::Sent->value => 'Enviado',
+            WebhookStatus::Failed->value => 'Fallido',
+            WebhookStatus::Processing->value => 'Procesando',
+            default => 'Recibido',
+        };
+    }
+
+    private function humanDate(?Carbon $date): string
+    {
+        if (! $date) {
+            return '-';
+        }
+
+        if ($date->isToday()) {
+            return 'hoy '.$date->format('H:i');
+        }
+        if ($date->isYesterday()) {
+            return 'ayer '.$date->format('H:i');
+        }
+        if ($date->greaterThan(now()->subHours(6))) {
+            return $date->diffForHumans();
+        }
+
+        return $date->format('d/m/Y H:i');
     }
 }

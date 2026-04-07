@@ -116,6 +116,7 @@ class BotmakerSettings extends Component
         try {
             $response = $client->request('GET', $url, [
                 'headers' => [
+                    'access-token' => $token,
                     'Authorization' => 'Bearer '.$token,
                     'Accept' => 'application/json',
                 ],

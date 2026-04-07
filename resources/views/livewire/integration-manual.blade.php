@@ -91,7 +91,11 @@
             <h2 class="page-title" style="margin-bottom: 0.25rem;">Manual de integración</h2>
             <p class="page-subtitle" style="margin: 0;">Guía en lenguaje sencillo: qué hace el sistema, cómo comprobar que funciona y qué hacer si algo falla.</p>
         </div>
-        <a class="btn btn-sm" href="{{ route('manual.pdf') }}" target="_blank" rel="noopener">Descargar PDF (versión ampliada)</a>
+        <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
+            <input id="manual-search" class="input" type="text" placeholder="Buscar sección...">
+            <button class="btn btn-sm" type="button" onclick="window.print()">Imprimir</button>
+            <a class="btn btn-sm" href="{{ route('manual.pdf') }}" target="_blank" rel="noopener">Descargar PDF</a>
+        </div>
     </div>
 
     <div class="im-layout">
@@ -110,8 +114,8 @@
         </nav>
 
         <div class="im-main">
-            <article class="im-card" id="manual-que-hace">
-                <h2>¿Qué hace el WebService V1?</h2>
+            <article class="im-card manual-step" id="manual-que-hace">
+                <h2><span class="step-check" data-step="manual-que-hace">☐</span> ¿Qué hace el WebService V1?</h2>
                 <p class="im-lead">Este sistema conecta WhatsApp con el CRM Bitrix24 de forma automática.</p>
                 <p><strong>Cuando un cliente escribe por WhatsApp:</strong></p>
                 <ul>
@@ -142,8 +146,8 @@
                 <p class="im-muted-note">Las flechas van en ambas direcciones: la información viaja de WhatsApp al CRM y del CRM a WhatsApp sin que usted tenga que moverla a mano.</p>
             </article>
 
-            <article class="im-card" id="manual-verificar">
-                <h2>¿Cómo verifico que todo funciona?</h2>
+            <article class="im-card manual-step" id="manual-verificar">
+                <h2><span class="step-check" data-step="manual-verificar">☐</span> ¿Cómo verifico que todo funciona?</h2>
                 <p>En la pantalla principal (<strong>Tablero</strong>) puede ver el estado del sistema al momento:</p>
                 <p><strong>Los números de arriba indican:</strong></p>
                 <ul>
@@ -173,8 +177,8 @@
                 </div>
             </article>
 
-            <article class="im-card" id="manual-pantallas">
-                <h2>Guía de pantallas</h2>
+            <article class="im-card manual-step" id="manual-pantallas">
+                <h2><span class="step-check" data-step="manual-pantallas">☐</span> Guía de pantallas</h2>
                 <p class="im-lead">Cada pantalla tiene un propósito claro. Use esta guía para saber cuándo entrar a cada una.</p>
                 <div class="im-screen-cards">
                     <div class="im-screen-card">
@@ -224,8 +228,8 @@
                 </div>
             </article>
 
-            <article class="im-card" id="manual-problemas">
-                <h2>Solución de problemas comunes</h2>
+            <article class="im-card manual-step" id="manual-problemas">
+                <h2><span class="step-check" data-step="manual-problemas">☐</span> Solución de problemas comunes</h2>
                 <p class="im-lead">Pulse cada título para ver el detalle. Todo está cerrado por defecto.</p>
 
                 <details class="im-faq">
@@ -305,8 +309,8 @@
                 </details>
             </article>
 
-            <article class="im-card" id="manual-telecom">
-                <h2>Lo que Telecomunicaciones necesita saber</h2>
+            <article class="im-card manual-step" id="manual-telecom">
+                <h2><span class="step-check" data-step="manual-telecom">☐</span> Lo que Telecomunicaciones necesita saber</h2>
                 <p>Este sistema se comunica con Botmaker de dos maneras:</p>
                 <ol>
                     <li><strong>Recibe mensajes:</strong> Cuando un cliente escribe por WhatsApp, Botmaker avisa a este sistema automáticamente. Para eso, el aviso de salida de Botmaker debe apuntar a la dirección del WebService que le indique Desarrollo.</li>
@@ -333,8 +337,8 @@
                 </ul>
             </article>
 
-            <article class="im-card" id="manual-operaciones">
-                <h2>Lo que Operaciones necesita saber (Bitrix24)</h2>
+            <article class="im-card manual-step" id="manual-operaciones">
+                <h2><span class="step-check" data-step="manual-operaciones">☐</span> Lo que Operaciones necesita saber (Bitrix24)</h2>
                 <p>Este sistema se comunica con Bitrix24 de dos maneras:</p>
                 <ol>
                     <li><strong>Crea leads:</strong> Cuando llega un contacto de WhatsApp, se crea un lead automático con los datos del cliente.</li>
@@ -368,8 +372,8 @@
                 </ul>
             </article>
 
-            <article class="im-card" id="manual-glosario">
-                <h2>Glosario de términos</h2>
+            <article class="im-card manual-step" id="manual-glosario">
+                <h2><span class="step-check" data-step="manual-glosario">☐</span> Glosario de términos</h2>
                 <p class="im-lead">Palabras que a veces suenan técnicas, explicadas en cristiano.</p>
                 <div class="im-table-wrap">
                     <table class="im-table">
@@ -395,8 +399,8 @@
                 </div>
             </article>
 
-            <article class="im-card" id="manual-contacto">
-                <h2>¿A quién contacto si algo falla?</h2>
+            <article class="im-card manual-step" id="manual-contacto">
+                <h2><span class="step-check" data-step="manual-contacto">☐</span> ¿A quién contacto si algo falla?</h2>
                 <div class="im-table-wrap">
                     <table class="im-table">
                         <thead>
@@ -451,6 +455,28 @@
                 });
             }
             if (window.lucide) window.lucide.createIcons();
+
+            var searchInput = document.getElementById('manual-search');
+            if (searchInput) {
+                searchInput.addEventListener('input', function () {
+                    var term = (searchInput.value || '').toLowerCase().trim();
+                    root.querySelectorAll('.manual-step').forEach(function (card) {
+                        var show = term === '' || card.textContent.toLowerCase().includes(term);
+                        card.style.display = show ? '' : 'none';
+                    });
+                });
+            }
+
+            root.querySelectorAll('.step-check').forEach(function (el) {
+                var key = 'manual-step:' + el.getAttribute('data-step');
+                if (localStorage.getItem(key) === '1') el.textContent = '✓';
+                el.style.cursor = 'pointer';
+                el.addEventListener('click', function () {
+                    var done = el.textContent === '✓';
+                    el.textContent = done ? '☐' : '✓';
+                    localStorage.setItem(key, done ? '0' : '1');
+                });
+            });
         })();
     </script>
 </div>

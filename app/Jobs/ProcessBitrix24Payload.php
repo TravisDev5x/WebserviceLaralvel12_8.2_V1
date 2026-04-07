@@ -48,7 +48,17 @@ class ProcessBitrix24Payload implements ShouldQueue
         $this->markAsProcessing();
 
         $payload = $this->normalizePayload($this->webhookLog->payload_in);
-        $parsed = $bitrix24Service->parseIncomingPayload($payload);
+        $leadId = (int) ($payload['data']['FIELDS']['ID'] ?? 0);
+        $lead = $leadId > 0 ? $bitrix24Service->getLeadById($leadId) : null;
+        $payloadForParsing = is_array($lead) ? [
+            ...$payload,
+            'data' => [
+                ...((array) ($payload['data'] ?? [])),
+                'FIELDS' => $lead,
+            ],
+        ] : $payload;
+
+        $parsed = $bitrix24Service->parseIncomingPayload($payloadForParsing);
         $parsed = array_merge($parsed, $this->applyDynamicMappings($payload));
 
         try {

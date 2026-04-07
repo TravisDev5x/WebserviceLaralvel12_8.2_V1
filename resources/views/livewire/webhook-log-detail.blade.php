@@ -10,6 +10,14 @@
         </div>
     </div>
 
+    @if ($webhookLog->error_message)
+        <section class="card card-pad" style="margin-bottom: 1rem; border-left: 4px solid #dc2626; background:#fff1f2;">
+            <strong style="color:#991b1b;">Se detectó un error</strong>
+            <p style="margin:.35rem 0 0;">{{ $webhookLog->error_message }}</p>
+            <p class="muted" style="margin:.25rem 0 0;">Sugerencia: valida token/credenciales y vuelve a intentar desde Webhooks Fallidos.</p>
+        </section>
+    @endif
+
     <section class="card card-pad" style="margin-bottom: 1rem;">
         <div class="grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));">
             <p><strong>ID de Correlación:</strong> {{ $webhookLog->correlation_id }}</p>
@@ -26,28 +34,30 @@
     </section>
 
     <section class="card card-pad" style="margin-bottom: 1rem;">
-        <h3 style="margin: 0 0 0.5rem;">Payload IN</h3>
-        <pre style="white-space: pre-wrap; background: #0f172a; color: #e2e8f0; padding: 0.75rem; border-radius: 0.5rem; overflow-x: auto;"><code>{{ $payloadInJson }}</code></pre>
+        <div style="display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:.75rem;">
+            <button class="btn btn-sm tab-btn btn-primary" data-tab="resumen" type="button">Resumen</button>
+            <button class="btn btn-sm tab-btn" data-tab="in" type="button">Datos recibidos</button>
+            <button class="btn btn-sm tab-btn" data-tab="out" type="button">Datos enviados</button>
+            <button class="btn btn-sm tab-btn" data-tab="resultado" type="button">Resultado</button>
+            <button class="btn btn-sm tab-btn" data-tab="error" type="button">Error</button>
+        </div>
+        <div data-panel="resumen">
+            <p><strong>Timeline:</strong></p>
+            <p class="muted">Recibido ✓ -> Validado ✓ -> Encolado ✓ -> Procesado {{ $webhookLog->status === 'failed' ? '✗' : '✓' }} -> Enviado {{ $webhookLog->status === 'sent' ? '✓' : '✗' }}</p>
+        </div>
+        <div data-panel="in" style="display:none;">
+            <details open><summary>JSON de entrada</summary><pre style="white-space: pre-wrap; background: #0f172a; color: #e2e8f0; padding: 0.75rem; border-radius: 0.5rem; overflow-x: auto;"><code>{{ $payloadInJson }}</code></pre></details>
+        </div>
+        <div data-panel="out" style="display:none;">
+            <details open><summary>JSON de salida</summary><pre style="white-space: pre-wrap; background: #0f172a; color: #e2e8f0; padding: 0.75rem; border-radius: 0.5rem; overflow-x: auto;"><code>{{ $payloadOutJson }}</code></pre></details>
+        </div>
+        <div data-panel="resultado" style="display:none;">
+            <pre style="white-space: pre-wrap; background: #f8fafc; padding: 0.75rem; border-radius: 0.5rem; overflow-x: auto;"><code>{{ $webhookLog->response_body ?: 'Sin cuerpo de respuesta' }}</code></pre>
+        </div>
+        <div data-panel="error" style="display:none;">
+            <pre style="white-space: pre-wrap; background: #fff1f2; padding: 0.75rem; border-radius: 0.5rem; overflow-x: auto;"><code>{{ $webhookLog->error_message ?: 'Sin error registrado' }}</code></pre>
+        </div>
     </section>
-
-    <section class="card card-pad" style="margin-bottom: 1rem;">
-        <h3 style="margin: 0 0 0.5rem;">Payload OUT</h3>
-        <pre style="white-space: pre-wrap; background: #0f172a; color: #e2e8f0; padding: 0.75rem; border-radius: 0.5rem; overflow-x: auto;"><code>{{ $payloadOutJson }}</code></pre>
-    </section>
-
-    @if ($webhookLog->response_body)
-        <section class="card card-pad" style="margin-bottom: 1rem;">
-            <h3 style="margin: 0 0 0.5rem;">Cuerpo de Respuesta</h3>
-            <pre style="white-space: pre-wrap; background: #f8fafc; padding: 0.75rem; border-radius: 0.5rem; overflow-x: auto;"><code>{{ $webhookLog->response_body }}</code></pre>
-        </section>
-    @endif
-
-    @if ($webhookLog->error_message)
-        <section class="card card-pad" style="margin-bottom: 1rem; border-left: 4px solid #dc2626;">
-            <h3 style="margin: 0 0 0.5rem;">Mensaje de Error</h3>
-            <pre style="white-space: pre-wrap; background: #fff1f2; padding: 0.75rem; border-radius: 0.5rem; overflow-x: auto;"><code>{{ $webhookLog->error_message }}</code></pre>
-        </section>
-    @endif
 
     @if ($webhookLog->failedWebhook)
         <section class="card card-pad">
@@ -59,3 +69,18 @@
         </section>
     @endif
 </div>
+<script>
+    (function () {
+        const root = document.currentScript?.previousElementSibling?.parentElement || document;
+        const btns = root.querySelectorAll('.tab-btn');
+        const panels = root.querySelectorAll('[data-panel]');
+        btns.forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const tab = btn.getAttribute('data-tab');
+                btns.forEach((b) => b.classList.remove('btn-primary'));
+                btn.classList.add('btn-primary');
+                panels.forEach((p) => p.style.display = p.getAttribute('data-panel') === tab ? 'block' : 'none');
+            });
+        });
+    })();
+</script>

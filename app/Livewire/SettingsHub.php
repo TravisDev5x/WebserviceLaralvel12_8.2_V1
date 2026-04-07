@@ -9,6 +9,7 @@ use App\Models\AuthorizedToken;
 use App\Models\FieldMapping;
 use App\Models\MessageTemplate;
 use App\Models\NotificationRule;
+use App\Models\Setting;
 use App\Models\WhatsappNumber;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Schema;
@@ -41,6 +42,8 @@ class SettingsHub extends Component
             'templatesCount' => MessageTemplate::query()->count(),
             'whatsappActive' => WhatsappNumber::query()->where('is_active', true)->count(),
             'alertsActive' => AlertRule::query()->where('is_active', true)->count(),
+            'botmakerUpdatedAt' => Setting::query()->where('group', 'botmaker')->max('updated_at'),
+            'bitrixUpdatedAt' => Setting::query()->where('group', 'bitrix24')->max('updated_at'),
         ])->layout('layouts.app', [
             'title' => 'Centro de configuración',
         ]);

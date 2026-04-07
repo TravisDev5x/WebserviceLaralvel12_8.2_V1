@@ -823,6 +823,9 @@
                 </section>
                 </div>
                 <div class="sidebar-account-block">
+                    <p class="muted" style="margin:.15rem .45rem .5rem; font-size:.78rem;">
+                        {{ auth()->user()->name }} · Rol: {{ auth()->user()->role }}
+                    </p>
                     <div role="group" aria-labelledby="group-label-account">
                         <h3 id="group-label-account" class="sidebar-title">Cuenta</h3>
                         <ul class="sidebar-nav">

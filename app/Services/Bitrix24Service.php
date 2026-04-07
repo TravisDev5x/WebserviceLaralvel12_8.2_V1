@@ -97,6 +97,36 @@ class Bitrix24Service
     }
 
     /**
+     * @return array<string, mixed>|null
+     */
+    public function getLeadById(int $leadId): ?array
+    {
+        if ($leadId <= 0) {
+            return null;
+        }
+
+        $response = $this->post(
+            method: 'crm.lead.get',
+            payload: ['id' => $leadId],
+            operation: 'get_lead_by_id',
+        );
+
+        if (! $response['success']) {
+            return null;
+        }
+
+        /** @var array<string, mixed>|null $decoded */
+        $decoded = json_decode($response['body'], true);
+        if (! is_array($decoded)) {
+            return null;
+        }
+
+        $result = $decoded['result'] ?? null;
+
+        return is_array($result) ? $result : null;
+    }
+
+    /**
      * @param  array<string, mixed>  $payload
      * @return array{success: bool, http_status: int, body: string}
      */

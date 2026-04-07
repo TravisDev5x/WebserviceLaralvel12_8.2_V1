@@ -96,10 +96,16 @@
         </div>
     </section>
 
-    <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
+    <div id="unsaved-banner-bm" class="card card-pad" style="display:none; margin-bottom:.75rem; border-left:4px solid #eab308;">
+        Tienes cambios sin guardar
+    </div>
+    <div class="sticky-save-bar" style="display:flex; gap:.5rem; flex-wrap:wrap;">
         <button type="button" class="btn btn-primary" wire:click="save">Guardar configuración</button>
         <a class="btn" href="{{ url('/monitor/settings') }}">Cancelar</a>
     </div>
+    @if ($successMessage)
+        <div class="toast-ok">Configuración guardada correctamente</div>
+    @endif
 </div>
 
 <style>
@@ -110,4 +116,14 @@
     .health-dot--ok { background: #16a34a; }
     .health-dot--bad { background: #dc2626; }
     .health-dot--neutral { background: #94a3b8; }
+    .sticky-save-bar { position: sticky; bottom: .5rem; background: var(--app-surface); padding: .6rem; border: 1px solid var(--app-border); border-radius: .6rem; }
+    .toast-ok { position: fixed; right: 1rem; bottom: 1rem; background:#16a34a; color:#fff; padding:.55rem .8rem; border-radius:.5rem; z-index:50; }
 </style>
+<script>
+    (function () {
+        const banner = document.getElementById('unsaved-banner-bm');
+        document.querySelectorAll('input,textarea,select').forEach((el) => {
+            el.addEventListener('input', () => { if (banner) banner.style.display = 'block'; });
+        });
+    })();
+</script>

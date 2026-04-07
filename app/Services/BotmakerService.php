@@ -53,8 +53,8 @@ class BotmakerService
             'event' => (string) ($data['event'] ?? $data['type'] ?? 'unknown'),
             'phone' => (string) ($data['whatsappNumber'] ?? $data['contact']['phone'] ?? $data['phone'] ?? $data['contactId'] ?? ''),
             'message' => (string) ($firstMessage['message'] ?? $data['message']['text'] ?? $data['text'] ?? ''),
-            'first_name' => (string) $this->pickByKey($merged, 'first_name'),
-            'last_name' => (string) $this->pickByKey($merged, 'last_name'),
+            'first_name' => (string) ($data['firstName'] ?? $this->pickByKey($merged, 'first_name')),
+            'last_name' => (string) ($data['lastName'] ?? $this->pickByKey($merged, 'last_name')),
             'middle_last_name' => (string) $this->pickByKey($merged, 'middle_last_name'),
             'birth_date' => (string) $this->pickByKey($merged, 'birth_date'),
             'weeks_quoted' => (string) $this->pickByKey($merged, 'weeks_quoted'),
@@ -64,6 +64,7 @@ class BotmakerService
             'email' => $this->resolveEmailFromMerged($merged),
             'contact_id' => (string) ($data['contactId'] ?? ''),
             'customer_id' => (string) ($data['customerId'] ?? ''),
+            'session_id' => (string) ($data['sessionId'] ?? ''),
             'raw' => $data,
         ];
     }
@@ -119,6 +120,8 @@ class BotmakerService
         try {
             $response = $this->httpClient->request('POST', $url, [
                 'headers' => [
+                    'access-token' => (string) $this->botmakerConfig('api_token', ''),
+                    // Backward compatibility with previous configuration.
                     'Authorization' => 'Bearer '.$this->botmakerConfig('api_token', ''),
                     'Accept' => 'application/json',
                     'Content-Type' => 'application/json',
