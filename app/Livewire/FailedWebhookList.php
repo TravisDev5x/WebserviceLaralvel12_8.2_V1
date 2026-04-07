@@ -108,7 +108,7 @@ class FailedWebhookList extends Component
             ->latest()
             ->paginate(15);
 
-        return view('livewire.failed-webhook-list', [
+        return view('livewire.failed-webhook-list-safe', [
             'failedWebhooks' => $failedWebhooks,
             'statuses' => [
                 'all' => 'Todos',

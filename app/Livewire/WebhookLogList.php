@@ -56,7 +56,7 @@ class WebhookLogList extends Component
     {
         $webhooks = $this->baseQuery()->latest()->paginate(15);
 
-        return view('livewire.webhook-log-list', [
+        return view('livewire.webhook-log-list-safe', [
             'webhooks' => $webhooks,
             'directions' => [
                 'all' => 'Todas',
