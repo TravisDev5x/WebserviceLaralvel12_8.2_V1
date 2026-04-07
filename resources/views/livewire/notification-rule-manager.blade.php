@@ -8,14 +8,14 @@
             <div>
                 <label>Operador</label>
                 <select class="select" wire:model.live="condition_operator">
-                    <option value="equals">equals</option>
-                    <option value="not_equals">not_equals</option>
-                    <option value="contains">contains</option>
-                    <option value="changed_to">changed_to</option>
-                    <option value="is_empty">is_empty</option>
-                    <option value="is_not_empty">is_not_empty</option>
+                    <option value="equals">Igual a</option>
+                    <option value="not_equals">Diferente de</option>
+                    <option value="contains">Contiene</option>
+                    <option value="changed_to">Cambió a</option>
+                    <option value="is_empty">Está vacío</option>
+                    <option value="is_not_empty">No está vacío</option>
                 </select>
-                <small class="muted">Forma de comparación. <code>equals</code>=Igual a, <code>changed_to</code>=Cambió a.</small>
+                <small class="muted">Forma de comparación entre el campo y el valor de condición.</small>
             </div>
             <div><label>Valor de condición</label><input class="input" wire:model.live="condition_value" type="text" placeholder="CONTACTED"><small class="muted">Valor exacto a comparar en Bitrix24. Ejemplo: <code>NEW</code>, <code>IN_PROCESS</code>, <code>CONTACTED</code>.</small></div>
             <div>
@@ -56,9 +56,20 @@
         </div>
         <div class="table-wrap"><table class="table-clean"><thead><tr><th>ID</th><th>Nombre</th><th>Evento</th><th>Condición</th><th>Activa</th><th></th></tr></thead><tbody>
             @forelse($rows as $row)
+                @php
+                    $opLabel = match ((string) $row->condition_operator) {
+                        'equals' => 'Igual a',
+                        'not_equals' => 'Diferente de',
+                        'contains' => 'Contiene',
+                        'changed_to' => 'Cambió a',
+                        'is_empty' => 'Está vacío',
+                        'is_not_empty' => 'No está vacío',
+                        default => (string) $row->condition_operator,
+                    };
+                @endphp
                 <tr>
                     <td>{{ $row->id }}</td><td>{{ $row->name }}</td><td>{{ $row->event_type }}</td>
-                    <td>{{ $row->condition_field }} {{ $row->condition_operator }} {{ $row->condition_value }}</td>
+                    <td>{{ $row->condition_field }} {{ $opLabel }} {{ $row->condition_value }}</td>
                     <td>{{ $row->is_active ? 'Sí' : 'No' }}</td>
                     <td style="display:flex; gap:.35rem;"><button class="btn" wire:click="edit({{ $row->id }})" type="button">Editar</button><button class="btn btn-danger" wire:click="confirmDelete({{ $row->id }})" type="button">Eliminar</button></td>
                 </tr>

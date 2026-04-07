@@ -6,10 +6,10 @@
             <div>
                 <label>Categoría</label>
                 <select class="select" wire:model.live="category">
-                    <option value="notification">notification</option>
-                    <option value="confirmation">confirmation</option>
-                    <option value="follow_up">follow_up</option>
-                    <option value="custom">custom</option>
+                    <option value="notification">Notificación</option>
+                    <option value="confirmation">Confirmación</option>
+                    <option value="follow_up">Seguimiento</option>
+                    <option value="custom">Personalizado</option>
                 </select>
                 <small class="muted">Tipo de mensaje para organizar plantillas.</small>
             </div>
@@ -27,10 +27,10 @@
             <div>
                 <select class="select" wire:model.live="categoryFilter">
                     <option value="all">Todas las categorías</option>
-                    <option value="notification">notification</option>
-                    <option value="confirmation">confirmation</option>
-                    <option value="follow_up">follow_up</option>
-                    <option value="custom">custom</option>
+                    <option value="notification">Notificación</option>
+                    <option value="confirmation">Confirmación</option>
+                    <option value="follow_up">Seguimiento</option>
+                    <option value="custom">Personalizado</option>
                 </select>
             </div>
             <div>
@@ -43,8 +43,17 @@
         </div>
         <div class="table-wrap"><table class="table-clean"><thead><tr><th>ID</th><th>Nombre</th><th>Categoría</th><th>Activa</th><th></th></tr></thead><tbody>
             @forelse($rows as $row)
+                @php
+                    $categoryLabel = match ((string) $row->category) {
+                        'notification' => 'Notificación',
+                        'confirmation' => 'Confirmación',
+                        'follow_up' => 'Seguimiento',
+                        'custom' => 'Personalizado',
+                        default => (string) $row->category,
+                    };
+                @endphp
                 <tr>
-                    <td>{{ $row->id }}</td><td>{{ $row->name }}</td><td>{{ $row->category }}</td><td>{{ $row->is_active ? 'Sí' : 'No' }}</td>
+                    <td>{{ $row->id }}</td><td>{{ $row->name }}</td><td>{{ $categoryLabel }}</td><td>{{ $row->is_active ? 'Sí' : 'No' }}</td>
                     <td style="display:flex; gap:.35rem;"><button class="btn" wire:click="edit({{ $row->id }})" type="button">Editar</button><button class="btn btn-danger" wire:click="confirmDelete({{ $row->id }})" type="button">Eliminar</button></td>
                 </tr>
             @empty

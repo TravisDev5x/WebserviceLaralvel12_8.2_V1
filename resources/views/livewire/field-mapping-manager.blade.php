@@ -17,15 +17,15 @@
             <div>
                 <label>Transformación</label>
                 <select class="select" wire:model.live="transform_type">
-                    <option value="none">none</option>
-                    <option value="uppercase">uppercase</option>
-                    <option value="lowercase">lowercase</option>
-                    <option value="trim">trim</option>
-                    <option value="date_format">date_format</option>
-                    <option value="currency">currency</option>
-                    <option value="catalog">catalog</option>
+                    <option value="none">Sin transformación</option>
+                    <option value="uppercase">Mayúsculas</option>
+                    <option value="lowercase">Minúsculas</option>
+                    <option value="trim">Quitar espacios (trim)</option>
+                    <option value="date_format">Formato de fecha</option>
+                    <option value="currency">Moneda</option>
+                    <option value="catalog">Catálogo (etiqueta a ID)</option>
                 </select>
-                <small class="muted">Cómo transformar el valor. Ejemplo: <code>uppercase</code> convierte "juan" en "JUAN".</small>
+                <small class="muted">Cómo transformar el valor antes de enviarlo a Bitrix24. Recomendado: "Sin transformación" si no estás seguro.</small>
             </div>
             <div style="grid-column: 1 / -1;"><label>Config transformación (JSON)</label><textarea class="textarea" rows="4" wire:model.live="transform_config" placeholder="{&quot;Activo&quot;:&quot;123&quot;,&quot;Inactivo&quot;:&quot;456&quot;}"></textarea><small class="muted">Configuración de transformación. Para catálogo usa JSON llave=etiqueta y valor=ID Bitrix24. Ejemplo: <code>{"Empleado":"590","Desempleado":"592"}</code>. Para fecha: <code>{"output":"Y-m-d"}</code>.</small></div>
         </div>
@@ -59,11 +59,22 @@
                 <thead><tr><th>ID</th><th>Origen</th><th>Destino</th><th>Transformación</th><th>Activo</th><th>Acciones</th></tr></thead>
                 <tbody>
                 @forelse($rows as $row)
+                    @php
+                        $transformLabel = match ((string) ($row->transform_type ?: 'none')) {
+                            'uppercase' => 'Mayúsculas',
+                            'lowercase' => 'Minúsculas',
+                            'trim' => 'Quitar espacios',
+                            'date_format' => 'Formato de fecha',
+                            'currency' => 'Moneda',
+                            'catalog' => 'Catálogo',
+                            default => 'Sin transformación',
+                        };
+                    @endphp
                     <tr>
                         <td>{{ $row->id }}</td>
                         <td>{{ $row->source_platform }}.{{ $row->source_field }}</td>
                         <td>{{ $row->target_platform }}.{{ $row->target_field }}</td>
-                        <td>{{ $row->transform_type ?: 'none' }}</td>
+                        <td>{{ $transformLabel }}</td>
                         <td>{{ $row->is_active ? 'Sí' : 'No' }}</td>
                         <td style="display:flex; gap:.35rem;">
                             <button class="btn" wire:click="edit({{ $row->id }})" type="button">Editar</button>

@@ -6,9 +6,9 @@
             <div>
                 <label>Tipo</label>
                 <select class="select" wire:model.live="condition_type">
-                    <option value="failed_webhooks">failed_webhooks</option>
-                    <option value="webhook_errors">webhook_errors</option>
-                    <option value="queue_stuck">queue_stuck</option>
+                    <option value="failed_webhooks">Webhooks fallidos</option>
+                    <option value="webhook_errors">Errores de webhook</option>
+                    <option value="queue_stuck">Cola atorada</option>
                 </select>
                 <small class="muted">Condición a vigilar: fallos, errores o cola atorada.</small>
             </div>
@@ -28,9 +28,9 @@
             <div>
                 <select class="select" wire:model.live="typeFilter">
                     <option value="all">Todos los tipos</option>
-                    <option value="failed_webhooks">failed_webhooks</option>
-                    <option value="webhook_errors">webhook_errors</option>
-                    <option value="queue_stuck">queue_stuck</option>
+                    <option value="failed_webhooks">Webhooks fallidos</option>
+                    <option value="webhook_errors">Errores de webhook</option>
+                    <option value="queue_stuck">Cola atorada</option>
                 </select>
             </div>
             <div>
@@ -43,8 +43,16 @@
         </div>
         <div class="table-wrap"><table class="table-clean"><thead><tr><th>ID</th><th>Nombre</th><th>Tipo</th><th>Umbral</th><th>Email</th><th></th></tr></thead><tbody>
             @forelse($rows as $row)
+                @php
+                    $typeLabel = match ((string) $row->condition_type) {
+                        'failed_webhooks' => 'Webhooks fallidos',
+                        'webhook_errors' => 'Errores de webhook',
+                        'queue_stuck' => 'Cola atorada',
+                        default => (string) $row->condition_type,
+                    };
+                @endphp
                 <tr>
-                    <td>{{ $row->id }}</td><td>{{ $row->name }}</td><td>{{ $row->condition_type }}</td><td>{{ $row->threshold }}</td><td>{{ $row->notify_email }}</td>
+                    <td>{{ $row->id }}</td><td>{{ $row->name }}</td><td>{{ $typeLabel }}</td><td>{{ $row->threshold }}</td><td>{{ $row->notify_email }}</td>
                     <td style="display:flex; gap:.35rem;"><button class="btn" wire:click="edit({{ $row->id }})" type="button">Editar</button><button class="btn btn-danger" wire:click="confirmDelete({{ $row->id }})" type="button">Eliminar</button></td>
                 </tr>
             @empty

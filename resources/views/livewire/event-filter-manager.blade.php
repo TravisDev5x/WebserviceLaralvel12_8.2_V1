@@ -5,8 +5,8 @@
             <div>
                 <label>Plataforma</label>
                 <select class="select" wire:model.live="platform">
-                    <option value="botmaker">botmaker</option>
-                    <option value="bitrix24">bitrix24</option>
+                    <option value="botmaker">Botmaker (WhatsApp)</option>
+                    <option value="bitrix24">Bitrix24 (CRM)</option>
                 </select>
                 <small class="muted">Sistema origen del evento. Botmaker=WhatsApp, Bitrix24=CRM.</small>
             </div>
@@ -15,12 +15,12 @@
             <div>
                 <label>Operador</label>
                 <select class="select" wire:model.live="filter_operator">
-                    <option value="equals">equals</option>
-                    <option value="not_equals">not_equals</option>
-                    <option value="contains">contains</option>
-                    <option value="not_contains">not_contains</option>
-                    <option value="is_empty">is_empty</option>
-                    <option value="is_not_empty">is_not_empty</option>
+                    <option value="equals">Igual a</option>
+                    <option value="not_equals">Diferente de</option>
+                    <option value="contains">Contiene</option>
+                    <option value="not_contains">No contiene</option>
+                    <option value="is_empty">Está vacío</option>
+                    <option value="is_not_empty">No está vacío</option>
                 </select>
                 <small class="muted">Tipo de comparación. Ejemplo: <code>equals</code> para "igual a".</small>
             </div>
@@ -28,8 +28,8 @@
             <div>
                 <label>Acción</label>
                 <select class="select" wire:model.live="action">
-                    <option value="process">process</option>
-                    <option value="ignore">ignore</option>
+                    <option value="process">Procesar normalmente</option>
+                    <option value="ignore">Ignorar (descartar)</option>
                 </select>
                 <small class="muted">Qué hacer si coincide: process=procesar, ignore=descartar como filtrado.</small>
             </div>
@@ -60,10 +60,23 @@
         </div>
         <div class="table-wrap"><table class="table-clean"><thead><tr><th>ID</th><th>Plataforma</th><th>Evento</th><th>Filtro</th><th>Acción</th><th></th></tr></thead><tbody>
             @forelse($rows as $row)
+                @php
+                    $platformLabel = $row->platform === 'botmaker' ? 'Botmaker (WhatsApp)' : ($row->platform === 'bitrix24' ? 'Bitrix24 (CRM)' : (string) $row->platform);
+                    $operatorLabel = match ((string) $row->filter_operator) {
+                        'equals' => 'Igual a',
+                        'not_equals' => 'Diferente de',
+                        'contains' => 'Contiene',
+                        'not_contains' => 'No contiene',
+                        'is_empty' => 'Está vacío',
+                        'is_not_empty' => 'No está vacío',
+                        default => (string) $row->filter_operator,
+                    };
+                    $actionLabel = $row->action === 'ignore' ? 'Ignorar (descartar)' : 'Procesar normalmente';
+                @endphp
                 <tr>
-                    <td>{{ $row->id }}</td><td>{{ $row->platform }}</td><td>{{ $row->event_type }}</td>
-                    <td>{{ $row->filter_field }} {{ $row->filter_operator }} {{ $row->filter_value }}</td>
-                    <td>{{ $row->action }}</td>
+                    <td>{{ $row->id }}</td><td>{{ $platformLabel }}</td><td>{{ $row->event_type }}</td>
+                    <td>{{ $row->filter_field }} {{ $operatorLabel }} {{ $row->filter_value }}</td>
+                    <td>{{ $actionLabel }}</td>
                     <td style="display:flex; gap:.35rem;"><button class="btn" wire:click="edit({{ $row->id }})" type="button">Editar</button><button class="btn btn-danger" wire:click="confirmDelete({{ $row->id }})" type="button">Eliminar</button></td>
                 </tr>
             @empty
