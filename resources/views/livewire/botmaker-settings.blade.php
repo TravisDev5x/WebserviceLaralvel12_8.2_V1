@@ -19,18 +19,18 @@
         <div class="grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
             <div>
                 <label for="bm-api-url">URL de la API de Botmaker</label>
-                <input id="bm-api-url" class="input" type="url" wire:model.live="botmakerApiUrl" placeholder="https://go.botmaker.com/api/v1.0">
-                <p class="field-hint muted">URL base para autenticarte. Normalmente no cambia. Copia la que muestra el panel de Botmaker.</p>
+                <input id="bm-api-url" class="input" type="url" wire:model.live="botmakerApiUrl" placeholder="https://api.botmaker.com/v2.0">
+                <small class="field-help muted">URL base de la API de Botmaker. Se obtiene en Botmaker &gt; Integraciones &gt; API. Ejemplo: <code>https://api.botmaker.com/v2.0</code>.</small>
                 @error('botmakerApiUrl') <small class="text-error">{{ $message }}</small> @enderror
             </div>
             <div>
                 <label for="bm-api-token">Token de autenticación (JWT)</label>
                 <div style="display:flex; gap:.5rem; align-items:center;">
-                    <input id="bm-api-token" class="input" type="password" wire:model.live="botmakerApiToken" placeholder="Pegar token desde Botmaker" autocomplete="off">
+                    <input id="bm-api-token" class="input" type="password" wire:model.live="botmakerApiToken" placeholder="eyJhbGciOiJIUzUxMiJ9.eyJzdWIi..." autocomplete="off">
                     <button type="button" class="btn" data-toggle-password="bm-api-token">Ver</button>
                     <button type="button" class="btn" wire:click="testConnection" wire:loading.attr="disabled" wire:target="testConnection">Probar conexión</button>
                 </div>
-                <p class="field-hint muted">Botmaker → Configuración → API Keys. Déjalo en blanco al guardar si solo usas el token definido en “Tokens de API” en Webhooks autorizados.</p>
+                <small class="field-help muted">Token JWT para autenticarte con la API de Botmaker. Se obtiene en Botmaker &gt; Configuración &gt; API Keys &gt; Access Token. Ejemplo: <code>eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJFZHVhcmRvI...</code>. ⚠️ Si la prueba da 401, el token no tiene permisos de envío.</small>
                 @error('botmakerApiToken') <small class="text-error">{{ $message }}</small> @enderror
             </div>
         </div>
@@ -40,8 +40,8 @@
         <h3 class="settings-section-title">Endpoint de envío de mensajes</h3>
         <div>
             <label for="bm-send-url">URL para enviar mensajes</label>
-            <input id="bm-send-url" class="input" type="url" wire:model.live="botmakerSendMessageUrl" placeholder="https://…/chats-actions/send-messages">
-            <p class="field-hint muted">Si está vacío, se usa la URL de la API + <code>/chats-actions/send-messages</code>. Solo cámbiala si Botmaker te indicó otra ruta.</p>
+            <input id="bm-send-url" class="input" type="url" wire:model.live="botmakerSendMessageUrl" placeholder="https://api.botmaker.com/v2.0/chats-actions/send-messages">
+            <small class="field-help muted">Endpoint donde el sistema envía mensajes por WhatsApp. Se obtiene de la documentación o soporte de Botmaker. Ejemplo: <code>https://api.botmaker.com/v2.0/chats-actions/send-messages</code>.</small>
             @error('botmakerSendMessageUrl') <small class="text-error">{{ $message }}</small> @enderror
         </div>
     </section>
@@ -74,23 +74,27 @@
             <div>
                 <label for="bm-currency">Moneda (ISO 4217)</label>
                 <input id="bm-currency" class="input" maxlength="3" wire:model.live="botmakerSalaryCurrency" placeholder="MXN">
+                <small class="field-help muted">Moneda ISO para montos convertidos. Se obtiene del catálogo de moneda del negocio. Ejemplo: <code>MXN</code>.</small>
                 @error('botmakerSalaryCurrency') <small class="text-error">{{ $message }}</small> @enderror
             </div>
         </div>
         <div class="grid gap-3" style="grid-template-columns: 1fr; margin-top:.75rem;">
             <div>
                 <label for="bm-alias">Alias de origen (JSON)</label>
-                <textarea id="bm-alias" class="textarea" rows="10" wire:model.live="botmakerSourceAliasesJson" style="font-family:Consolas,monospace;"></textarea>
+                <textarea id="bm-alias" class="textarea" rows="10" wire:model.live="botmakerSourceAliasesJson" style="font-family:Consolas,monospace;" placeholder="{&quot;nombre&quot;:[&quot;firstName&quot;,&quot;name&quot;]}"></textarea>
+                <small class="field-help muted">Alias de campos entrantes para estandarizar nombres. Se obtiene del payload real de Botmaker. Ejemplo: <code>{"nombre":["firstName","name"]}</code>.</small>
                 @error('botmakerSourceAliasesJson') <small class="text-error">{{ $message }}</small> @enderror
             </div>
             <div>
                 <label for="bm-fields">Campos Bitrix destino (JSON)</label>
-                <textarea id="bm-fields" class="textarea" rows="10" wire:model.live="botmakerBitrixFieldsJson" style="font-family:Consolas,monospace;"></textarea>
+                <textarea id="bm-fields" class="textarea" rows="10" wire:model.live="botmakerBitrixFieldsJson" style="font-family:Consolas,monospace;" placeholder="{&quot;nombre_completo&quot;:&quot;UF_CRM_1774547362498&quot;}"></textarea>
+                <small class="field-help muted">Mapa de campos destino de Bitrix24. Se obtiene de CRM &gt; Configuración &gt; Campos del lead. Ejemplo: <code>{"nombre_completo":"UF_CRM_1774547362498"}</code>.</small>
                 @error('botmakerBitrixFieldsJson') <small class="text-error">{{ $message }}</small> @enderror
             </div>
             <div>
                 <label for="bm-enums">Catálogos (JSON)</label>
-                <textarea id="bm-enums" class="textarea" rows="10" wire:model.live="botmakerEnumMapsJson" style="font-family:Consolas,monospace;"></textarea>
+                <textarea id="bm-enums" class="textarea" rows="10" wire:model.live="botmakerEnumMapsJson" style="font-family:Consolas,monospace;" placeholder="{&quot;estatus_laboral&quot;:{&quot;Empleado&quot;:&quot;590&quot;,&quot;Desempleado&quot;:&quot;592&quot;}}"></textarea>
+                <small class="field-help muted">Catálogo para convertir etiquetas a IDs de Bitrix24. Se obtiene de los valores de lista del CRM. Ejemplo: <code>{"estatus_laboral":{"Empleado":"590","Desempleado":"592"}}</code>.</small>
                 @error('botmakerEnumMapsJson') <small class="text-error">{{ $message }}</small> @enderror
             </div>
         </div>
@@ -111,6 +115,7 @@
 <style>
     .settings-section-title { margin: 0 0 .65rem; font-size: 1.05rem; }
     .field-hint { margin: .35rem 0 0; font-size: .82rem; line-height: 1.4; }
+    .field-help { display:block; margin:.35rem 0 0; font-size:.8rem; line-height:1.4; color:var(--app-muted); }
     .text-error { color: #dc2626; }
     .health-dot { width: .75rem; height: .75rem; border-radius: 999px; display: inline-block; }
     .health-dot--ok { background: #16a34a; }

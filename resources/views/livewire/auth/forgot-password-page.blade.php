@@ -10,7 +10,8 @@
         @csrf
         <div style="margin-bottom: 0.9rem;">
             <label for="login">Correo o número de empleado</label>
-            <input id="login" name="login" class="input" type="text" wire:model.live="login" autocomplete="username">
+            <input id="login" name="login" class="input" type="text" wire:model.live="login" autocomplete="username" placeholder="tu@correo.com o 18680">
+            <small class="muted">Ingresa correo o número de empleado para buscar tu cuenta.</small>
             @error('login') <small style="color: #dc2626;">{{ $message }}</small> @enderror
         </div>
         <button class="btn" type="submit" style="width: 100%;">Enviar enlace</button>

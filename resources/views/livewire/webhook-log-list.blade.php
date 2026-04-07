@@ -31,14 +31,17 @@
             <div>
                 <label for="search">Buscar por teléfono o nombre</label>
                 <input id="search" class="input" type="text" wire:model.live.debounce.400ms="search" placeholder="Ej. 5544... o Juan">
+                <small class="muted">Filtra por nombre, teléfono o referencia del contacto. Ejemplo: <code>5512345678</code> o <code>Juan</code>.</small>
             </div>
             <div>
                 <label for="dateFrom">Desde</label>
                 <input id="dateFrom" class="input" type="date" wire:model.live="dateFrom">
+                <small class="muted">Fecha inicial del rango de consulta.</small>
             </div>
             <div>
                 <label for="dateTo">Hasta</label>
                 <input id="dateTo" class="input" type="date" wire:model.live="dateTo">
+                <small class="muted">Fecha final del rango de consulta.</small>
             </div>
         </div>
     </section>

@@ -8,9 +8,10 @@
                     <option value="botmaker">botmaker</option>
                     <option value="bitrix24">bitrix24</option>
                 </select>
+                <small class="muted">Sistema origen del evento. Botmaker=WhatsApp, Bitrix24=CRM.</small>
             </div>
-            <div><label>Evento</label><input class="input" wire:model.live="event_type" type="text"></div>
-            <div><label>Campo</label><input class="input" wire:model.live="filter_field" type="text"></div>
+            <div><label>Tipo de evento</label><input class="input" wire:model.live="event_type" type="text" placeholder="ONCRMLEADUPDATE"><small class="muted">Nombre técnico del evento. Ejemplo: <code>ONCRMLEADUPDATE</code>, <code>ONCRMLEADADD</code>, <code>message</code>.</small></div>
+            <div><label>Campo a filtrar</label><input class="input" wire:model.live="filter_field" type="text" placeholder="data.FIELDS.STATUS_ID"><small class="muted">Campo del payload a evaluar. Usa punto para anidados. Ejemplo: <code>test</code>.</small></div>
             <div>
                 <label>Operador</label>
                 <select class="select" wire:model.live="filter_operator">
@@ -21,16 +22,18 @@
                     <option value="is_empty">is_empty</option>
                     <option value="is_not_empty">is_not_empty</option>
                 </select>
+                <small class="muted">Tipo de comparación. Ejemplo: <code>equals</code> para "igual a".</small>
             </div>
-            <div><label>Valor</label><input class="input" wire:model.live="filter_value" type="text"></div>
+            <div><label>Valor</label><input class="input" wire:model.live="filter_value" type="text" placeholder="true"><small class="muted">Valor comparado contra el campo. Ejemplo: <code>true</code> o <code>JUNK</code>.</small></div>
             <div>
                 <label>Acción</label>
                 <select class="select" wire:model.live="action">
                     <option value="process">process</option>
                     <option value="ignore">ignore</option>
                 </select>
+                <small class="muted">Qué hacer si coincide: process=procesar, ignore=descartar como filtrado.</small>
             </div>
-            <div style="grid-column:1 / -1;"><label>Descripción</label><input class="input" wire:model.live="description" type="text"></div>
+            <div style="grid-column:1 / -1;"><label>Descripción</label><input class="input" wire:model.live="description" type="text" placeholder="Ignorar mensajes de prueba de Botmaker"><small class="muted">Descripción interna del filtro y su propósito.</small></div>
         </div>
         <div style="margin-top:.75rem; display:flex; gap:.75rem;">
             <label style="display:inline-flex; gap:.35rem;"><input type="checkbox" wire:model.live="is_active"> Activo</label>

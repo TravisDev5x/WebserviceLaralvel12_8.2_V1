@@ -165,9 +165,10 @@
             <form wire:submit="updateProfile" class="profile-edit-block">
                 <label for="profile-name">Nombre para mostrar</label>
                 <div class="profile-edit-row">
-                    <input id="profile-name" class="input" type="text" wire:model="name" autocomplete="name" placeholder="Tu nombre en el sistema">
+                    <input id="profile-name" class="input" type="text" wire:model="name" autocomplete="name" placeholder="Juan Pérez García">
                     <button class="btn btn-primary" type="submit">Guardar nombre</button>
                 </div>
+                <small class="muted" style="display:block;margin-top:.35rem;">Nombre visible en la plataforma. Se obtiene de tu identidad interna. Ejemplo: <code>Juan Pérez García</code>.</small>
                 @error('name') <small style="color:#dc2626; display:block; margin-top:.35rem;">{{ $message }}</small> @enderror
             </form>
             <div class="profile-readonly-stack" aria-label="Datos de cuenta de solo lectura">
@@ -201,17 +202,29 @@
             <div class="grid gap-3" style="grid-template-columns: 1fr;">
                 <div>
                     <label for="profile-current-pw">Contraseña actual</label>
-                    <input id="profile-current-pw" class="input" type="password" wire:model="currentPassword" autocomplete="current-password" style="width:100%;">
+                    <div style="display:flex;gap:.5rem;align-items:center;">
+                        <input id="profile-current-pw" class="input" type="password" wire:model="currentPassword" autocomplete="current-password" style="width:100%;" placeholder="••••••••">
+                        <button type="button" class="btn btn-sm" data-toggle-password="profile-current-pw">Ver</button>
+                    </div>
+                    <small class="muted">Contraseña actual para autorizar el cambio.</small>
                     @error('currentPassword') <small style="color:#dc2626;">{{ $message }}</small> @enderror
                 </div>
                 <div>
                     <label for="profile-new-pw">Nueva contraseña</label>
-                    <input id="profile-new-pw" class="input" type="password" wire:model="newPassword" autocomplete="new-password" style="width:100%;" placeholder="Mínimo 8 caracteres">
+                    <div style="display:flex;gap:.5rem;align-items:center;">
+                        <input id="profile-new-pw" class="input" type="password" wire:model="newPassword" autocomplete="new-password" style="width:100%;" placeholder="••••••••">
+                        <button type="button" class="btn btn-sm" data-toggle-password="profile-new-pw">Ver</button>
+                    </div>
+                    <small class="muted">Mínimo 8 caracteres, combinación de letras y números.</small>
                     @error('newPassword') <small style="color:#dc2626;">{{ $message }}</small> @enderror
                 </div>
                 <div>
                     <label for="profile-confirm-pw">Confirmar nueva contraseña</label>
-                    <input id="profile-confirm-pw" class="input" type="password" wire:model="newPasswordConfirmation" autocomplete="new-password" style="width:100%;">
+                    <div style="display:flex;gap:.5rem;align-items:center;">
+                        <input id="profile-confirm-pw" class="input" type="password" wire:model="newPasswordConfirmation" autocomplete="new-password" style="width:100%;" placeholder="••••••••">
+                        <button type="button" class="btn btn-sm" data-toggle-password="profile-confirm-pw">Ver</button>
+                    </div>
+                    <small class="muted">Debe coincidir exactamente con la nueva contraseña.</small>
                     @error('newPasswordConfirmation') <small style="color:#dc2626;">{{ $message }}</small> @enderror
                 </div>
                 <div class="profile-actions-bar">
@@ -221,3 +234,15 @@
         </form>
     </section>
 </div>
+<script>
+    (function () {
+        document.querySelectorAll('[data-toggle-password]').forEach((btn) => {
+            btn.addEventListener('click', function () {
+                const input = document.getElementById(this.getAttribute('data-toggle-password'));
+                if (!input) return;
+                input.type = input.type === 'password' ? 'text' : 'password';
+                this.textContent = input.type === 'password' ? 'Ver' : 'Ocultar';
+            });
+        });
+    })();
+</script>

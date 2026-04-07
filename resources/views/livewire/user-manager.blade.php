@@ -23,7 +23,7 @@
     @endif
     <section class="card card-pad">
         <div class="grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom:.75rem;">
-            <div><input class="input" type="text" wire:model.live.debounce.300ms="search" placeholder="Buscar usuario"></div>
+            <div><input class="input" type="text" wire:model.live.debounce.300ms="search" placeholder="Buscar por nombre, correo o número"><small class="muted">Filtro rápido de usuarios. Ejemplo: <code>18680</code>.</small></div>
             <div>
                 <select class="select" wire:model.live="roleFilter">
                     <option value="all">Todos los roles</option>
@@ -31,6 +31,7 @@
                     <option value="operator">Operador</option>
                     <option value="viewer">Solo lectura</option>
                 </select>
+                <small class="muted">Administrador=acceso total, Operador=operación diaria, Solo lectura=sin cambios.</small>
             </div>
             <div>
                 <select class="select" wire:model.live="statusFilter">
@@ -90,6 +91,7 @@
                                         <option value="operator" @selected($user->role === 'operator')>Operador</option>
                                         <option value="viewer" @selected($user->role === 'viewer' || $user->role === null || $user->role === '')>Solo lectura</option>
                                     </select>
+                                    <small class="muted" style="display:block;font-size:.75rem;">Administrador: todo | Operador: monitoreo y operación | Visitante: solo lectura</small>
                                 @endif
                             </td>
                             <td>
@@ -100,6 +102,7 @@
                                         <input type="checkbox" @checked($user->is_active) wire:click.prevent="toggleActive({{ $user->id }})" wire:loading.attr="disabled">
                                         {{ $user->is_active ? 'Sí' : 'No' }}
                                     </label>
+                                    <small class="muted" style="display:block;font-size:.75rem;">Si se desactiva, el usuario no puede iniciar sesión.</small>
                                 @endif
                             </td>
                             <td style="white-space:nowrap;font-size:.85rem;">{{ $user->last_login_at?->format('d/m/Y H:i') ?: '—' }}</td>
@@ -142,9 +145,9 @@
             <div class="card card-pad" style="width:min(95vw, 620px); max-height:90vh; overflow:auto;">
                 <h3 style="margin-top:0;">Nuevo usuario</h3>
                 <div class="grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
-                    <div><label>Nombre</label><input class="input" type="text" wire:model.live="newUserName" autocomplete="off"></div>
-                    <div><label>Correo <span class="muted">(opcional)</span></label><input class="input" type="email" wire:model.live="newUserEmail" autocomplete="off" placeholder="Vacío = correo interno"></div>
-                    <div><label>Número empleado</label><input class="input" type="text" wire:model.live="newUserEmployeeNumber" autocomplete="off"></div>
+                    <div><label>Nombre</label><input class="input" type="text" wire:model.live="newUserName" autocomplete="off" placeholder="Juan Pérez García"><small class="muted">Nombre completo del usuario.</small></div>
+                    <div><label>Correo <span class="muted">(opcional)</span></label><input class="input" type="email" wire:model.live="newUserEmail" autocomplete="off" placeholder="juan.perez@ecd.mx"><small class="muted">Si se deja vacío, se genera correo interno.</small></div>
+                    <div><label>Número empleado</label><input class="input" type="text" wire:model.live="newUserEmployeeNumber" autocomplete="off" placeholder="18680"><small class="muted">Identificador de acceso del usuario.</small></div>
                     <div>
                         <label>Rol inicial</label>
                         <select class="select" wire:model.live="newUserRole">
@@ -153,8 +156,8 @@
                             <option value="viewer">Solo lectura</option>
                         </select>
                     </div>
-                    <div><label>Contraseña</label><input class="input" type="password" wire:model.live="newUserPassword" autocomplete="new-password"></div>
-                    <div><label>Confirmar contraseña</label><input class="input" type="password" wire:model.live="newUserPasswordConfirmation" autocomplete="new-password"></div>
+                    <div><label>Contraseña</label><div style="display:flex;gap:.5rem;align-items:center;"><input id="new-user-password" class="input" type="password" wire:model.live="newUserPassword" autocomplete="new-password" placeholder="••••••••"><button type="button" class="btn btn-sm" data-toggle-password="new-user-password">Ver</button></div><small class="muted">Mínimo 8 caracteres con letras y números.</small></div>
+                    <div><label>Confirmar contraseña</label><div style="display:flex;gap:.5rem;align-items:center;"><input id="new-user-password-confirm" class="input" type="password" wire:model.live="newUserPasswordConfirmation" autocomplete="new-password" placeholder="••••••••"><button type="button" class="btn btn-sm" data-toggle-password="new-user-password-confirm">Ver</button></div></div>
                 </div>
                 <div style="margin-top:1rem; display:flex; justify-content:flex-end; gap:.5rem;">
                     <button class="btn" wire:click="closeCreateUser" type="button">Cancelar</button>
@@ -169,9 +172,9 @@
             <div class="card card-pad" style="width:min(95vw, 620px); max-height:90vh; overflow:auto;">
                 <h3 style="margin-top:0;">Editar usuario</h3>
                 <div class="grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
-                    <div><label>Nombre</label><input class="input" type="text" wire:model.live="editUserName" autocomplete="off"></div>
-                    <div><label>Correo <span class="muted">(opcional)</span></label><input class="input" type="email" wire:model.live="editUserEmail" autocomplete="off" placeholder="Vacío = correo interno"></div>
-                    <div><label>Número empleado</label><input class="input" type="text" wire:model.live="editUserEmployeeNumber" autocomplete="off"></div>
+                    <div><label>Nombre</label><input class="input" type="text" wire:model.live="editUserName" autocomplete="off" placeholder="Juan Pérez García"><small class="muted">Nombre completo del usuario.</small></div>
+                    <div><label>Correo <span class="muted">(opcional)</span></label><input class="input" type="email" wire:model.live="editUserEmail" autocomplete="off" placeholder="juan.perez@ecd.mx"><small class="muted">Correo de recuperación de contraseña.</small></div>
+                    <div><label>Número empleado</label><input class="input" type="text" wire:model.live="editUserEmployeeNumber" autocomplete="off" placeholder="18680"><small class="muted">Número de empleado para login.</small></div>
                     <div>
                         <label>Rol</label>
                         @if($editUserId === auth()->id())
@@ -194,3 +197,15 @@
         </div>
     @endif
 </div>
+<script>
+    (function () {
+        document.querySelectorAll('[data-toggle-password]').forEach((btn) => {
+            btn.addEventListener('click', function () {
+                const input = document.getElementById(this.getAttribute('data-toggle-password'));
+                if (!input) return;
+                input.type = input.type === 'password' ? 'text' : 'password';
+                this.textContent = input.type === 'password' ? 'Ver' : 'Ocultar';
+            });
+        });
+    })();
+</script>

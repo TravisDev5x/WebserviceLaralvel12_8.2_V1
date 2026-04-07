@@ -35,12 +35,14 @@
             <div class="grid gap-2">
                 <div>
                     <label>Número destino</label>
-                    <input class="input" type="tel" wire:model.live="testPhone" placeholder="+52…">
+                    <input class="input" type="tel" wire:model.live="testPhone" placeholder="5215591108797">
+                    <small class="muted">Número de prueba con código país sin símbolos. Ejemplo: <code>5215591108797</code>.</small>
                     @error('testPhone') <small style="color:#dc2626;">{{ $message }}</small> @enderror
                 </div>
                 <div>
                     <label>Mensaje (máx. 500)</label>
-                    <textarea class="textarea" rows="3" maxlength="500" wire:model.live="testMessageText" placeholder="Texto de prueba"></textarea>
+                    <textarea class="textarea" rows="3" maxlength="500" wire:model.live="testMessageText" placeholder="Hola Juan, este es un mensaje de prueba del sistema."></textarea>
+                    <small class="muted">Mensaje real para validar envío Botmaker. Ejemplo: "Hola Juan, prueba de integración".</small>
                     @error('testMessageText') <small style="color:#dc2626;">{{ $message }}</small> @enderror
                 </div>
                 <button type="button" class="btn btn-primary" wire:click="sendTestWhatsApp" wire:loading.attr="disabled">Enviar</button>
@@ -69,17 +71,20 @@
             <div class="grid gap-2">
                 <div>
                     <label>Nombre</label>
-                    <input class="input" type="text" wire:model.live="bitrixLeadFirstName">
+                    <input class="input" type="text" wire:model.live="bitrixLeadFirstName" placeholder="Juan">
+                    <small class="muted">Nombre de contacto para lead de prueba. Ejemplo: <code>Juan</code>.</small>
                     @error('bitrixLeadFirstName') <small style="color:#dc2626;">{{ $message }}</small> @enderror
                 </div>
                 <div>
                     <label>Teléfono</label>
-                    <input class="input" type="tel" wire:model.live="bitrixLeadPhone">
+                    <input class="input" type="tel" wire:model.live="bitrixLeadPhone" placeholder="+5215512345678">
+                    <small class="muted">Teléfono de lead para prueba en Bitrix24. Ejemplo: <code>+5215512345678</code>.</small>
                     @error('bitrixLeadPhone') <small style="color:#dc2626;">{{ $message }}</small> @enderror
                 </div>
                 <div>
                     <label>Título del lead</label>
-                    <input class="input" type="text" wire:model.live="bitrixLeadTitle">
+                    <input class="input" type="text" wire:model.live="bitrixLeadTitle" placeholder="Prueba integración WhatsApp">
+                    <small class="muted">Título visible del lead de prueba en CRM. Ejemplo: <code>Prueba integración WhatsApp</code>.</small>
                     @error('bitrixLeadTitle') <small style="color:#dc2626;">{{ $message }}</small> @enderror
                 </div>
                 <button type="button" class="btn btn-primary" wire:click="createTestLead" wire:loading.attr="disabled">Crear</button>

@@ -32,6 +32,7 @@
             <div class="users-search-wrap">
                 <label class="muted" style="display:block; font-size:.72rem; margin-bottom:.25rem;">Buscar</label>
                 <input class="input" type="text" wire:model.live.debounce.300ms="userSearch" placeholder="Nombre, email o número…" style="width:100%;">
+                <small class="muted">Filtra usuarios por nombre, correo o número de empleado. Ejemplo: <code>18680</code>.</small>
             </div>
             <div class="users-filters-selects">
                 <div>
@@ -42,6 +43,7 @@
                             <option value="{{ $role->slug }}">{{ $role->name }}</option>
                         @endforeach
                     </select>
+                    <small class="muted">Rol actual del usuario. Administrador=todo, Operador=operación, Visitante=solo lectura.</small>
                 </div>
                 <div>
                     <label class="muted" style="display:block; font-size:.72rem; margin-bottom:.25rem;">Estado</label>
@@ -51,6 +53,7 @@
                         <option value="inactive">Inactivos</option>
                         <option value="deleted">Dados de baja</option>
                     </select>
+                    <small class="muted">Estado de la cuenta: activa, inactiva o dada de baja.</small>
                 </div>
                 <div>
                     <label class="muted" style="display:block; font-size:.72rem; margin-bottom:.25rem;">Por página</label>
@@ -60,6 +63,7 @@
                         <option value="20">20</option>
                         <option value="50">50</option>
                     </select>
+                    <small class="muted">Cantidad de usuarios mostrados por página.</small>
                 </div>
             </div>
             <div class="users-clear-wrap">
@@ -177,9 +181,9 @@
             <div class="card card-pad" style="width:min(95vw, 620px); max-height:90vh; overflow:auto;">
                 <h3 style="margin-top:0;">Nuevo usuario</h3>
                 <div class="grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
-                    <div><label>Nombre</label><input class="input" type="text" wire:model.live="createUserName" autocomplete="off"></div>
-                    <div><label>Correo <span class="muted">(opcional)</span></label><input class="input" type="email" wire:model.live="createUserEmail" autocomplete="off" placeholder="Vacío = correo interno"></div>
-                    <div><label>Número empleado</label><input class="input" type="text" wire:model.live="createUserEmployeeNumber" autocomplete="off"></div>
+                    <div><label>Nombre</label><input class="input" type="text" wire:model.live="createUserName" autocomplete="off" placeholder="Juan Pérez García"><small class="muted">Nombre completo del nuevo usuario.</small></div>
+                    <div><label>Correo <span class="muted">(opcional)</span></label><input class="input" type="email" wire:model.live="createUserEmail" autocomplete="off" placeholder="juan.perez@ecd.mx"><small class="muted">Correo para recuperación de contraseña.</small></div>
+                    <div><label>Número empleado</label><input class="input" type="text" wire:model.live="createUserEmployeeNumber" autocomplete="off" placeholder="18680"><small class="muted">Número interno que también sirve para login.</small></div>
                     <div>
                         <label>Rol inicial</label>
                         <select class="select" wire:model.live="createUserRole">
@@ -188,8 +192,8 @@
                             @endforeach
                         </select>
                     </div>
-                    <div><label>Contraseña</label><input class="input" type="password" wire:model.live="createUserPassword" autocomplete="new-password"></div>
-                    <div><label>Confirmar contraseña</label><input class="input" type="password" wire:model.live="createUserPasswordConfirmation" autocomplete="new-password"></div>
+                    <div><label>Contraseña</label><div style="display:flex;gap:.5rem;align-items:center;"><input id="ac-create-password" class="input" type="password" wire:model.live="createUserPassword" autocomplete="new-password" placeholder="••••••••"><button type="button" class="btn btn-sm" data-toggle-password="ac-create-password">Ver</button></div><small class="muted">Mínimo 8 caracteres.</small></div>
+                    <div><label>Confirmar contraseña</label><div style="display:flex;gap:.5rem;align-items:center;"><input id="ac-create-password-confirm" class="input" type="password" wire:model.live="createUserPasswordConfirmation" autocomplete="new-password" placeholder="••••••••"><button type="button" class="btn btn-sm" data-toggle-password="ac-create-password-confirm">Ver</button></div></div>
                 </div>
                 <div style="margin-top:1rem; display:flex; justify-content:flex-end; gap:.5rem;">
                     <button class="btn" wire:click="closeCreateUser" type="button">Cancelar</button>
@@ -204,9 +208,9 @@
             <div class="card card-pad" style="width:min(95vw, 620px);">
                 <h3 style="margin-top:0;">Editar usuario</h3>
                 <div class="grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
-                    <div><label>Nombre</label><input class="input" type="text" wire:model.live="editUserName"></div>
-                    <div><label>Correo <span class="muted">(opcional)</span></label><input class="input" type="email" wire:model.live="editUserEmail" placeholder="Vacío = correo interno"></div>
-                    <div><label>Número empleado</label><input class="input" type="text" wire:model.live="editUserEmployeeNumber"></div>
+                    <div><label>Nombre</label><input class="input" type="text" wire:model.live="editUserName" placeholder="Juan Pérez García"><small class="muted">Nombre visible del usuario.</small></div>
+                    <div><label>Correo <span class="muted">(opcional)</span></label><input class="input" type="email" wire:model.live="editUserEmail" placeholder="juan.perez@ecd.mx"><small class="muted">Correo de acceso/recuperación.</small></div>
+                    <div><label>Número empleado</label><input class="input" type="text" wire:model.live="editUserEmployeeNumber" placeholder="18680"><small class="muted">Identificador interno del usuario.</small></div>
                     <div>
                         <label>Rol</label>
                         <select class="select" wire:model.live="editUserRole">
@@ -218,6 +222,7 @@
                 </div>
                 <div style="margin-top:.75rem;">
                     <label style="display:inline-flex; gap:.35rem; align-items:center;"><input type="checkbox" wire:model.live="editUserIsActive"> Activo</label>
+                    <small class="muted" style="display:block;">Si se desactiva, no podrá iniciar sesión.</small>
                 </div>
                 <div style="margin-top:1rem; display:flex; justify-content:flex-end; gap:.5rem;">
                     <button class="btn" wire:click="closeUserEditor" type="button">Cancelar</button>
@@ -232,8 +237,8 @@
             <div class="card card-pad" style="width:min(95vw, 520px);">
                 <h3 style="margin-top:0;">Cambiar contraseña</h3>
                 <div class="grid gap-3">
-                    <div><label>Nueva contraseña</label><input class="input" type="password" wire:model.live="newPassword"></div>
-                    <div><label>Confirmar contraseña</label><input class="input" type="password" wire:model.live="newPasswordConfirmation"></div>
+                    <div><label>Nueva contraseña</label><div style="display:flex;gap:.5rem;align-items:center;"><input id="ac-reset-password" class="input" type="password" wire:model.live="newPassword" placeholder="••••••••"><button type="button" class="btn btn-sm" data-toggle-password="ac-reset-password">Ver</button></div><small class="muted">Contraseña temporal o final para el usuario.</small></div>
+                    <div><label>Confirmar contraseña</label><div style="display:flex;gap:.5rem;align-items:center;"><input id="ac-reset-password-confirm" class="input" type="password" wire:model.live="newPasswordConfirmation" placeholder="••••••••"><button type="button" class="btn btn-sm" data-toggle-password="ac-reset-password-confirm">Ver</button></div></div>
                 </div>
                 <div style="margin-top:1rem; display:flex; justify-content:flex-end; gap:.5rem;">
                     <button class="btn" wire:click="closePasswordEditor" type="button">Cancelar</button>
@@ -275,9 +280,9 @@
         </div>
 
         <div class="grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
-            <div><label>Nombre</label><input class="input" type="text" wire:model.live="roleName"></div>
-            <div><label>Slug</label><input class="input" type="text" wire:model.live="roleSlug" placeholder="ej: supervisor"></div>
-            <div style="grid-column:1 / -1;"><label>Descripción</label><input class="input" type="text" wire:model.live="roleDescription"></div>
+            <div><label>Nombre</label><input class="input" type="text" wire:model.live="roleName" placeholder="Supervisor de operación"><small class="muted">Nombre visible del rol.</small></div>
+            <div><label>Slug</label><input class="input" type="text" wire:model.live="roleSlug" placeholder="supervisor-operacion"><small class="muted">Identificador técnico sin espacios.</small></div>
+            <div style="grid-column:1 / -1;"><label>Descripción</label><input class="input" type="text" wire:model.live="roleDescription" placeholder="Puede monitorear y administrar reglas operativas"><small class="muted">Resumen del alcance de este rol.</small></div>
         </div>
 
         <div style="margin-top:.75rem;">
@@ -322,3 +327,15 @@
         </div>
     </section>
 </div>
+<script>
+    (function () {
+        document.querySelectorAll('[data-toggle-password]').forEach((btn) => {
+            btn.addEventListener('click', function () {
+                const input = document.getElementById(this.getAttribute('data-toggle-password'));
+                if (!input) return;
+                input.type = input.type === 'password' ? 'text' : 'password';
+                this.textContent = input.type === 'password' ? 'Ver' : 'Ocultar';
+            });
+        });
+    })();
+</script>

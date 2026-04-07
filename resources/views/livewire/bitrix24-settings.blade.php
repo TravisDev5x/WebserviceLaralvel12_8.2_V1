@@ -18,10 +18,10 @@
         <h3 class="bx-sec-title">Webhook entrante (crear / actualizar leads)</h3>
         <label for="bx-url">URL del webhook entrante de Bitrix24</label>
         <div style="display:flex; gap:.5rem; flex-wrap:wrap; align-items:center;">
-            <input id="bx-url" class="input" type="url" wire:model.live="bitrix24WebhookUrl" placeholder="https://tu-portal.bitrix24.com/rest/1/xxxxx/" style="flex:1; min-width:240px;">
+            <input id="bx-url" class="input" type="url" wire:model.live="bitrix24WebhookUrl" placeholder="https://b24-xxxxx.bitrix24.mx/rest/123/abc456xyz/" style="flex:1; min-width:240px;">
             <button type="button" class="btn" wire:click="testConnection" wire:loading.attr="disabled" wire:target="testConnection">Probar conexión</button>
         </div>
-        <p class="bx-hint muted">Bitrix24: Aplicaciones, Webhooks, Webhook entrante. La prueba usa primero la URL guardada en Webhooks autorizados (entrantes).</p>
+        <small class="bx-help muted">URL para crear leads en Bitrix24. Se obtiene en Bitrix24 &gt; Aplicaciones &gt; Webhooks &gt; Webhook entrante. Ejemplo: <code>https://b24-g5r49m.bitrix24.mx/rest/139/yrz3ac4x784xgfr5/</code>. ⚠️ Esta URL contiene token, no la compartas en público.</small>
         @error('bitrix24WebhookUrl') <small style="color:#dc2626;">{{ $message }}</small> @enderror
     </section>
 
@@ -30,20 +30,20 @@
         <div class="grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
             <div>
                 <label for="bx-source">Fuente del lead (SOURCE_ID)</label>
-                <input id="bx-source" class="input" type="text" wire:model.live="defaultSourceId" placeholder="WEB, WHATSAPP o ID numérico">
-                <p class="bx-hint muted">Opcional. CRM &gt; Configuración &gt; Fuentes.</p>
+                <input id="bx-source" class="input" type="text" wire:model.live="defaultSourceId" placeholder="WEB, WHATSAPP, UC_XXXXXX o 5">
+                <small class="bx-help muted">ID de fuente del lead. Se obtiene en CRM &gt; Configuración &gt; Fuentes. Ejemplo: <code>UC_XXXXXX</code>.</small>
                 @error('defaultSourceId') <small style="color:#dc2626;">{{ $message }}</small> @enderror
             </div>
             <div>
                 <label for="bx-assign">Responsable (ASSIGNED_BY_ID)</label>
-                <input id="bx-assign" class="input" type="text" wire:model.live="defaultAssignedById" placeholder="ej. 1">
-                <p class="bx-hint muted">ID de usuario en Bitrix24.</p>
+                <input id="bx-assign" class="input" type="text" wire:model.live="defaultAssignedById" placeholder="139">
+                <small class="bx-help muted">ID del responsable por defecto. Se obtiene del perfil de usuario en Bitrix24 (URL <code>/user/139/</code>). Ejemplo: <code>139</code>.</small>
                 @error('defaultAssignedById') <small style="color:#dc2626;">{{ $message }}</small> @enderror
             </div>
             <div>
                 <label for="bx-status">Estatus inicial (STATUS_ID)</label>
-                <input id="bx-status" class="input" type="text" wire:model.live="defaultStatusId" placeholder="ej. NEW">
-                <p class="bx-hint muted">Estatus al crear el lead.</p>
+                <input id="bx-status" class="input" type="text" wire:model.live="defaultStatusId" placeholder="NEW">
+                <small class="bx-help muted">Estatus inicial del lead. Se obtiene en CRM &gt; Configuración &gt; Estatus del lead. Ejemplo: <code>NEW</code>.</small>
                 @error('defaultStatusId') <small style="color:#dc2626;">{{ $message }}</small> @enderror
             </div>
         </div>
@@ -79,6 +79,7 @@
 <style>
     .bx-sec-title { margin: 0 0 .65rem; font-size: 1.05rem; }
     .bx-hint { margin: .35rem 0 0; font-size: .82rem; line-height: 1.4; }
+    .bx-help { display:block; margin:.35rem 0 0; font-size:.8rem; line-height:1.4; color:var(--app-muted); }
     .bx-dot { width: .75rem; height: .75rem; border-radius: 999px; display: inline-block; }
     .bx-dot--ok { background: #16a34a; }
     .bx-dot--bad { background: #dc2626; }

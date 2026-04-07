@@ -10,13 +10,18 @@
         @csrf
         <div style="margin-bottom: 0.7rem;">
             <label for="login">Correo o número de empleado</label>
-            <input id="login" name="login" class="input" type="text" value="{{ old('login') }}" autocomplete="username">
+            <input id="login" name="login" class="input" type="text" value="{{ old('login') }}" autocomplete="username" placeholder="tu@correo.com o 18680">
+            <small class="muted">Puedes entrar con correo o con número de empleado.</small>
             @error('login') <small style="color: #dc2626;">{{ $message }}</small> @enderror
         </div>
 
         <div style="margin-bottom: 0.7rem;">
             <label for="password">Contraseña</label>
-            <input id="password" name="password" class="input" type="password" autocomplete="current-password">
+            <div style="display:flex;gap:.5rem;align-items:center;">
+                <input id="login-password" name="password" class="input" type="password" autocomplete="current-password" placeholder="••••••••">
+                <button type="button" class="btn btn-sm" data-toggle-password="login-password">Ver</button>
+            </div>
+            <small class="muted">Es tu contraseña de acceso al sistema.</small>
             @error('password') <small style="color: #dc2626;">{{ $message }}</small> @enderror
         </div>
 
@@ -37,3 +42,15 @@
         <a href="{{ route('password.request') }}">Olvidé mi contraseña</a>
     </div>
 </section>
+<script>
+    (function () {
+        document.querySelectorAll('[data-toggle-password]').forEach((btn) => {
+            btn.addEventListener('click', function () {
+                const input = document.getElementById(this.getAttribute('data-toggle-password'));
+                if (!input) return;
+                input.type = input.type === 'password' ? 'text' : 'password';
+                this.textContent = input.type === 'password' ? 'Ver' : 'Ocultar';
+            });
+        });
+    })();
+</script>

@@ -19,6 +19,7 @@
                 <option value="all">Todos</option>
             @endforelse
         </select>
+        <small class="muted" style="display:block; margin-top:.35rem;">Filtra fallos por estado de reintento. Ejemplo: "pending" para ver pendientes de recuperación.</small>
     </section>
 
     <section class="card card-pad">

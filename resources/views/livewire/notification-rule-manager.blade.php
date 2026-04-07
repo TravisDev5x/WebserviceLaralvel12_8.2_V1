@@ -2,9 +2,9 @@
     <div class="page-header"><h2 class="page-title">Reglas de notificación</h2></div>
     <section class="card card-pad" style="margin-bottom:1rem;">
         <div class="grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
-            <div><label>Nombre</label><input class="input" wire:model.live="name" type="text"></div>
-            <div><label>Evento</label><input class="input" wire:model.live="event_type" type="text" placeholder="ON_LEAD_STATUS_CHANGED"></div>
-            <div><label>Campo condición</label><input class="input" wire:model.live="condition_field" type="text"></div>
+            <div><label>Nombre de la regla</label><input class="input" wire:model.live="name" type="text" placeholder="Notificar cuando se contacta al cliente"><small class="muted">Nombre descriptivo de la regla. Ejemplo: "Lead contactado → avisar cliente".</small></div>
+            <div><label>Evento</label><input class="input" wire:model.live="event_type" type="text" placeholder="ONCRMLEADUPDATE"><small class="muted">Evento que dispara la regla. Ejemplo: <code>ONCRMLEADUPDATE</code> o <code>ONCRMLEADADD</code>.</small></div>
+            <div><label>Campo de condición</label><input class="input" wire:model.live="condition_field" type="text" placeholder="STATUS_ID"><small class="muted">Campo del lead a evaluar. Ejemplo: <code>STATUS_ID</code>, <code>ASSIGNED_BY_ID</code>.</small></div>
             <div>
                 <label>Operador</label>
                 <select class="select" wire:model.live="condition_operator">
@@ -15,8 +15,9 @@
                     <option value="is_empty">is_empty</option>
                     <option value="is_not_empty">is_not_empty</option>
                 </select>
+                <small class="muted">Forma de comparación. <code>equals</code>=Igual a, <code>changed_to</code>=Cambió a.</small>
             </div>
-            <div><label>Valor condición</label><input class="input" wire:model.live="condition_value" type="text"></div>
+            <div><label>Valor de condición</label><input class="input" wire:model.live="condition_value" type="text" placeholder="CONTACTED"><small class="muted">Valor exacto a comparar en Bitrix24. Ejemplo: <code>NEW</code>, <code>IN_PROCESS</code>, <code>CONTACTED</code>.</small></div>
             <div>
                 <label>Plantilla predefinida</label>
                 <select class="select" wire:model.live="message_template_id">
@@ -25,8 +26,9 @@
                         <option value="{{ $template->id }}">{{ $template->name }}</option>
                     @endforeach
                 </select>
+                <small class="muted">Selecciona una plantilla guardada para reutilizar textos.</small>
             </div>
-            <div style="grid-column:1 / -1;"><label>Plantilla inline</label><textarea class="textarea" rows="3" wire:model.live="message_template"></textarea></div>
+            <div style="grid-column:1 / -1;"><label>Plantilla de mensaje</label><textarea class="textarea" rows="3" wire:model.live="message_template" placeholder="Hola {nombre}, recibimos tu consulta y un agente te contactará pronto."></textarea><small class="muted">Mensaje enviado al cliente. Variables: <code>{nombre}</code>, <code>{apellido}</code>, <code>{telefono}</code>, <code>{estatus}</code>, <code>{lead_id}</code>, <code>{agente}</code>, <code>{fecha}</code>.</small></div>
         </div>
         <div style="margin-top:.75rem; display:flex; gap:.75rem; align-items:center;">
             <label style="display:inline-flex; gap:.35rem;"><input type="checkbox" wire:model.live="is_active"> Activa</label>

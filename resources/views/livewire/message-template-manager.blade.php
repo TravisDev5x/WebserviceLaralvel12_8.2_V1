@@ -2,7 +2,7 @@
     <div class="page-header"><h2 class="page-title">Plantillas de mensajes</h2></div>
     <section class="card card-pad" style="margin-bottom:1rem;">
         <div class="grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
-            <div><label>Nombre</label><input class="input" wire:model.live="name" type="text"></div>
+            <div><label>Nombre de la plantilla</label><input class="input" wire:model.live="name" type="text" placeholder="Bienvenida al cliente"><small class="muted">Nombre corto para ubicar la plantilla. Ejemplo: "Bienvenida", "Caso cerrado".</small></div>
             <div>
                 <label>Categoría</label>
                 <select class="select" wire:model.live="category">
@@ -11,9 +11,10 @@
                     <option value="follow_up">follow_up</option>
                     <option value="custom">custom</option>
                 </select>
+                <small class="muted">Tipo de mensaje para organizar plantillas.</small>
             </div>
-            <div style="grid-column:1 / -1;"><label>Body</label><textarea class="textarea" rows="4" wire:model.live="body"></textarea></div>
-            <div style="grid-column:1 / -1;"><label>Variables disponibles (coma)</label><input class="input" wire:model.live="variables_available" type="text"></div>
+            <div style="grid-column:1 / -1;"><label>Cuerpo del mensaje</label><textarea class="textarea" rows="4" wire:model.live="body" placeholder="Hola {nombre}, gracias por contactarnos..."></textarea><small class="muted">Texto final del mensaje. Variables soportadas: <code>{nombre}</code>, <code>{apellido}</code>, <code>{telefono}</code>, <code>{estatus}</code>, <code>{lead_id}</code>, <code>{agente}</code>, <code>{fecha}</code>.</small></div>
+            <div style="grid-column:1 / -1;"><label>Variables disponibles (coma)</label><input class="input" wire:model.live="variables_available" type="text" placeholder="nombre,apellido,telefono,estatus,lead_id,agente,fecha"><small class="muted">Lista de variables habilitadas en esta plantilla. Ejemplo: <code>nombre,telefono,lead_id</code>.</small></div>
         </div>
         <div style="margin-top:.75rem; display:flex; gap:.75rem; align-items:center;">
             <label style="display:inline-flex; gap:.35rem;"><input type="checkbox" wire:model.live="is_active"> Activa</label>

@@ -49,28 +49,44 @@
         <div class="grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
             <div>
                 <label>Etiqueta</label>
-                <input class="input" type="text" wire:model.live="label" maxlength="100" placeholder="Nombre descriptivo">
+                <input class="input" type="text" wire:model.live="label" maxlength="100" placeholder="@if($platformTab==='bitrix24' && $bitrixSub==='incoming')Webhook principal CRM@elseif($platformTab==='bitrix24')Eventos de leads CRM@elseif($botmakerSub==='api')API Key principal@else Webhook principal Botmaker @endif">
+                <small class="muted" style="display:block;font-size:.8rem;">Nombre para identificar el registro. Ejemplo: "Webhook CRM producción", "Token integración producción".</small>
                 @error('label') <small style="color:#dc2626;">{{ $message }}</small> @enderror
             </div>
             @if($platformTab === 'bitrix24' && $bitrixSub === 'incoming')
                 <div style="grid-column:1/-1;">
                     <label>URL del webhook entrante</label>
-                    <input class="input" type="url" wire:model.live="webhook_url" placeholder="https://....bitrix24.../rest/.../">
+                    <input class="input" type="url" wire:model.live="webhook_url" placeholder="https://b24-xxxxx.bitrix24.mx/rest/123/token123/">
+                    <small class="muted" style="display:block;font-size:.8rem;">URL completa del webhook entrante de Bitrix24. Se obtiene en Aplicaciones &gt; Webhooks. Ejemplo: <code>https://b24-g5r49m.bitrix24.mx/rest/139/yrz3ac4x784xgfr5/</code>.</small>
                     @error('webhook_url') <small style="color:#dc2626;">{{ $message }}</small> @enderror
                 </div>
             @else
                 <div style="grid-column:1/-1;">
                     <label>Token @if($editingId) <span class="muted">(vacío = no cambiar)</span> @endif</label>
-                    <input class="input" type="password" wire:model.live="token" autocomplete="off">
+                    <div style="display:flex;gap:.5rem;align-items:center;">
+                        <input id="token-form-value" class="input" type="password" wire:model.live="token" autocomplete="off" placeholder="@if($platformTab==='bitrix24')l3ltqe04c1lcbybm31lyhbdu8l13kr5s@elseif($botmakerSub==='api')eyJhbGciOiJIUzUxMiJ9...@else 107488F1C373F955B1B7125B3650B3BD46C2F9F4 @endif">
+                        <button type="button" class="btn btn-sm" data-toggle-password="token-form-value">Ver</button>
+                    </div>
+                    <small class="muted" style="display:block;font-size:.8rem;">
+                        @if($platformTab==='bitrix24' && $bitrixSub==='outgoing')
+                            Token del webhook saliente de Bitrix24 (auth[application_token]). Se obtiene en Bitrix24 &gt; Webhook saliente. Ejemplo: <code>l3ltqe04c1lcbybm31lyhbdu8l13kr5s</code>.
+                        @elseif($platformTab==='botmaker' && $botmakerSub==='api')
+                            JWT de API de Botmaker. Se obtiene en Botmaker &gt; API Keys &gt; Access Token. Ejemplo: <code>eyJhbGciOiJIUzUxMiJ9...</code>.
+                        @else
+                            Token de seguridad del webhook de Botmaker enviado en <code>auth-bm-token</code>. Debe coincidir en ambos lados. Ejemplo: <code>107488F1C373F955B1B7125B3650B3BD46C2F9F4</code>. ⚠️ Si no coincide, da 401.
+                        @endif
+                    </small>
                     @error('token') <small style="color:#dc2626;">{{ $message }}</small> @enderror
                 </div>
             @endif
             <div style="grid-column:1/-1;">
                 <label>Notas (opcional)</label>
-                <textarea class="textarea" wire:model.live="notes" rows="2" placeholder="Referencia interna"></textarea>
+                <textarea class="textarea" wire:model.live="notes" rows="2" placeholder="Creado el 01/04/2026 por Operaciones"></textarea>
+                <small class="muted" style="display:block;font-size:.8rem;">Notas internas para referencia. No afecta el funcionamiento. Ejemplo: "Creado en producción por Operaciones".</small>
                 @error('notes') <small style="color:#dc2626;">{{ $message }}</small> @enderror
             </div>
             <label style="display:inline-flex; gap:.35rem; align-items:center;"><input type="checkbox" wire:model.live="is_active"> Activo</label>
+            <small class="muted" style="display:block;font-size:.8rem;">Si está activo, el sistema lo acepta para procesar webhooks.</small>
         </div>
         <div style="margin-top:.75rem; display:flex; gap:.5rem; flex-wrap:wrap;">
             <button type="button" class="btn btn-primary" wire:click="save">Guardar</button>
@@ -140,3 +156,16 @@
         </div>
     @endif
 </div>
+<script>
+    (function () {
+        document.querySelectorAll('[data-toggle-password]').forEach((btn) => {
+            btn.addEventListener('click', function () {
+                const id = this.getAttribute('data-toggle-password');
+                const input = document.getElementById(id);
+                if (!input) return;
+                input.type = input.type === 'password' ? 'text' : 'password';
+                this.textContent = input.type === 'password' ? 'Ver' : 'Ocultar';
+            });
+        });
+    })();
+</script>

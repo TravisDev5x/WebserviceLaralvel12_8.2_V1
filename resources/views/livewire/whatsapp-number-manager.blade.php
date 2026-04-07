@@ -2,9 +2,9 @@
     <div class="page-header"><h2 class="page-title">Números de WhatsApp</h2></div>
     <section class="card card-pad" style="margin-bottom:1rem;">
         <div class="grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
-            <div><label>Número</label><input class="input" wire:model.live="phone_number" type="text"></div>
-            <div><label>Etiqueta</label><input class="input" wire:model.live="label" type="text"></div>
-            <div><label>Platform ID</label><input class="input" wire:model.live="platform_id" type="text"></div>
+            <div><label>Número de teléfono</label><input class="input" wire:model.live="phone_number" type="text" placeholder="5215591108797"><small class="muted">Número WhatsApp Business con código de país, sin + ni espacios. Ejemplo: <code>5215591108797</code>.</small></div>
+            <div><label>Etiqueta</label><input class="input" wire:model.live="label" type="text" placeholder="Línea principal KFC"><small class="muted">Nombre para identificar el número. Ejemplo: "Línea ventas".</small></div>
+            <div><label>Platform ID (chatChannelId)</label><input class="input" wire:model.live="platform_id" type="text" placeholder="ecdinterno-whatsapp-5215591108797"><small class="muted">ID del canal en Botmaker. Se obtiene del campo <code>chatChannelId</code> del payload.</small></div>
         </div>
         <div style="margin-top:.75rem; display:flex; gap:.75rem;">
             <label style="display:inline-flex; gap:.35rem;"><input type="checkbox" wire:model.live="is_active"> Activo</label>

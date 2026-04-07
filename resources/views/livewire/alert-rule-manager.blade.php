@@ -2,7 +2,7 @@
     <div class="page-header"><h2 class="page-title">Reglas de alerta por correo</h2></div>
     <section class="card card-pad" style="margin-bottom:1rem;">
         <div class="grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
-            <div><label>Nombre</label><input class="input" wire:model.live="name" type="text"></div>
+            <div><label>Nombre de la alerta</label><input class="input" wire:model.live="name" type="text" placeholder="Alerta de fallos masivos"><small class="muted">Nombre descriptivo de la alerta. Ejemplo: "Fallos Botmaker".</small></div>
             <div>
                 <label>Tipo</label>
                 <select class="select" wire:model.live="condition_type">
@@ -10,11 +10,12 @@
                     <option value="webhook_errors">webhook_errors</option>
                     <option value="queue_stuck">queue_stuck</option>
                 </select>
+                <small class="muted">Condición a vigilar: fallos, errores o cola atorada.</small>
             </div>
-            <div><label>Umbral</label><input class="input" wire:model.live="threshold" type="number" min="1"></div>
-            <div><label>Ventana (min)</label><input class="input" wire:model.live="time_window_minutes" type="number" min="1"></div>
-            <div><label>Email</label><input class="input" wire:model.live="notify_email" type="email"></div>
-            <div><label>Cooldown (min)</label><input class="input" wire:model.live="cooldown_minutes" type="number" min="1"></div>
+            <div><label>Umbral</label><input class="input" wire:model.live="threshold" type="number" min="1" placeholder="5"><small class="muted">Cantidad que dispara la alerta. Ejemplo: <code>5</code>.</small></div>
+            <div><label>Ventana de tiempo (min)</label><input class="input" wire:model.live="time_window_minutes" type="number" min="1" placeholder="60"><small class="muted">Minutos a considerar para contar eventos. Ejemplo: <code>60</code>.</small></div>
+            <div><label>Email de notificación</label><input class="input" wire:model.live="notify_email" type="email" placeholder="soporte@ecd.mx"><small class="muted">Correo destino para alertas. Ejemplo: <code>telecomunicaciones@ecd.mx</code>.</small></div>
+            <div><label>Cooldown (min)</label><input class="input" wire:model.live="cooldown_minutes" type="number" min="1" placeholder="60"><small class="muted">Tiempo mínimo entre alertas repetidas. Ejemplo: <code>60</code>.</small></div>
         </div>
         <div style="margin-top:.75rem; display:flex; gap:.75rem;">
             <label style="display:inline-flex; gap:.35rem;"><input type="checkbox" wire:model.live="is_active"> Activa</label>
