@@ -834,17 +834,11 @@
                         <h1 style="font-size: 1rem; margin: 0;">{{ $title ?? 'Panel de Webhooks' }}</h1>
                     </div>
                     <div style="display: flex; gap: 0.5rem; align-items: center;">
-                        @auth
-                            <a class="muted" href="{{ route('profile.edit') }}" style="font-size: 0.84rem; text-decoration: none; max-width: 12rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="Mi perfil">{{ auth()->user()->name }}</a>
-                        @endauth
                         <button id="menu-toggle-btn" class="btn menu-toggle-btn" type="button" aria-label="Abrir menu lateral">
                             <i data-lucide="menu"></i>
                         </button>
-                        <button id="theme-toggle" class="btn" type="button">
-                            <span style="display: inline-flex; align-items: center; gap: 0.45rem;">
-                                <i id="theme-toggle-icon" data-lucide="moon"></i>
-                                <span id="theme-toggle-text">Modo claro</span>
-                            </span>
+                        <button id="theme-toggle" class="btn" type="button" aria-label="Cambiar tema">
+                            <i id="theme-toggle-icon" data-lucide="moon"></i>
                         </button>
                     </div>
                 </div>
@@ -865,7 +859,6 @@
         (function () {
             const root = document.documentElement;
             const btn = document.getElementById('theme-toggle');
-            const btnText = document.getElementById('theme-toggle-text');
             const btnIcon = document.getElementById('theme-toggle-icon');
             let lucideDebounceTimer = null;
 
@@ -880,7 +873,7 @@
 
             const refreshThemeButton = () => {
                 const isDark = root.getAttribute('data-theme') === 'dark';
-                if (btnText) btnText.textContent = isDark ? 'Modo claro' : 'Modo oscuro';
+                if (btn) btn.setAttribute('aria-label', isDark ? 'Activar modo claro' : 'Activar modo oscuro');
                 if (btnIcon) btnIcon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
                 renderIcons();
             };
