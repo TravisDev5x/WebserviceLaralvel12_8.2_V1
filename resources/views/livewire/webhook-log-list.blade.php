@@ -22,8 +22,19 @@
         </div>
         <div style="display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:.75rem;">
             @foreach ($statuses as $value => $label)
-                @php($isActive = $statusFilter === $value)
-                @php($badgeColor = match($value){'sent'=>'#16a34a','failed'=>'#dc2626','processing'=>'#ca8a04','received'=>'#2563eb',default=>'#64748b'})
+                @php
+                    $isActive = $statusFilter === $value;
+                    $badgeColor = '#64748b';
+                    if ($value === 'sent') {
+                        $badgeColor = '#16a34a';
+                    } elseif ($value === 'failed') {
+                        $badgeColor = '#dc2626';
+                    } elseif ($value === 'processing') {
+                        $badgeColor = '#ca8a04';
+                    } elseif ($value === 'received') {
+                        $badgeColor = '#2563eb';
+                    }
+                @endphp
                 <button type="button" class="badge-soft" style="border-color:{{ $badgeColor }}; color:{{ $isActive ? '#fff' : $badgeColor }}; background:{{ $isActive ? $badgeColor : 'transparent' }};" wire:click="$set('statusFilter','{{ $value }}')">{{ $label }}</button>
             @endforeach
         </div>
