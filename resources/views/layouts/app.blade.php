@@ -836,10 +836,6 @@
                     <div style="display: flex; gap: 0.5rem; align-items: center;">
                         @auth
                             <a class="muted" href="{{ route('profile.edit') }}" style="font-size: 0.84rem; text-decoration: none; max-width: 12rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="Mi perfil">{{ auth()->user()->name }}</a>
-                            <form method="POST" action="{{ route('logout') }}" style="margin: 0;">
-                                @csrf
-                                <button class="btn" type="submit">Salir</button>
-                            </form>
                         @endauth
                         <button id="menu-toggle-btn" class="btn menu-toggle-btn" type="button" aria-label="Abrir menu lateral">
                             <i data-lucide="menu"></i>
