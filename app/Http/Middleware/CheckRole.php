@@ -19,11 +19,19 @@ class CheckRole
 
         if (! $user->is_active) {
             auth()->logout();
-            abort(403, 'Tu usuario está desactivado.');
+            if ($request->expectsJson()) {
+                abort(403, 'Tu usuario está desactivado.');
+            }
+
+            return redirect()->route('login')->withErrors(['login' => 'Tu usuario está desactivado.']);
         }
 
         if ($roles !== [] && ! in_array((string) $user->role, $roles, true)) {
-            abort(403, 'No tienes permisos para esta sección.');
+            if ($request->expectsJson()) {
+                abort(403, 'No tienes permisos para acceder a esta sección.');
+            }
+
+            return redirect('/monitor')->with('error', 'No tienes permisos para acceder a esta sección.');
         }
 
         return $next($request);

@@ -15,6 +15,7 @@ class RoleSeeder extends Seeder
             'monitor.view',
             'logs.view',
             'failed.view',
+            'failed.manage',
             'settings.manage',
             'mappings.manage',
             'notifications.manage',

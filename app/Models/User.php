@@ -2,14 +2,16 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
+// TODO: Restaurar "implements MustVerifyEmail" cuando el envío de correo esté configurado y se reactive la verificación obligatoria.
+// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Support\UserRegistrationEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, SoftDeletes;
@@ -25,6 +27,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'role',
         'is_active',
         'email',
+        'email_verified_at',
         'password',
         'last_login_at',
     ];
@@ -52,5 +55,20 @@ class User extends Authenticatable implements MustVerifyEmail
             'is_active' => 'boolean',
             'last_login_at' => 'datetime',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (User $user): void {
+            $r = $user->role;
+            if ($r === null || $r === '') {
+                $user->role = 'viewer';
+            }
+        });
+    }
+
+    public function usesSyntheticEmail(): bool
+    {
+        return UserRegistrationEmail::isSynthetic($this->email);
     }
 }

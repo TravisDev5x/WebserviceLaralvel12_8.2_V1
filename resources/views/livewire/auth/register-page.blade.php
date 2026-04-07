@@ -16,8 +16,8 @@
         </div>
 
         <div style="margin-bottom: 0.7rem;">
-            <label for="email">Correo</label>
-            <input id="email" class="input" type="email" wire:model.live="email" autocomplete="email">
+            <label for="email">Correo electrónico <span class="muted">(opcional)</span></label>
+            <input id="email" class="input" type="email" wire:model.live="email" autocomplete="email" placeholder="Si lo deja vacío, se usará un correo interno">
             @error('email') <small style="color: #dc2626;">{{ $message }}</small> @enderror
         </div>
 

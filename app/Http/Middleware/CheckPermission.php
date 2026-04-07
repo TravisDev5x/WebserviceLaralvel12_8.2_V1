@@ -22,6 +22,10 @@ class CheckPermission
             }
         }
 
-        abort(403, 'No tienes permisos para esta sección.');
+        if ($request->expectsJson()) {
+            abort(403, 'No tienes permisos para acceder a esta sección.');
+        }
+
+        return redirect('/monitor')->with('error', 'No tienes permisos para acceder a esta sección.');
     }
 }

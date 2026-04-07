@@ -26,6 +26,10 @@ class FailedWebhookList extends Component
 
     public function forceRetry(int $id): void
     {
+        if (! user_can('failed.manage')) {
+            return;
+        }
+
         $failedWebhook = FailedWebhook::query()
             ->with('webhookLog')
             ->findOrFail($id);
@@ -54,6 +58,10 @@ class FailedWebhookList extends Component
 
     public function markResolved(int $id): void
     {
+        if (! user_can('failed.manage')) {
+            return;
+        }
+
         $failedWebhook = FailedWebhook::query()->findOrFail($id);
         $failedWebhook->markAsResolved();
     }

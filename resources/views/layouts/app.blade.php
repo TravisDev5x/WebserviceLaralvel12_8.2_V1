@@ -875,6 +875,16 @@
             </header>
 
             <main class="content-shell">
+                @if(session('error'))
+                    <div class="card card-pad" style="margin-bottom:.75rem;border-left:3px solid #dc2626;background:var(--app-row);" role="alert">
+                        <p style="margin:0;">{{ session('error') }}</p>
+                    </div>
+                @endif
+                @if(session('success'))
+                    <div class="card card-pad" style="margin-bottom:.75rem;border-left:3px solid #22c55e;background:var(--app-row);" role="status">
+                        <p style="margin:0;">{{ session('success') }}</p>
+                    </div>
+                @endif
                 @if(! empty($breadcrumbs ?? []))
                     <x-breadcrumb :items="$breadcrumbs" />
                 @endif

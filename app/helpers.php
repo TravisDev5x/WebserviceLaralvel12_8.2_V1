@@ -28,6 +28,7 @@ if (! function_exists('permissions_catalog')) {
             'monitor.view',
             'logs.view',
             'failed.view',
+            'failed.manage',
             'settings.manage',
             'mappings.manage',
             'notifications.manage',
@@ -48,7 +49,10 @@ if (! function_exists('user_can')) {
             return false;
         }
 
-        $roleSlug = (string) ($user->role ?? 'viewer');
+        $roleSlug = trim((string) ($user->role ?? ''));
+        if ($roleSlug === '') {
+            $roleSlug = 'viewer';
+        }
         $role = Role::query()->where('slug', $roleSlug)->where('is_active', true)->first();
         if ($role instanceof Role) {
             return $role->hasPermission($permission);
@@ -56,7 +60,7 @@ if (! function_exists('user_can')) {
 
         return match ($roleSlug) {
             'admin' => true,
-            'operator' => $permission !== 'users.manage',
+            'operator' => ! in_array($permission, ['users.manage'], true),
             default => in_array($permission, ['monitor.view', 'logs.view', 'failed.view'], true),
         };
     }

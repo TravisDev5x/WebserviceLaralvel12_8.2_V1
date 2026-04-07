@@ -178,7 +178,7 @@
                 <h3 style="margin-top:0;">Nuevo usuario</h3>
                 <div class="grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
                     <div><label>Nombre</label><input class="input" type="text" wire:model.live="createUserName" autocomplete="off"></div>
-                    <div><label>Email</label><input class="input" type="email" wire:model.live="createUserEmail" autocomplete="off"></div>
+                    <div><label>Correo <span class="muted">(opcional)</span></label><input class="input" type="email" wire:model.live="createUserEmail" autocomplete="off" placeholder="Vacío = correo interno"></div>
                     <div><label>Número empleado</label><input class="input" type="text" wire:model.live="createUserEmployeeNumber" autocomplete="off"></div>
                     <div>
                         <label>Rol inicial</label>
@@ -205,7 +205,7 @@
                 <h3 style="margin-top:0;">Editar usuario</h3>
                 <div class="grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
                     <div><label>Nombre</label><input class="input" type="text" wire:model.live="editUserName"></div>
-                    <div><label>Email</label><input class="input" type="email" wire:model.live="editUserEmail"></div>
+                    <div><label>Correo <span class="muted">(opcional)</span></label><input class="input" type="email" wire:model.live="editUserEmail" placeholder="Vacío = correo interno"></div>
                     <div><label>Número empleado</label><input class="input" type="text" wire:model.live="editUserEmployeeNumber"></div>
                     <div>
                         <label>Rol</label>

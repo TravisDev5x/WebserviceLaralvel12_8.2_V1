@@ -1,8 +1,9 @@
 <div>
+    @php($canManageFailed = user_can('failed.manage'))
     <div class="page-header">
         <div>
             <h2 class="page-title">Webhooks Fallidos</h2>
-            <p class="page-subtitle">Gestión manual de reintentos y resolución.</p>
+            <p class="page-subtitle">@if($canManageFailed) Gestión manual de reintentos y resolución. @else Solo consulta de fallos; los reintentos los gestiona un operador o administrador. @endif</p>
         </div>
     </div>
 
@@ -57,12 +58,16 @@
                             <td>{{ $failedWebhook->next_retry_at?->format('Y-m-d H:i:s') ?: '-' }}</td>
                             <td>{{ $failedWebhook->created_at?->format('Y-m-d H:i:s') }}</td>
                             <td style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                                <button class="btn btn-sm" type="button" wire:click="forceRetry({{ $failedWebhook->id }})" data-tooltip="Enviar nuevamente este webhook" @disabled(! $canRetry)>
-                                    <span style="display:inline-flex; align-items:center; gap:.3rem;"><i data-lucide="rotate-cw"></i>Forzar reintento</span>
-                                </button>
-                                <button class="btn btn-sm" type="button" wire:click="markResolved({{ $failedWebhook->id }})" data-tooltip="Marcar como resuelto manualmente">
-                                    <span style="display:inline-flex; align-items:center; gap:.3rem;"><i data-lucide="check-circle2"></i>Marcar resuelto</span>
-                                </button>
+                                @if($canManageFailed)
+                                    <button class="btn btn-sm" type="button" wire:click="forceRetry({{ $failedWebhook->id }})" data-tooltip="Enviar nuevamente este webhook" @disabled(! $canRetry)>
+                                        <span style="display:inline-flex; align-items:center; gap:.3rem;"><i data-lucide="rotate-cw"></i>Forzar reintento</span>
+                                    </button>
+                                    <button class="btn btn-sm" type="button" wire:click="markResolved({{ $failedWebhook->id }})" data-tooltip="Marcar como resuelto manualmente">
+                                        <span style="display:inline-flex; align-items:center; gap:.3rem;"><i data-lucide="check-circle2"></i>Marcar resuelto</span>
+                                    </button>
+                                @else
+                                    <span class="muted" style="font-size:0.85rem;">Solo lectura</span>
+                                @endif
                             </td>
                         </tr>
                     @empty

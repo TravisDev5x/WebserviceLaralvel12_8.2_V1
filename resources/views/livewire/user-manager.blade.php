@@ -2,12 +2,22 @@
     <div class="page-header">
         <div>
             <h2 class="page-title">Usuarios y roles</h2>
-            <p class="page-subtitle">Administración básica (solo admin).</p>
+            <p class="page-subtitle">Alta de usuarios, roles y estado (solo administrador).</p>
         </div>
         <button class="btn btn-primary" wire:click="openCreateUser" type="button">Nuevo usuario</button>
     </div>
+    @if(session('user_success'))
+        <div class="card card-pad" style="margin-bottom:.75rem; border-left:3px solid #22c55e; background:var(--app-row);" role="status">
+            <p style="margin:0;">{{ session('user_success') }}</p>
+        </div>
+    @endif
+    @if(session('user_error'))
+        <div class="card card-pad" style="margin-bottom:.75rem; border-left:3px solid #dc2626; background:var(--app-row);" role="alert">
+            <p style="margin:0;">{{ session('user_error') }}</p>
+        </div>
+    @endif
     @if(session('user_created'))
-        <div class="card card-pad" style="margin-bottom:.75rem; border-left:3px solid #22c55e; background:#f0fdf4;">
+        <div class="card card-pad" style="margin-bottom:.75rem; border-left:3px solid #22c55e; background:var(--app-row);">
             <p style="margin:0;">{{ session('user_created') }}</p>
         </div>
     @endif
@@ -17,9 +27,9 @@
             <div>
                 <select class="select" wire:model.live="roleFilter">
                     <option value="all">Todos los roles</option>
-                    <option value="admin">admin</option>
-                    <option value="operator">operator</option>
-                    <option value="viewer">viewer</option>
+                    <option value="admin">Administrador</option>
+                    <option value="operator">Operador</option>
+                    <option value="viewer">Solo lectura</option>
                 </select>
             </div>
             <div>
@@ -31,31 +41,101 @@
             </div>
         </div>
         <div class="table-wrap">
-            <table class="table-clean">
-                <thead><tr><th>ID</th><th>Nombre</th><th>Email</th><th>Número empleado</th><th>Rol</th><th>Activo</th><th>Último acceso</th><th>Acciones</th></tr></thead>
+            <table class="table-clean" wire:key="users-tbl-{{ $tableVersion }}">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Correo</th>
+                        <th>Número empleado</th>
+                        <th>Rol</th>
+                        <th>Activo</th>
+                        <th>Último acceso</th>
+                        <th>Registro</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
                 <tbody>
-                    @foreach($users as $user)
-                        <tr>
-                            <td>{{ $user->id }}</td>
+                    @forelse($users as $user)
+                        @php
+                            $isSelf = $user->id === auth()->id();
+                            $roleLabel = match ($user->role) {
+                                'admin' => 'Administrador',
+                                'operator' => 'Operador',
+                                default => 'Solo lectura',
+                            };
+                            $badgeStyle = match ($user->role) {
+                                'admin' => 'background:#4c1d95;color:#fff;',
+                                'operator' => 'background:#1d4ed8;color:#fff;',
+                                default => 'background:#e5e7eb;color:#374151;',
+                            };
+                        @endphp
+                        <tr wire:key="u-{{ $user->id }}-v{{ $tableVersion }}">
                             <td>{{ $user->name }}</td>
-                            <td>{{ $user->email }}</td>
-                            <td>{{ $user->employee_number }}</td>
-                            <td>{{ $user->role }}</td>
-                            <td>{{ $user->is_active ? 'Sí' : 'No' }}</td>
-                            <td>{{ $user->last_login_at?->format('Y-m-d H:i:s') ?: '-' }}</td>
-                            <td style="display:flex; gap:.35rem;">
-                                <button class="btn" wire:click="toggleActive({{ $user->id }})" type="button">{{ $user->is_active ? 'Desactivar' : 'Activar' }}</button>
-                                <button class="btn" wire:click="setRole({{ $user->id }}, 'admin')" type="button">Admin</button>
-                                <button class="btn" wire:click="setRole({{ $user->id }}, 'operator')" type="button">Operador</button>
-                                <button class="btn" wire:click="setRole({{ $user->id }}, 'viewer')" type="button">Viewer</button>
+                            <td>
+                                @if($user->usesSyntheticEmail())
+                                    <span class="muted" title="Correo interno generado automáticamente">Sin correo</span>
+                                @else
+                                    {{ $user->email }}
+                                @endif
+                            </td>
+                            <td>{{ $user->employee_number ?? '—' }}</td>
+                            <td style="min-width: 11rem;">
+                                @if($isSelf)
+                                    <span class="badge-soft" style="{{ $badgeStyle }}padding:.2rem .5rem;border-radius:999px;font-size:.78rem;">{{ $roleLabel }}</span>
+                                    <p class="muted" style="margin:.25rem 0 0;font-size:.75rem;">Su rol no se cambia aquí</p>
+                                @else
+                                    <select class="select" style="max-width:100%;font-size:.85rem;padding:.35rem .5rem;"
+                                        wire:change="promptRoleChange({{ $user->id }}, $event.target.value, @json($user->role), @json($user->name))">
+                                        <option value="admin" @selected($user->role === 'admin')>Administrador</option>
+                                        <option value="operator" @selected($user->role === 'operator')>Operador</option>
+                                        <option value="viewer" @selected($user->role === 'viewer' || $user->role === null || $user->role === '')>Solo lectura</option>
+                                    </select>
+                                @endif
+                            </td>
+                            <td>
+                                @if($isSelf)
+                                    <span class="muted">—</span>
+                                @else
+                                    <label class="muted" style="display:inline-flex;align-items:center;gap:.35rem;cursor:pointer;font-size:.85rem;">
+                                        <input type="checkbox" @checked($user->is_active) wire:click.prevent="toggleActive({{ $user->id }})" wire:loading.attr="disabled">
+                                        {{ $user->is_active ? 'Sí' : 'No' }}
+                                    </label>
+                                @endif
+                            </td>
+                            <td style="white-space:nowrap;font-size:.85rem;">{{ $user->last_login_at?->format('d/m/Y H:i') ?: '—' }}</td>
+                            <td style="white-space:nowrap;font-size:.85rem;">{{ $user->created_at?->format('d/m/Y H:i') ?: '—' }}</td>
+                            <td>
+                                <button class="btn btn-sm" type="button" wire:click="openEditUser({{ $user->id }})">Editar</button>
                             </td>
                         </tr>
-                    @endforeach
+                    @empty
+                        <tr><td colspan="8" class="muted">No hay usuarios que coincidan.</td></tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
         <div style="margin-top:.75rem;">{{ $users->links() }}</div>
     </section>
+
+    @if($showRoleConfirmModal)
+        <div style="position: fixed; inset: 0; background: rgba(0,0,0,.45); display:flex; align-items:center; justify-content:center; z-index:60;">
+            <div class="card card-pad" style="width:min(95vw, 480px);">
+                <h3 style="margin-top:0;">Confirmar cambio de rol</h3>
+                @php
+                    $rl = static fn (string $r): string => match ($r) {
+                        'admin' => 'Administrador',
+                        'operator' => 'Operador',
+                        default => 'Solo lectura',
+                    };
+                @endphp
+                <p style="margin:0 0 1rem;line-height:1.5;">¿Cambiar el rol de <strong>{{ $roleModalName }}</strong> de <strong>{{ $rl($roleModalOld) }}</strong> a <strong>{{ $rl($roleModalNew) }}</strong>?</p>
+                <div style="display:flex;justify-content:flex-end;gap:.5rem;">
+                    <button class="btn" type="button" wire:click="cancelRoleModal">Cancelar</button>
+                    <button class="btn btn-primary" type="button" wire:click="confirmRoleModal">Sí, cambiar</button>
+                </div>
+            </div>
+        </div>
+    @endif
 
     @if($showCreateUserModal)
         <div style="position: fixed; inset: 0; background: rgba(0,0,0,.45); display:flex; align-items:center; justify-content:center; z-index:60;">
@@ -63,14 +143,14 @@
                 <h3 style="margin-top:0;">Nuevo usuario</h3>
                 <div class="grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
                     <div><label>Nombre</label><input class="input" type="text" wire:model.live="newUserName" autocomplete="off"></div>
-                    <div><label>Email</label><input class="input" type="email" wire:model.live="newUserEmail" autocomplete="off"></div>
+                    <div><label>Correo <span class="muted">(opcional)</span></label><input class="input" type="email" wire:model.live="newUserEmail" autocomplete="off" placeholder="Vacío = correo interno"></div>
                     <div><label>Número empleado</label><input class="input" type="text" wire:model.live="newUserEmployeeNumber" autocomplete="off"></div>
                     <div>
                         <label>Rol inicial</label>
                         <select class="select" wire:model.live="newUserRole">
-                            <option value="admin">admin</option>
-                            <option value="operator">operator</option>
-                            <option value="viewer">viewer</option>
+                            <option value="admin">Administrador</option>
+                            <option value="operator">Operador</option>
+                            <option value="viewer">Solo lectura</option>
                         </select>
                     </div>
                     <div><label>Contraseña</label><input class="input" type="password" wire:model.live="newUserPassword" autocomplete="new-password"></div>
@@ -79,6 +159,36 @@
                 <div style="margin-top:1rem; display:flex; justify-content:flex-end; gap:.5rem;">
                     <button class="btn" wire:click="closeCreateUser" type="button">Cancelar</button>
                     <button class="btn btn-primary" wire:click="createUser" type="button">Crear usuario</button>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    @if($showEditUserModal && $editUserId !== null)
+        <div style="position: fixed; inset: 0; background: rgba(0,0,0,.45); display:flex; align-items:center; justify-content:center; z-index:60;">
+            <div class="card card-pad" style="width:min(95vw, 620px); max-height:90vh; overflow:auto;">
+                <h3 style="margin-top:0;">Editar usuario</h3>
+                <div class="grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+                    <div><label>Nombre</label><input class="input" type="text" wire:model.live="editUserName" autocomplete="off"></div>
+                    <div><label>Correo <span class="muted">(opcional)</span></label><input class="input" type="email" wire:model.live="editUserEmail" autocomplete="off" placeholder="Vacío = correo interno"></div>
+                    <div><label>Número empleado</label><input class="input" type="text" wire:model.live="editUserEmployeeNumber" autocomplete="off"></div>
+                    <div>
+                        <label>Rol</label>
+                        @if($editUserId === auth()->id())
+                            <p class="muted" style="margin:0;font-size:.88rem;">No puede cambiar su propio rol aquí.</p>
+                            <input type="hidden" wire:model="editUserRole">
+                        @else
+                            <select class="select" wire:model.live="editUserRole">
+                                <option value="admin">Administrador</option>
+                                <option value="operator">Operador</option>
+                                <option value="viewer">Solo lectura</option>
+                            </select>
+                        @endif
+                    </div>
+                </div>
+                <div style="margin-top:1rem; display:flex; justify-content:flex-end; gap:.5rem;">
+                    <button class="btn" wire:click="closeEditUser" type="button">Cancelar</button>
+                    <button class="btn btn-primary" wire:click="saveEditUser" type="button">Guardar</button>
                 </div>
             </div>
         </div>

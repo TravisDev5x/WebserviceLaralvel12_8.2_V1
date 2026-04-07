@@ -140,7 +140,8 @@ Route::post('/logout', function (Request $request) {
     return redirect()->route('login');
 })->middleware('auth')->name('logout');
 
-Route::middleware(['auth', 'verified'])->group(function (): void {
+// TODO: Restaurar middleware 'verified' en este grupo cuando el mailer esté configurado (verificación de correo obligatoria).
+Route::middleware(['auth'])->group(function (): void {
     Route::get('/monitor/profile', ProfilePage::class)->name('profile.edit');
     Route::get('/monitor/manual', IntegrationManual::class)->middleware('permission:monitor.view')->name('manual.app');
     Route::get('/monitor', WebhookDashboard::class)->middleware('permission:monitor.view');

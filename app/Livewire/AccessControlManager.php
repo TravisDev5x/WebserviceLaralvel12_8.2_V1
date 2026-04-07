@@ -6,9 +6,11 @@ namespace App\Livewire;
 
 use App\Models\Role;
 use App\Models\User;
+use App\Support\UserRegistrationEmail;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -174,7 +176,7 @@ class AccessControlManager extends Component
     {
         $data = $this->validate([
             'createUserName' => ['required', 'string', 'max:255'],
-            'createUserEmail' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'createUserEmail' => ['nullable', 'string', 'max:255', 'email', Rule::unique('users', 'email')],
             'createUserEmployeeNumber' => ['required', 'string', 'max:100', 'unique:users,employee_number'],
             'createUserPassword' => ['required', 'string', 'min:8', 'same:createUserPasswordConfirmation'],
             'createUserPasswordConfirmation' => ['required', 'string', 'min:8'],
@@ -187,16 +189,19 @@ class AccessControlManager extends Component
             'createUserPasswordConfirmation' => 'confirmación',
         ]);
 
-        $user = User::query()->create([
+        $employeeNumber = trim((string) $data['createUserEmployeeNumber']);
+        $email = UserRegistrationEmail::resolve($data['createUserEmail'] ?? null, $employeeNumber);
+
+        // TODO: Quitar auto-verificación cuando el mailer esté listo y se reactive MustVerifyEmail + middleware verified.
+        User::query()->create([
             'name' => trim((string) $data['createUserName']),
-            'email' => strtolower(trim((string) $data['createUserEmail'])),
-            'employee_number' => trim((string) $data['createUserEmployeeNumber']),
+            'email' => $email,
+            'employee_number' => $employeeNumber,
             'password' => (string) $data['createUserPassword'],
             'role' => (string) $data['createUserRole'],
             'is_active' => true,
+            'email_verified_at' => now(),
         ]);
-
-        $user->sendEmailVerificationNotification();
 
         $this->closeCreateUser();
         $this->resetPage('users_page');
@@ -208,7 +213,7 @@ class AccessControlManager extends Component
         $user = User::withTrashed()->findOrFail($userId);
         $this->editingUserId = $user->id;
         $this->editUserName = (string) $user->name;
-        $this->editUserEmail = (string) $user->email;
+        $this->editUserEmail = $user->usesSyntheticEmail() ? '' : (string) $user->email;
         $this->editUserEmployeeNumber = (string) ($user->employee_number ?? '');
         $this->editUserRole = (string) $user->role;
         $this->editUserIsActive = (bool) $user->is_active;
@@ -223,16 +228,19 @@ class AccessControlManager extends Component
 
         $data = $this->validate([
             'editUserName' => ['required', 'string', 'max:255'],
-            'editUserEmail' => ['required', 'email', 'max:255', 'unique:users,email,'.$this->editingUserId],
-            'editUserEmployeeNumber' => ['required', 'string', 'max:100', 'unique:users,employee_number,'.$this->editingUserId],
+            'editUserEmail' => ['nullable', 'string', 'max:255', 'email', Rule::unique('users', 'email')->ignore($this->editingUserId)],
+            'editUserEmployeeNumber' => ['required', 'string', 'max:100', Rule::unique('users', 'employee_number')->ignore($this->editingUserId)],
             'editUserRole' => ['required', 'string', 'exists:roles,slug'],
             'editUserIsActive' => ['boolean'],
         ]);
 
+        $employeeNumber = trim((string) $data['editUserEmployeeNumber']);
+        $email = UserRegistrationEmail::resolve($data['editUserEmail'] ?? null, $employeeNumber);
+
         User::withTrashed()->whereKey($this->editingUserId)->update([
             'name' => trim((string) $data['editUserName']),
-            'email' => strtolower(trim((string) $data['editUserEmail'])),
-            'employee_number' => trim((string) $data['editUserEmployeeNumber']),
+            'email' => $email,
+            'employee_number' => $employeeNumber,
             'role' => (string) $data['editUserRole'],
             'is_active' => (bool) $data['editUserIsActive'],
         ]);
