@@ -1,4 +1,111 @@
-<div>
+<div class="acm-page">
+    <style>
+        .acm-page .acm-users-head {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: .75rem;
+            margin-bottom: .85rem;
+        }
+        .acm-page .acm-users-head-main {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: .55rem .85rem;
+            min-width: 0;
+        }
+        .acm-page .acm-users-head-main h3 {
+            margin: 0;
+            line-height: 1.2;
+            font-size: 1rem;
+        }
+        .acm-page .acm-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .35rem;
+        }
+        .acm-page .acm-filters-grid {
+            display: grid;
+            grid-template-columns: 1.6fr 1fr 1fr .75fr auto;
+            gap: .6rem .75rem;
+            align-items: end;
+            margin-bottom: .8rem;
+        }
+        .acm-page .acm-filter-item {
+            min-width: 0;
+        }
+        .acm-page .acm-filter-item label {
+            display: block;
+            font-size: .72rem;
+            margin-bottom: .25rem;
+            color: var(--app-muted);
+        }
+        .acm-page .acm-help {
+            display: block;
+            margin-top: .28rem;
+            font-size: .74rem;
+            color: var(--app-muted);
+            line-height: 1.35;
+        }
+        .acm-page .acm-clear-wrap {
+            display: flex;
+            align-items: end;
+            justify-content: flex-end;
+            min-width: 9.5rem;
+        }
+        .acm-page .acm-table-actions {
+            display: flex;
+            gap: .3rem;
+            flex-wrap: nowrap;
+            justify-content: flex-start;
+        }
+        .acm-page .acm-table-actions .btn {
+            width: 2rem;
+            min-width: 2rem;
+            padding: .35rem .3rem;
+            justify-content: center;
+        }
+        .acm-page .acm-role-select {
+            min-width: 11rem;
+            max-width: 14rem;
+        }
+        .acm-page .acm-modal-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: .75rem;
+        }
+        .acm-page .acm-modal-grid .full {
+            grid-column: 1 / -1;
+        }
+        @media (max-width: 980px) {
+            .acm-page .acm-filters-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .acm-page .acm-clear-wrap {
+                grid-column: 1 / -1;
+                justify-content: stretch;
+            }
+            .acm-page .acm-clear-wrap .btn {
+                width: 100%;
+            }
+        }
+        @media (max-width: 720px) {
+            .acm-page .acm-filters-grid {
+                grid-template-columns: 1fr;
+            }
+            .acm-page .acm-table-actions {
+                flex-wrap: wrap;
+            }
+            .acm-page .acm-modal-grid {
+                grid-template-columns: 1fr;
+            }
+            .acm-page .acm-role-select {
+                min-width: 0;
+                max-width: 100%;
+            }
+        }
+    </style>
     <div class="page-header">
         <div>
             <h2 class="page-title">Usuarios y catálogo de roles</h2>
@@ -13,10 +120,10 @@
     @endif
 
     <section class="card card-pad users-list-section" style="margin-bottom:1rem;">
-        <div class="users-section-head">
-            <div class="users-section-head-main">
+        <div class="acm-users-head">
+            <div class="acm-users-head-main">
                 <h3>Listado de usuarios</h3>
-                <div class="users-meta-badges">
+                <div class="acm-badges">
                     <span class="badge-soft">Total: {{ $users->total() }}</span>
                     <span class="badge-soft">Pág. {{ $users->currentPage() }} / {{ $users->lastPage() }}</span>
                     @if($userSearch !== '')
@@ -28,45 +135,43 @@
                 <span style="display:inline-flex; align-items:center; gap:.35rem;"><i data-lucide="user-plus"></i>Nuevo usuario</span>
             </button>
         </div>
-        <div class="users-filters-row">
-            <div class="users-search-wrap">
-                <label class="muted" style="display:block; font-size:.72rem; margin-bottom:.25rem;">Buscar</label>
+        <div class="acm-filters-grid">
+            <div class="acm-filter-item">
+                <label>Buscar</label>
                 <input class="input" type="text" wire:model.live.debounce.300ms="userSearch" placeholder="Nombre, email o número…" style="width:100%;">
-                <small class="muted">Filtra usuarios por nombre, correo o número de empleado. Ejemplo: <code>18680</code>.</small>
+                <small class="acm-help">Filtra por nombre, correo o número de empleado. Ejemplo: <code>18680</code>.</small>
             </div>
-            <div class="users-filters-selects">
-                <div>
-                    <label class="muted" style="display:block; font-size:.72rem; margin-bottom:.25rem;">Rol</label>
-                    <select class="select" wire:model.live="userRoleFilter">
-                        <option value="all">Todos los roles</option>
-                        @foreach($roles as $role)
-                            <option value="{{ $role->slug }}">{{ $role->name }}</option>
-                        @endforeach
-                    </select>
-                    <small class="muted">Rol actual del usuario. Administrador=todo, Operador=operación, Visitante=solo lectura.</small>
-                </div>
-                <div>
-                    <label class="muted" style="display:block; font-size:.72rem; margin-bottom:.25rem;">Estado</label>
-                    <select class="select" wire:model.live="userStatusFilter">
-                        <option value="all">Todos</option>
-                        <option value="active">Activos</option>
-                        <option value="inactive">Inactivos</option>
-                        <option value="deleted">Dados de baja</option>
-                    </select>
-                    <small class="muted">Estado de la cuenta: activa, inactiva o dada de baja.</small>
-                </div>
-                <div>
-                    <label class="muted" style="display:block; font-size:.72rem; margin-bottom:.25rem;">Por página</label>
-                    <select class="select" wire:model.live="usersPerPage">
-                        <option value="10">10</option>
-                        <option value="12">12</option>
-                        <option value="20">20</option>
-                        <option value="50">50</option>
-                    </select>
-                    <small class="muted">Cantidad de usuarios mostrados por página.</small>
-                </div>
+            <div class="acm-filter-item">
+                <label>Rol</label>
+                <select class="select" wire:model.live="userRoleFilter">
+                    <option value="all">Todos los roles</option>
+                    @foreach($roles as $role)
+                        <option value="{{ $role->slug }}">{{ $role->name }}</option>
+                    @endforeach
+                </select>
+                <small class="acm-help">Administrador = total, Operador = operación, Visitante = lectura.</small>
             </div>
-            <div class="users-clear-wrap">
+            <div class="acm-filter-item">
+                <label>Estado</label>
+                <select class="select" wire:model.live="userStatusFilter">
+                    <option value="all">Todos</option>
+                    <option value="active">Activos</option>
+                    <option value="inactive">Inactivos</option>
+                    <option value="deleted">Dados de baja</option>
+                </select>
+                <small class="acm-help">Cuenta activa, inactiva o dada de baja.</small>
+            </div>
+            <div class="acm-filter-item">
+                <label>Por página</label>
+                <select class="select" wire:model.live="usersPerPage">
+                    <option value="10">10</option>
+                    <option value="12">12</option>
+                    <option value="20">20</option>
+                    <option value="50">50</option>
+                </select>
+                <small class="acm-help">Cantidad de filas por página.</small>
+            </div>
+            <div class="acm-clear-wrap">
                 <button class="btn" wire:click="clearUserFilters" type="button" data-tooltip="Limpiar todos los filtros">
                     <span style="display:inline-flex; align-items:center; gap:.35rem;"><i data-lucide="eraser"></i>Limpiar filtros</span>
                 </button>
@@ -131,14 +236,14 @@
                             </span>
                         </td>
                         <td>
-                            <select class="select" wire:change="assignRole({{ $user->id }}, $event.target.value)">
+                            <select class="select acm-role-select" wire:change="assignRole({{ $user->id }}, $event.target.value)">
                                 @foreach($roles as $role)
                                     <option value="{{ $role->slug }}" @selected($user->role === $role->slug)>{{ $role->name }}</option>
                                 @endforeach
                             </select>
                         </td>
                         <td>
-                            <div style="display:flex; gap:.35rem; flex-wrap:wrap;">
+                            <div class="acm-table-actions">
                                 <button class="btn btn-sm" wire:click="editUser({{ $user->id }})" type="button" data-tooltip="Editar datos del usuario" aria-label="Editar usuario">
                                     <span style="display:inline-flex; align-items:center;"><i data-lucide="pencil"></i></span>
                                 </button>
@@ -180,7 +285,7 @@
         <div style="position: fixed; inset: 0; background: rgba(0,0,0,.45); display:flex; align-items:center; justify-content:center; z-index:60;">
             <div class="card card-pad" style="width:min(95vw, 620px); max-height:90vh; overflow:auto;">
                 <h3 style="margin-top:0;">Nuevo usuario</h3>
-                <div class="grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+                <div class="acm-modal-grid">
                     <div><label>Nombre</label><input class="input" type="text" wire:model.live="createUserName" autocomplete="off" placeholder="Juan Pérez García"><small class="muted">Nombre completo del nuevo usuario.</small></div>
                     <div><label>Correo <span class="muted">(opcional)</span></label><input class="input" type="email" wire:model.live="createUserEmail" autocomplete="off" placeholder="juan.perez@ecd.mx"><small class="muted">Correo para recuperación de contraseña.</small></div>
                     <div><label>Número empleado</label><input class="input" type="text" wire:model.live="createUserEmployeeNumber" autocomplete="off" placeholder="18680"><small class="muted">Número interno que también sirve para login.</small></div>
@@ -207,7 +312,7 @@
         <div style="position: fixed; inset: 0; background: rgba(0,0,0,.45); display:flex; align-items:center; justify-content:center; z-index:60;">
             <div class="card card-pad" style="width:min(95vw, 620px);">
                 <h3 style="margin-top:0;">Editar usuario</h3>
-                <div class="grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+                <div class="acm-modal-grid">
                     <div><label>Nombre</label><input class="input" type="text" wire:model.live="editUserName" placeholder="Juan Pérez García"><small class="muted">Nombre visible del usuario.</small></div>
                     <div><label>Correo <span class="muted">(opcional)</span></label><input class="input" type="email" wire:model.live="editUserEmail" placeholder="juan.perez@ecd.mx"><small class="muted">Correo de acceso/recuperación.</small></div>
                     <div><label>Número empleado</label><input class="input" type="text" wire:model.live="editUserEmployeeNumber" placeholder="18680"><small class="muted">Identificador interno del usuario.</small></div>
