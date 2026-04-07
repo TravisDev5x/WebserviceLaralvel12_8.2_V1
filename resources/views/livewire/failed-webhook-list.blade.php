@@ -10,9 +10,11 @@
     <section class="card card-pad" style="margin-bottom: 1rem;">
         <label for="statusFilter">Estado</label>
         <select id="statusFilter" class="select" wire:model.live="statusFilter" style="max-width: 320px;">
-            @foreach ($statuses as $value => $label)
+            @forelse ($statuses as $value => $label)
                 <option value="{{ $value }}">{{ $label }}</option>
-            @endforeach
+            @empty
+                <option value="all">Todos</option>
+            @endforelse
         </select>
     </section>
 
