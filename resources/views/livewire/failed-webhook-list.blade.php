@@ -45,20 +45,25 @@
                             $leadId = $failedWebhook->webhookLog?->external_id
                                 ?? ($failedWebhook->payload['data']['FIELDS']['ID'] ?? '-');
                             $lastError = $failedWebhook->last_error ? \Illuminate\Support\Str::limit($failedWebhook->last_error, 90) : '-';
-                            $friendlyError = match (true) {
-                                str_contains(strtolower((string) $failedWebhook->last_error), '401') => 'Token rechazado — verificar permisos en Botmaker',
-                                str_contains(strtolower((string) $failedWebhook->last_error), 'timed out') => 'No se pudo conectar — el servicio puede estar caído',
-                                str_contains(strtolower((string) $failedWebhook->last_error), '500') => 'Error interno del servicio destino',
-                                default => $lastError,
-                            };
+                            $friendlyError = $lastError;
+                            $errorText = strtolower((string) $failedWebhook->last_error);
+                            if (str_contains($errorText, '401')) {
+                                $friendlyError = 'Token rechazado — verificar permisos en Botmaker';
+                            } elseif (str_contains($errorText, 'timed out')) {
+                                $friendlyError = 'No se pudo conectar — el servicio puede estar caído';
+                            } elseif (str_contains($errorText, '500')) {
+                                $friendlyError = 'Error interno del servicio destino';
+                            }
                             $canRetry = in_array($failedWebhook->status, ['pending', 'exhausted'], true);
                             $progress = $failedWebhook->max_attempts > 0 ? min(100, (int) (($failedWebhook->attempts / $failedWebhook->max_attempts) * 100)) : 0;
-                            $statusStyle = match ($failedWebhook->status) {
-                                'resolved' => 'background: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 999px;',
-                                'retrying' => 'background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 999px;',
-                                'exhausted' => 'background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 999px;',
-                                default => 'background: #dbeafe; color: #1e3a8a; padding: 2px 8px; border-radius: 999px;',
-                            };
+                            $statusStyle = 'background: #dbeafe; color: #1e3a8a; padding: 2px 8px; border-radius: 999px;';
+                            if ($failedWebhook->status === 'resolved') {
+                                $statusStyle = 'background: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 999px;';
+                            } elseif ($failedWebhook->status === 'retrying') {
+                                $statusStyle = 'background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 999px;';
+                            } elseif ($failedWebhook->status === 'exhausted') {
+                                $statusStyle = 'background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 999px;';
+                            }
                         @endphp
                         <tr class="clickable-row">
                             <td>{{ $failedWebhook->id }}</td>
