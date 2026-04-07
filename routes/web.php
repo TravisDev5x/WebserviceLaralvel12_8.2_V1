@@ -15,7 +15,7 @@ use App\Livewire\BotmakerSettings;
 use App\Livewire\EventFilterManager;
 use App\Livewire\FailedWebhookList;
 use App\Livewire\FieldMappingManager;
-use App\Livewire\IntegrationManualPage;
+use App\Livewire\IntegrationManual;
 use App\Livewire\IntegrationTestPanel;
 use App\Livewire\MessageTemplateManager;
 use App\Livewire\NotificationRuleManager;
@@ -142,7 +142,7 @@ Route::post('/logout', function (Request $request) {
 
 Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::get('/monitor/profile', ProfilePage::class)->name('profile.edit');
-    Route::get('/monitor/manual', IntegrationManualPage::class)->middleware('permission:monitor.view')->name('manual.app');
+    Route::get('/monitor/manual', IntegrationManual::class)->middleware('permission:monitor.view')->name('manual.app');
     Route::get('/monitor', WebhookDashboard::class)->middleware('permission:monitor.view');
     Route::get('/monitor/logs', WebhookLogList::class)->middleware('permission:logs.view');
     Route::get('/monitor/logs/{webhookLogId}', WebhookLogDetail::class)->middleware('permission:logs.view');
