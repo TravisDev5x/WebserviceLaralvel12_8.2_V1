@@ -925,6 +925,24 @@
                 refreshThemeButton();
                 renderIcons();
 
+                // Password toggle works even after Livewire re-renders.
+                if (!window.__appPasswordToggleBound) {
+                    document.addEventListener('click', (event) => {
+                        const button = event.target instanceof Element
+                            ? event.target.closest('[data-toggle-password]')
+                            : null;
+                        if (!button) return;
+                        const inputId = button.getAttribute('data-toggle-password');
+                        if (!inputId) return;
+                        const input = document.getElementById(inputId);
+                        if (!input) return;
+                        const isPassword = input.getAttribute('type') === 'password';
+                        input.setAttribute('type', isPassword ? 'text' : 'password');
+                        button.textContent = isPassword ? 'Ocultar' : 'Ver';
+                    });
+                    window.__appPasswordToggleBound = true;
+                }
+
                 if (btn) {
                     btn.addEventListener('click', () => {
                         const nextTheme = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
