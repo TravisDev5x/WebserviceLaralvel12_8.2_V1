@@ -1,8 +1,9 @@
 <?php
 
-use App\Http\Middleware\VerifyWebhookSignature;
-use App\Http\Middleware\CheckRole;
 use App\Http\Middleware\CheckPermission;
+use App\Http\Middleware\CheckRole;
+use App\Http\Middleware\EnsureRoleOps;
+use App\Http\Middleware\VerifyWebhookSignature;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -30,6 +31,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'verify.webhook.signature' => VerifyWebhookSignature::class,
             'role' => CheckRole::class,
             'permission' => CheckPermission::class,
+            'role.ops' => EnsureRoleOps::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

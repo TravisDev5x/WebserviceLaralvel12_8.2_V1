@@ -84,13 +84,23 @@ if (! function_exists('monitor_breadcrumbs')) {
             $trail[] = ['label' => 'Tablero', 'url' => $dashboardUrl];
         }
 
+        if ($path !== 'monitor/settings' && str_starts_with($path, 'monitor/settings/')) {
+            $trail[] = ['label' => 'Centro de configuración', 'url' => url('/monitor/settings')];
+        }
+
         $map = [
             'monitor' => ['Tablero'],
             'monitor/manual' => ['Manual de integración'],
             'monitor/profile' => ['Mi perfil'],
             'monitor/logs' => ['Registros de Webhooks'],
             'monitor/failed' => ['Webhooks fallidos'],
-            'monitor/settings' => ['Configuración'],
+            'monitor/settings' => ['Centro de configuración'],
+            'monitor/settings/botmaker' => ['Conexión Botmaker'],
+            'monitor/settings/bitrix24' => ['Conexión Bitrix24'],
+            'monitor/settings/tokens' => ['Webhooks autorizados'],
+            'monitor/settings/retry' => ['Reintentos y rendimiento'],
+            'monitor/settings/test' => ['Pruebas de integración'],
+            'monitor/tokens' => ['Webhooks autorizados'],
             'monitor/integration-tests' => ['Pruebas de integración'],
             'monitor/mappings' => ['Mapeo de campos'],
             'monitor/notifications' => ['Reglas de notificación'],
@@ -100,6 +110,7 @@ if (! function_exists('monitor_breadcrumbs')) {
             'monitor/alerts' => ['Alertas por correo'],
             'monitor/users' => ['Usuarios y roles'],
             'monitor/access-control' => ['Usuarios, roles y permisos'],
+            'monitor/users' => ['Usuarios'],
         ];
 
         if (isset($map[$path])) {

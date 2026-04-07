@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Models\AuthorizedToken;
 use App\Models\FailedWebhook;
 use App\Models\FieldMapping;
 use App\Models\WebhookLog;
 use App\Services\Bitrix24Service;
 use App\Services\BotmakerService;
+use App\Support\BitrixLeadDefaults;
 use App\Support\MapBotmakerCanonicalToBitrixLead;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -75,7 +77,7 @@ class ProcessBotmakerPayload implements ShouldQueue
     public function failed(Throwable $exception): void
     {
         $payload = $this->normalizePayload($this->webhookLog->payload_in);
-        $targetUrl = (string) config_dynamic('bitrix24.webhook_url', config('services.bitrix24.webhook_url'));
+        $targetUrl = AuthorizedToken::resolvedBitrix24WebhookUrl();
 
         FailedWebhook::createFromLog(
             $this->webhookLog,
@@ -114,11 +116,11 @@ class ProcessBotmakerPayload implements ShouldQueue
         if ($dynamicMappings->isNotEmpty()) {
             $mapped = $this->applyDynamicMappings($parsed, $dynamicMappings->all());
             if ($mapped !== []) {
-                return $mapped;
+                return BitrixLeadDefaults::merge($mapped);
             }
         }
 
-        return MapBotmakerCanonicalToBitrixLead::fromParsed($parsed);
+        return BitrixLeadDefaults::merge(MapBotmakerCanonicalToBitrixLead::fromParsed($parsed));
     }
 
     /**

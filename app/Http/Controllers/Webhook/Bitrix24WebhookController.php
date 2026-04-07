@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Webhook;
 use App\Enums\WebhookDirection;
 use App\Http\Controllers\Controller;
 use App\Jobs\ProcessBitrix24Payload;
+use App\Models\AuthorizedToken;
 use App\Models\EventFilter;
 use App\Models\WebhookLog;
 use Illuminate\Http\JsonResponse;
@@ -64,7 +65,7 @@ class Bitrix24WebhookController extends Controller
     }
 
     /**
-     * @param array<string, mixed> $payload
+     * @param  array<string, mixed>  $payload
      */
     private function isPayloadValid(array $payload): bool
     {
@@ -81,8 +82,16 @@ class Bitrix24WebhookController extends Controller
     private function isSignatureValid(Request $request): bool
     {
         $incoming = (string) $request->input('auth.application_token', '');
-        $secret = (string) config('services.bitrix24.webhook_secret');
+        if ($incoming === '') {
+            return false;
+        }
 
-        return $incoming !== '' && $secret !== '' && hash_equals($secret, $incoming);
+        if (AuthorizedToken::hasActiveForPlatform('bitrix24')) {
+            return AuthorizedToken::isValid('bitrix24', $incoming);
+        }
+
+        $secret = (string) config_dynamic('bitrix24.webhook_secret', config('services.bitrix24.webhook_secret', ''));
+
+        return $secret !== '' && hash_equals($secret, $incoming);
     }
 }

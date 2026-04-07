@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Models\AuthorizedToken;
 use App\Models\FailedWebhook;
 use App\Models\WebhookLog;
 use App\Support\MapBotmakerCanonicalToBitrixLead;
@@ -32,11 +33,11 @@ final class IntegrationProbeService
      */
     public function runBitrixSampleLead(string $originLabel = 'webservice'): array
     {
-        $baseUrl = rtrim((string) config_dynamic('bitrix24.webhook_url', config('services.bitrix24.webhook_url', '')), '/');
+        $baseUrl = AuthorizedToken::resolvedBitrix24WebhookUrl();
 
         $configWarning = null;
         if ($baseUrl === '' || str_contains($baseUrl, 'dominio.bitrix24.com')) {
-            $configWarning = 'BITRIX24_WEBHOOK_URL no parece un portal real; revisa .env o Configuración.';
+            $configWarning = 'URL de webhook Bitrix24 no parece un portal real; revisa tokens autorizados, Configuración o .env.';
         }
 
         $suffix = (string) now()->format('YmdHis');
@@ -123,7 +124,7 @@ final class IntegrationProbeService
      */
     public function probeBitrixApi(): array
     {
-        $baseUrl = rtrim((string) config_dynamic('bitrix24.webhook_url', config('services.bitrix24.webhook_url', '')), '/');
+        $baseUrl = AuthorizedToken::resolvedBitrix24WebhookUrl();
         if ($baseUrl === '') {
             return ['ok' => false, 'message' => 'ERROR (config incompleta)'];
         }

@@ -537,6 +537,57 @@
             gap: 0.3rem;
         }
 
+        .sidebar-group {
+            border: none;
+            margin: 0 0 0.35rem;
+        }
+
+        .sidebar-group-summary {
+            list-style: none;
+            cursor: pointer;
+            margin: 0.5rem 0.45rem 0.35rem;
+            color: var(--app-muted);
+            font-size: 0.72rem;
+            letter-spacing: .05em;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .sidebar-group-summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .sidebar-nav-badge {
+            margin-left: auto;
+            min-width: 1.35rem;
+            height: 1.35rem;
+            padding: 0 0.35rem;
+            border-radius: 999px;
+            background: #dc2626;
+            color: #fff;
+            font-size: 0.68rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sidebar-health {
+            margin-left: auto;
+            width: 0.45rem;
+            height: 0.45rem;
+            border-radius: 999px;
+            flex-shrink: 0;
+        }
+
+        .sidebar-health--ok {
+            background: #16a34a;
+        }
+
+        .sidebar-health--bad {
+            background: #dc2626;
+        }
+
         .sidebar-link {
             display: flex;
             align-items: center;
@@ -685,111 +736,90 @@
                     @php($canFilters = user_can('filters.manage'))
                     @php($canAlerts = user_can('alerts.manage'))
                     @php($canUsers = user_can('users.manage'))
-                    <div role="group" aria-labelledby="group-label-monitor">
-                        <h3 id="group-label-monitor" class="sidebar-title">Monitoreo</h3>
+                    @php($isAdmin = auth()->check() && (string) (auth()->user()->role ?? '') === 'admin')
+                    @php($isOps = in_array((string) (auth()->user()->role ?? ''), ['admin', 'operator'], true))
+                    @php($fp = (int) ($sidebarFailedPendingCount ?? 0))
+
+                    <details class="sidebar-group" open>
+                        <summary class="sidebar-group-summary">Monitoreo</summary>
                         <ul class="sidebar-nav">
                             @if($canMonitor)
-                                <li>
-                                <a class="sidebar-link" href="{{ url('/monitor') }}" data-tooltip="Tablero general de monitoreo" data-side="right" @if(request()->is('monitor')) aria-current="page" @endif>
-                                        <i data-lucide="layout-dashboard"></i>
-                                        <span>Tablero</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="sidebar-link" href="{{ url('/monitor/manual') }}" data-tooltip="Manual Bitrix24 y Botmaker" data-side="right" @if(request()->is('monitor/manual')) aria-current="page" @endif>
-                                        <i data-lucide="book-open"></i>
-                                        <span>Manual de integración</span>
-                                    </a>
-                                </li>
+                                <li><a class="sidebar-link" href="{{ url('/monitor') }}" data-tooltip="Tablero general" data-side="right" @if(request()->is('monitor')) aria-current="page" @endif><i data-lucide="layout-dashboard"></i><span>Tablero</span></a></li>
+                                <li><a class="sidebar-link" href="{{ url('/monitor/manual') }}" data-tooltip="Manual de integración" data-side="right" @if(request()->is('monitor/manual')) aria-current="page" @endif><i data-lucide="book-open"></i><span>Manual de integración</span></a></li>
                             @endif
                             @if($canLogs)
-                                <li>
-                                <a class="sidebar-link" href="{{ url('/monitor/logs') }}" data-tooltip="Listado y exportación de webhooks" data-side="right" @if(request()->is('monitor/logs*')) aria-current="page" @endif>
-                                        <i data-lucide="list-collapse"></i>
-                                        <span>Registros de Webhooks</span>
-                                    </a>
-                                </li>
+                                <li><a class="sidebar-link" href="{{ url('/monitor/logs') }}" data-tooltip="Registros de webhooks" data-side="right" @if(request()->is('monitor/logs*')) aria-current="page" @endif><i data-lucide="list-collapse"></i><span>Registros de Webhooks</span></a></li>
                             @endif
                             @if($canFailed)
                                 <li>
-                                <a class="sidebar-link" href="{{ url('/monitor/failed') }}" data-tooltip="Reintentos y resolución manual" data-side="right" @if(request()->is('monitor/failed*')) aria-current="page" @endif>
+                                    <a class="sidebar-link" href="{{ url('/monitor/failed') }}" data-tooltip="Revisar fallos pendientes" data-side="right" @if(request()->is('monitor/failed*')) aria-current="page" @endif>
                                         <i data-lucide="shield-alert"></i>
                                         <span>Webhooks Fallidos</span>
-                                    </a>
-                                </li>
-                            @endif
-                            @if($canSettings)
-                                <li>
-                                    <a class="sidebar-link" href="{{ url('/monitor/settings') }}" data-tooltip="Configuración técnica de integraciones" data-side="right" @if(request()->is('monitor/settings*')) aria-current="page" @endif>
-                                        <i data-lucide="settings"></i>
-                                        <span>Configuración</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="sidebar-link" href="{{ route('integration-tests.panel') }}" data-tooltip="Pruebas Bitrix, Botmaker y JSON" data-side="right" @if(request()->is('monitor/integration-tests') || request()->is('monitor/integration-probes*')) aria-current="page" @endif>
-                                        <i data-lucide="flask-conical"></i>
-                                        <span>Pruebas de integración</span>
-                                    </a>
-                                </li>
-                            @endif
-                            @if($canMappings)
-                                <li>
-                                    <a class="sidebar-link" href="{{ url('/monitor/mappings') }}" data-tooltip="Mapeo dinámico de campos" data-side="right" @if(request()->is('monitor/mappings*')) aria-current="page" @endif>
-                                        <i data-lucide="git-compare-arrows"></i>
-                                        <span>Mapeo de campos</span>
-                                    </a>
-                                </li>
-                            @endif
-                            @if($canNotifications)
-                                <li>
-                                    <a class="sidebar-link" href="{{ url('/monitor/notifications') }}" data-tooltip="Reglas de mensajes de salida" data-side="right" @if(request()->is('monitor/notifications*')) aria-current="page" @endif>
-                                        <i data-lucide="bell-ring"></i>
-                                        <span>Reglas de notificación</span>
-                                    </a>
-                                </li>
-                            @endif
-                            @if($canTemplates)
-                                <li>
-                                    <a class="sidebar-link" href="{{ url('/monitor/templates') }}" data-tooltip="Plantillas reutilizables de mensajes" data-side="right" @if(request()->is('monitor/templates*')) aria-current="page" @endif>
-                                        <i data-lucide="message-square-text"></i>
-                                        <span>Plantillas</span>
-                                    </a>
-                                </li>
-                            @endif
-                            @if($canWhatsapp)
-                                <li>
-                                    <a class="sidebar-link" href="{{ url('/monitor/whatsapp-numbers') }}" data-tooltip="Gestión de números y canales WhatsApp" data-side="right" @if(request()->is('monitor/whatsapp-numbers*')) aria-current="page" @endif>
-                                        <i data-lucide="phone-call"></i>
-                                        <span>Números WhatsApp</span>
-                                    </a>
-                                </li>
-                            @endif
-                            @if($canFilters)
-                                <li>
-                                    <a class="sidebar-link" href="{{ url('/monitor/event-filters') }}" data-tooltip="Filtros de entrada por evento" data-side="right" @if(request()->is('monitor/event-filters*')) aria-current="page" @endif>
-                                        <i data-lucide="filter"></i>
-                                        <span>Filtros de eventos</span>
-                                    </a>
-                                </li>
-                            @endif
-                            @if($canAlerts)
-                                <li>
-                                    <a class="sidebar-link" href="{{ url('/monitor/alerts') }}" data-tooltip="Alertas y notificaciones por correo" data-side="right" @if(request()->is('monitor/alerts*')) aria-current="page" @endif>
-                                        <i data-lucide="mail-warning"></i>
-                                        <span>Alertas por correo</span>
-                                    </a>
-                                </li>
-                            @endif
-                            @if($canUsers)
-                                <li>
-                                    <a class="sidebar-link" href="{{ url('/monitor/access-control') }}" data-tooltip="Usuarios, roles y permisos dinámicos" data-side="right" @if(request()->is('monitor/access-control*')) aria-current="page" @endif>
-                                        <i data-lucide="users-round"></i>
-                                        <span>Usuarios, Roles y Permisos</span>
+                                        @if($fp > 0)<span class="sidebar-nav-badge" title="Pendientes">{{ $fp > 99 ? '99+' : $fp }}</span>@endif
                                     </a>
                                 </li>
                             @endif
                         </ul>
-                    </div>
+                    </details>
+
+                    @if($canSettings && $isAdmin)
+                    <details class="sidebar-group" @if(request()->is('monitor/settings*')) open @endif>
+                        <summary class="sidebar-group-summary">Configuración</summary>
+                        <ul class="sidebar-nav">
+                            <li><a class="sidebar-link" href="{{ url('/monitor/settings') }}" data-tooltip="Centro con tarjetas" data-side="right" @if(request()->is('monitor/settings') && ! request()->is('monitor/settings/*')) aria-current="page" @endif><i data-lucide="layout-grid"></i><span>Centro de configuración</span></a></li>
+                            <li>
+                                <a class="sidebar-link" href="{{ url('/monitor/settings/botmaker') }}" data-tooltip="API Botmaker" data-side="right" @if(request()->is('monitor/settings/botmaker')) aria-current="page" @endif>
+                                    <i data-lucide="message-circle"></i>
+                                    <span>Conexión Botmaker</span>
+                                    <span class="sidebar-health sidebar-health--{{ ($sidebarHealthBotmaker ?? false) ? 'ok' : 'bad' }}" title="Estado configuración"></span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="sidebar-link" href="{{ url('/monitor/settings/bitrix24') }}" data-tooltip="CRM Bitrix24" data-side="right" @if(request()->is('monitor/settings/bitrix24')) aria-current="page" @endif>
+                                    <i data-lucide="contact"></i>
+                                    <span>Conexión Bitrix24</span>
+                                    <span class="sidebar-health sidebar-health--{{ ($sidebarHealthBitrix ?? false) ? 'ok' : 'bad' }}" title="Estado configuración"></span>
+                                </a>
+                            </li>
+                            <li><a class="sidebar-link" href="{{ route('monitor.tokens') }}" data-tooltip="Tokens y URLs" data-side="right" @if(request()->is('monitor/settings/tokens')) aria-current="page" @endif><i data-lucide="key"></i><span>Webhooks autorizados</span></a></li>
+                            <li><a class="sidebar-link" href="{{ url('/monitor/settings/retry') }}" data-tooltip="Cola y reintentos" data-side="right" @if(request()->is('monitor/settings/retry')) aria-current="page" @endif><i data-lucide="timer"></i><span>Reintentos</span></a></li>
+                            <li><a class="sidebar-link" href="{{ route('integration-tests.panel') }}" data-tooltip="Pruebas y simulación" data-side="right" @if(request()->is('monitor/settings/test') || request()->is('monitor/integration-probes*')) aria-current="page" @endif><i data-lucide="flask-conical"></i><span>Pruebas de integración</span></a></li>
+                        </ul>
+                    </details>
+                    @elseif($canSettings && ! $isAdmin)
+                    <details class="sidebar-group" open>
+                        <summary class="sidebar-group-summary">Configuración</summary>
+                        <ul class="sidebar-nav">
+                            <li><a class="sidebar-link" href="{{ url('/monitor/settings') }}" data-side="right" @if(request()->is('monitor/settings')) aria-current="page" @endif><i data-lucide="layout-grid"></i><span>Centro de configuración</span></a></li>
+                        </ul>
+                    </details>
+                    @endif
+
+                    @if($isOps && ($canMappings || $canNotifications || $canTemplates || $canFilters || $canWhatsapp))
+                    <details class="sidebar-group" @if(request()->is('monitor/mappings*') || request()->is('monitor/notifications*') || request()->is('monitor/templates*') || request()->is('monitor/event-filters*') || request()->is('monitor/whatsapp-numbers*')) open @endif>
+                        <summary class="sidebar-group-summary">Automatización</summary>
+                        <ul class="sidebar-nav">
+                            @if($canMappings)<li><a class="sidebar-link" href="{{ url('/monitor/mappings') }}" data-side="right" @if(request()->is('monitor/mappings*')) aria-current="page" @endif><i data-lucide="git-compare-arrows"></i><span>Mapeo de campos</span></a></li>@endif
+                            @if($canNotifications)<li><a class="sidebar-link" href="{{ url('/monitor/notifications') }}" data-side="right" @if(request()->is('monitor/notifications*')) aria-current="page" @endif><i data-lucide="bell-ring"></i><span>Reglas de notificación</span></a></li>@endif
+                            @if($canTemplates)<li><a class="sidebar-link" href="{{ url('/monitor/templates') }}" data-side="right" @if(request()->is('monitor/templates*')) aria-current="page" @endif><i data-lucide="message-square-text"></i><span>Plantillas</span></a></li>@endif
+                            @if($canFilters)<li><a class="sidebar-link" href="{{ url('/monitor/event-filters') }}" data-side="right" @if(request()->is('monitor/event-filters*')) aria-current="page" @endif><i data-lucide="filter"></i><span>Filtros de eventos</span></a></li>@endif
+                            @if($canWhatsapp)<li><a class="sidebar-link" href="{{ url('/monitor/whatsapp-numbers') }}" data-side="right" @if(request()->is('monitor/whatsapp-numbers*')) aria-current="page" @endif><i data-lucide="phone-call"></i><span>Números WhatsApp</span></a></li>@endif
+                        </ul>
+                    </details>
+                    @endif
+
+                    @if(($canAlerts && $isOps) || $canUsers)
+                    <details class="sidebar-group" @if(request()->is('monitor/alerts*') || request()->is('monitor/access-control*') || request()->is('monitor/users*')) open @endif>
+                        <summary class="sidebar-group-summary">Sistema</summary>
+                        <ul class="sidebar-nav">
+                            @if($canAlerts && $isOps)<li><a class="sidebar-link" href="{{ url('/monitor/alerts') }}" data-side="right" @if(request()->is('monitor/alerts*')) aria-current="page" @endif><i data-lucide="mail-warning"></i><span>Alertas por correo</span></a></li>@endif
+                            @if($canUsers)
+                                <li><a class="sidebar-link" href="{{ url('/monitor/access-control') }}" data-side="right" @if(request()->is('monitor/access-control*')) aria-current="page" @endif><i data-lucide="users-round"></i><span>Usuarios, roles y permisos</span></a></li>
+                                <li><a class="sidebar-link" href="{{ url('/monitor/users') }}" data-side="right" @if(request()->is('monitor/users*')) aria-current="page" @endif><i data-lucide="user-cog"></i><span>Usuarios (lista rápida)</span></a></li>
+                            @endif
+                        </ul>
+                    </details>
+                    @endif
                 </section>
                 </div>
                 <div class="sidebar-account-block">

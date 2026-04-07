@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Models\AuthorizedToken;
 use App\Models\WhatsappNumber;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
@@ -72,7 +73,10 @@ class BotmakerService
      */
     public function sendMessage(string $phone, string $text): array
     {
-        $url = rtrim($this->botmakerConfig('api_url', ''), '/').'/chats-actions/send-messages';
+        $customSend = trim((string) config_dynamic('botmaker.send_message_url', ''));
+        $url = $customSend !== ''
+            ? rtrim($customSend, '/')
+            : rtrim($this->botmakerConfig('api_url', ''), '/').'/chats-actions/send-messages';
         $defaultNumber = WhatsappNumber::getDefault();
         $payload = [
             'chatPlatform' => 'whatsapp',
@@ -158,6 +162,13 @@ class BotmakerService
     {
         if ($this->config !== []) {
             return $this->config[$key] ?? $default;
+        }
+
+        if ($key === 'api_token') {
+            $fromDb = AuthorizedToken::getPrimaryBotmakerApiToken();
+            if (is_string($fromDb) && $fromDb !== '') {
+                return $fromDb;
+            }
         }
 
         return config_dynamic("botmaker.{$key}", config("services.botmaker.{$key}", $default));

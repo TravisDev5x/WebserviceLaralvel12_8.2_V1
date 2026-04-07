@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             SettingsSeeder::class,
             MessageTemplateSeeder::class,
             AdminUserSeeder::class,
+            AuthorizedTokensFromEnvSeeder::class,
         ]);
     }
 }

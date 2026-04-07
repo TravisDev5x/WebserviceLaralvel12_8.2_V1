@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Cache;
 
 class FailedWebhook extends Model
 {
@@ -11,8 +12,11 @@ class FailedWebhook extends Model
      *  Constantes de estado
      * ---------------------------------------------- */
     public const STATUS_PENDING = 'pending';
+
     public const STATUS_RETRYING = 'retrying';
+
     public const STATUS_RESOLVED = 'resolved';
+
     public const STATUS_EXHAUSTED = 'exhausted';
 
     /* ----------------------------------------------
@@ -164,5 +168,15 @@ class FailedWebhook extends Model
     public function scopeExhausted($query)
     {
         return $query->where('status', self::STATUS_EXHAUSTED);
+    }
+
+    protected static function booted(): void
+    {
+        static::saved(static function (): void {
+            Cache::forget('sidebar_failed_pending_v1');
+        });
+        static::deleted(static function (): void {
+            Cache::forget('sidebar_failed_pending_v1');
+        });
     }
 }

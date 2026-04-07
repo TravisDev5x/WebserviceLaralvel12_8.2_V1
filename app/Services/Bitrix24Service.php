@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Models\AuthorizedToken;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use Illuminate\Support\Facades\Log;
@@ -14,7 +15,7 @@ class Bitrix24Service
     private readonly ClientInterface $httpClient;
 
     /**
-     * @param array<string, mixed> $config
+     * @param  array<string, mixed>  $config
      */
     public function __construct(
         ?ClientInterface $httpClient = null,
@@ -27,7 +28,7 @@ class Bitrix24Service
     }
 
     /**
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      */
     public function parseIncomingPayload(array $data): array
@@ -48,7 +49,7 @@ class Bitrix24Service
     }
 
     /**
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      * @return array{success: bool, http_status: int, body: string}
      */
     public function createLead(array $data): array
@@ -57,7 +58,7 @@ class Bitrix24Service
     }
 
     /**
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      * @return array{success: bool, http_status: int, body: string}
      */
     public function updateLead(int $id, array $data): array
@@ -96,7 +97,7 @@ class Bitrix24Service
     }
 
     /**
-     * @param array<string, mixed> $payload
+     * @param  array<string, mixed>  $payload
      * @return array{success: bool, http_status: int, body: string}
      */
     private function post(string $method, array $payload, string $operation): array
@@ -145,13 +146,14 @@ class Bitrix24Service
         }
     }
 
-    /**
-     * @param mixed $default
-     */
     private function bitrixConfig(string $key, mixed $default = null): mixed
     {
         if ($this->config !== []) {
             return $this->config[$key] ?? $default;
+        }
+
+        if ($key === 'webhook_url') {
+            return AuthorizedToken::resolvedBitrix24WebhookUrl();
         }
 
         return config_dynamic("bitrix24.{$key}", config("services.bitrix24.{$key}", $default));
