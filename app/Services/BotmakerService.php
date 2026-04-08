@@ -167,11 +167,16 @@ class BotmakerService
             return $this->config[$key] ?? $default;
         }
 
+        if ($key === 'api_url') {
+            $url = AuthorizedToken::resolvedBotmakerApiUrl();
+
+            return $url !== '' ? $url : (string) ($default ?? '');
+        }
+
         if ($key === 'api_token') {
-            $fromDb = AuthorizedToken::getPrimaryBotmakerApiToken();
-            if (is_string($fromDb) && $fromDb !== '') {
-                return $fromDb;
-            }
+            $token = AuthorizedToken::resolvedBotmakerApiToken();
+
+            return $token !== '' ? $token : (string) ($default ?? '');
         }
 
         return config_dynamic("botmaker.{$key}", config("services.botmaker.{$key}", $default));

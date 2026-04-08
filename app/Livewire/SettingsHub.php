@@ -19,14 +19,12 @@ class SettingsHub extends Component
 {
     public function render(): View
     {
-        $apiUrl = (string) config_dynamic('botmaker.api_url', config('services.botmaker.api_url', ''));
-        $apiToken = (string) config_dynamic('botmaker.api_token', config('services.botmaker.api_token', ''));
-        $botmakerFromDb = AuthorizedToken::getPrimaryBotmakerApiToken();
-        $botmakerOk = $apiUrl !== '' && (trim($apiToken) !== '' || ($botmakerFromDb !== null && $botmakerFromDb !== ''));
+        $apiUrl = AuthorizedToken::resolvedBotmakerApiUrl();
+        $apiToken = AuthorizedToken::resolvedBotmakerApiToken();
+        $botmakerOk = $apiUrl !== '' && $apiToken !== '';
 
-        $bitrixUrl = (string) config_dynamic('bitrix24.webhook_url', config('services.bitrix24.webhook_url', ''));
-        $bitrixFromToken = Schema::hasTable('authorized_tokens') ? AuthorizedToken::getWebhookUrl('bitrix24') : null;
-        $bitrixOk = ($bitrixFromToken !== null && $bitrixFromToken !== '') || (trim($bitrixUrl) !== '' && ! str_contains($bitrixUrl, 'dominio.bitrix24'));
+        $bitrixUrl = AuthorizedToken::resolvedBitrix24WebhookUrl();
+        $bitrixOk = trim($bitrixUrl) !== '' && ! str_contains($bitrixUrl, 'dominio.bitrix24');
 
         $activeTokens = 0;
         if (Schema::hasTable('authorized_tokens')) {

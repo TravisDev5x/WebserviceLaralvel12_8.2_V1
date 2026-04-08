@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Livewire;
 
+use App\Models\AuthorizedToken;
 use App\Models\Setting;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Schema;
 use Livewire\Component;
 
 class BotmakerSettings extends Component
@@ -39,6 +41,12 @@ class BotmakerSettings extends Component
     public function mount(): void
     {
         $this->botmakerApiUrl = (string) config_dynamic('botmaker.api_url', config('services.botmaker.api_url', ''));
+        if (trim($this->botmakerApiUrl) === '' && Schema::hasTable('authorized_tokens')) {
+            $fromToken = AuthorizedToken::getWebhookUrl('botmaker');
+            if (is_string($fromToken) && trim($fromToken) !== '') {
+                $this->botmakerApiUrl = trim($fromToken);
+            }
+        }
         $this->botmakerApiToken = (string) config_dynamic('botmaker.api_token', config('services.botmaker.api_token', ''));
         $this->botmakerSendMessageUrl = (string) config_dynamic('botmaker.send_message_url', '');
         $this->botmakerSalaryCurrency = (string) config_dynamic('botmaker.salary_currency', config('integrations.botmaker_to_bitrix.currency', 'MXN'));
@@ -102,8 +110,8 @@ class BotmakerSettings extends Component
         $this->testMessage = null;
         $this->testOk = false;
 
-        $url = rtrim($this->botmakerApiUrl !== '' ? $this->botmakerApiUrl : (string) config('services.botmaker.api_url', ''), '/');
-        $token = trim($this->botmakerApiToken !== '' ? $this->botmakerApiToken : (string) config('services.botmaker.api_token', ''));
+        $url = rtrim($this->botmakerApiUrl !== '' ? $this->botmakerApiUrl : AuthorizedToken::resolvedBotmakerApiUrl(), '/');
+        $token = trim($this->botmakerApiToken !== '' ? $this->botmakerApiToken : AuthorizedToken::resolvedBotmakerApiToken());
 
         if ($url === '' || $token === '') {
             $this->testMessage = 'Indica la URL de la API y el token JWT, o guarda primero la configuración.';

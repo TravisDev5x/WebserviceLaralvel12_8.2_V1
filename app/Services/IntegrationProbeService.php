@@ -85,8 +85,8 @@ final class IntegrationProbeService
      */
     public function probeBotmakerApi(): array
     {
-        $baseUrl = rtrim((string) config_dynamic('botmaker.api_url', config('services.botmaker.api_url', '')), '/');
-        $token = trim((string) config_dynamic('botmaker.api_token', config('services.botmaker.api_token', '')));
+        $baseUrl = AuthorizedToken::resolvedBotmakerApiUrl();
+        $token = AuthorizedToken::resolvedBotmakerApiToken();
 
         if ($baseUrl === '' || $token === '') {
             return ['ok' => false, 'message' => 'ERROR (config incompleta)'];

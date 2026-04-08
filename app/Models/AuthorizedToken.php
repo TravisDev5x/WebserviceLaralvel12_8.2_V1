@@ -180,14 +180,62 @@ class AuthorizedToken extends Model
         });
     }
 
+    /**
+     * URL efectiva del webhook de Bitrix24: tabla settings → tokens entrantes → .env.
+     */
     public static function resolvedBitrix24WebhookUrl(): string
     {
-        $fromDb = self::getWebhookUrl('bitrix24');
-        if (is_string($fromDb) && $fromDb !== '') {
-            return rtrim($fromDb, '/');
+        $fromSetting = trim((string) Setting::get('bitrix24.webhook_url', ''));
+        if ($fromSetting !== '') {
+            return rtrim($fromSetting, '/');
         }
 
-        return rtrim((string) config_dynamic('bitrix24.webhook_url', config('services.bitrix24.webhook_url', '')), '/');
+        if (Schema::hasTable('authorized_tokens')) {
+            $fromToken = self::getWebhookUrl('bitrix24');
+            if (is_string($fromToken) && trim($fromToken) !== '') {
+                return rtrim(trim($fromToken), '/');
+            }
+        }
+
+        return rtrim((string) config('services.bitrix24.webhook_url', ''), '/');
+    }
+
+    /**
+     * URL base de la API Botmaker: settings → webhook_url en tokens entrantes → .env.
+     */
+    public static function resolvedBotmakerApiUrl(): string
+    {
+        $fromSetting = trim((string) Setting::get('botmaker.api_url', ''));
+        if ($fromSetting !== '') {
+            return rtrim($fromSetting, '/');
+        }
+
+        if (Schema::hasTable('authorized_tokens')) {
+            $fromToken = self::getWebhookUrl('botmaker');
+            if (is_string($fromToken) && trim($fromToken) !== '') {
+                return rtrim(trim($fromToken), '/');
+            }
+        }
+
+        return rtrim((string) config('services.botmaker.api_url', ''), '/');
+    }
+
+    /**
+     * Token JWT de API Botmaker: settings → token entrante en authorized_tokens → .env.
+     */
+    public static function resolvedBotmakerApiToken(): string
+    {
+        $fromSetting = trim((string) Setting::get('botmaker.api_token', ''));
+        if ($fromSetting !== '') {
+            return $fromSetting;
+        }
+
+        $fromRow = self::getPrimaryBotmakerApiToken();
+        if (is_string($fromRow) && trim($fromRow) !== '') {
+            return trim($fromRow);
+        }
+
+        return trim((string) config('services.botmaker.api_token', ''));
     }
 
     /**

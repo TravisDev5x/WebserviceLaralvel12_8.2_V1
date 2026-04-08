@@ -35,6 +35,12 @@ class Bitrix24Settings extends Component
     public function mount(): void
     {
         $this->bitrix24WebhookUrl = (string) config_dynamic('bitrix24.webhook_url', config('services.bitrix24.webhook_url', ''));
+        if (trim($this->bitrix24WebhookUrl) === '' && Schema::hasTable('authorized_tokens')) {
+            $fromToken = AuthorizedToken::getWebhookUrl('bitrix24');
+            if (is_string($fromToken) && trim($fromToken) !== '') {
+                $this->bitrix24WebhookUrl = trim($fromToken);
+            }
+        }
         $this->defaultSourceId = (string) config_dynamic('bitrix24.default_source_id', '');
         $this->defaultAssignedById = (string) config_dynamic('bitrix24.default_assigned_by_id', '');
         $this->defaultStatusId = (string) config_dynamic('bitrix24.default_status_id', '');
@@ -73,16 +79,7 @@ class Bitrix24Settings extends Component
         $this->testMessage = null;
         $this->testOk = false;
 
-        $base = '';
-        if (Schema::hasTable('authorized_tokens')) {
-            $u = AuthorizedToken::getWebhookUrl('bitrix24');
-            if (is_string($u) && $u !== '') {
-                $base = rtrim($u, '/');
-            }
-        }
-        if ($base === '') {
-            $base = rtrim($this->bitrix24WebhookUrl !== '' ? $this->bitrix24WebhookUrl : (string) config('services.bitrix24.webhook_url', ''), '/');
-        }
+        $base = rtrim($this->bitrix24WebhookUrl !== '' ? $this->bitrix24WebhookUrl : AuthorizedToken::resolvedBitrix24WebhookUrl(), '/');
 
         if ($base === '') {
             $this->testMessage = 'Configura la URL del webhook o un registro entrante en Webhooks autorizados.';

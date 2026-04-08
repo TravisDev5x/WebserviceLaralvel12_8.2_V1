@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
+use App\Models\AuthorizedToken;
 use App\Models\FailedWebhook;
 use App\Models\FieldMapping;
 use App\Models\NotificationRule;
@@ -41,8 +42,7 @@ class ProcessBitrix24Payload implements ShouldQueue
     public function handle(
         BotmakerService $botmakerService,
         Bitrix24Service $bitrix24Service,
-    ): void
-    {
+    ): void {
         $startedAt = microtime(true);
 
         $this->markAsProcessing();
@@ -94,7 +94,7 @@ class ProcessBitrix24Payload implements ShouldQueue
     public function failed(Throwable $exception): void
     {
         $payload = $this->normalizePayload($this->webhookLog->payload_in);
-        $targetUrl = rtrim((string) config_dynamic('botmaker.api_url', config('services.botmaker.api_url', '')), '/').'/chats-actions/send-messages';
+        $targetUrl = rtrim(AuthorizedToken::resolvedBotmakerApiUrl(), '/').'/chats-actions/send-messages';
 
         FailedWebhook::createFromLog(
             $this->webhookLog,
@@ -106,7 +106,6 @@ class ProcessBitrix24Payload implements ShouldQueue
     }
 
     /**
-     * @param mixed $payload
      * @return array<string, mixed>
      */
     private function normalizePayload(mixed $payload): array
@@ -137,7 +136,7 @@ class ProcessBitrix24Payload implements ShouldQueue
     }
 
     /**
-     * @param array{success: bool, http_status: int, body: string} $response
+     * @param  array{success: bool, http_status: int, body: string}  $response
      */
     private function finalizeFromResponse(array $response, float $startedAt): void
     {
@@ -194,7 +193,7 @@ class ProcessBitrix24Payload implements ShouldQueue
     }
 
     /**
-     * @param array<string,mixed> $parsed
+     * @param  array<string,mixed>  $parsed
      */
     private function resolveNotificationMessage(array $parsed): string
     {
@@ -216,7 +215,7 @@ class ProcessBitrix24Payload implements ShouldQueue
     }
 
     /**
-     * @param array<string,mixed> $source
+     * @param  array<string,mixed>  $source
      * @return array<string,mixed>
      */
     private function applyDynamicMappings(array $source): array
