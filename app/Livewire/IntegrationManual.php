@@ -23,7 +23,7 @@ class IntegrationManual extends Component
         ['id' => 'sec-3', 'title' => 'Tablero — Cómo leerlo en 10 segundos', 'keywords' => 'tablero dashboard contadores semaforo verificacion diaria'],
         ['id' => 'sec-4', 'title' => 'Diagnóstico — Algo no funciona', 'keywords' => 'diagnostico wizard arbol decisiones errores fallas'],
         ['id' => 'sec-5', 'title' => 'Guía completa para Telecomunicaciones', 'keywords' => 'telecom botmaker token webhook api jwt auth-bm-token'],
-        ['id' => 'sec-6', 'title' => 'Guía completa para Operaciones (Bitrix24)', 'keywords' => 'operaciones bitrix24 crm webhooks mapeo campos notificaciones'],
+        ['id' => 'sec-6', 'title' => 'Guía completa para Operaciones (Bitrix24)', 'keywords' => 'operaciones bitrix24 crm webhook mapeo campos leads'],
         ['id' => 'sec-7', 'title' => 'Guía completa para Infraestructura', 'keywords' => 'infraestructura servidor ssl https nginx mysql supervisor'],
         ['id' => 'sec-8', 'title' => 'Glosario visual', 'keywords' => 'glosario webhook lead token api ssl cola flujo'],
         ['id' => 'sec-9', 'title' => 'Tabla de responsabilidades', 'keywords' => 'responsabilidades quien resuelve situaciones telecom operaciones infraestructura'],
@@ -39,7 +39,7 @@ class IntegrationManual extends Component
         ['situation' => 'El servidor no responde', 'owner' => 'Infraestructura', 'action' => 'Verificar servicios y reiniciar', 'section' => '7.4'],
         ['situation' => 'Falta HTTPS/SSL', 'owner' => 'Infraestructura', 'action' => 'Configurar dominio y certificado', 'section' => '7.2'],
         ['situation' => 'Necesito agregar un campo nuevo al lead', 'owner' => 'Operaciones', 'action' => 'Configurar en Mapeo de campos', 'section' => '6.4'],
-        ['situation' => 'Quiero cambiar el mensaje que recibe el cliente', 'owner' => 'Operaciones', 'action' => 'Configurar en Reglas de notificación', 'section' => '6.5'],
+        ['situation' => 'Quiero ajustar qué datos se envían al lead', 'owner' => 'Operaciones', 'action' => 'Configurar en Mapeo de campos', 'section' => '6.3'],
         ['situation' => 'Quiero agregar un nuevo número de WhatsApp', 'owner' => 'Telecomunicaciones', 'action' => 'Agregar en Configuración > Números WhatsApp', 'section' => '5'],
         ['situation' => 'Un usuario necesita acceso al panel', 'owner' => 'Admin del sistema', 'action' => 'Ir a Usuarios y activar o cambiar rol', 'section' => 'Sistema'],
         ['situation' => 'El procesamiento está lento', 'owner' => 'Infraestructura', 'action' => 'Verificar workers con supervisorctl', 'section' => '7.4'],
@@ -103,7 +103,11 @@ class IntegrationManual extends Component
 
     public function render(): View
     {
-        return view('livewire.integration-manual')->layout('layouts.app', [
+        return view('livewire.integration-manual', [
+            'filteredSections' => $this->filteredSections,
+            'filteredResponsibilities' => $this->filteredResponsibilities,
+            'changeHistory' => $this->changeHistory,
+        ])->layout('layouts.app', [
             'title' => 'Manual de integración',
             'breadcrumbs' => [
                 ['label' => 'Manual'],

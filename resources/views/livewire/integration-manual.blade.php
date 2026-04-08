@@ -56,7 +56,7 @@
     <div class="im-mobile-nav">
         <select id="manual-mobile-nav" class="select">
             <option value="">Ir a sección...</option>
-            @foreach($this->filteredSections as $section)
+            @foreach($filteredSections as $section)
                 <option value="{{ $section['id'] }}">{{ $section['title'] }}</option>
             @endforeach
         </select>
@@ -64,7 +64,7 @@
 
     <div class="im-layout">
         <nav class="im-nav" aria-label="Navegación del manual">
-            @foreach($this->filteredSections as $section)
+            @foreach($filteredSections as $section)
                 <a href="#{{ $section['id'] }}" data-target="{{ $section['id'] }}">{{ $section['title'] }}</a>
             @endforeach
         </nav>
@@ -75,8 +75,8 @@
                 <p>Este sistema es un puente automático entre WhatsApp y el CRM.</p>
                 <p><strong>Flujo automático 1 — Un cliente escribe por WhatsApp:</strong><br>[Cliente] → [WhatsApp] → [Botmaker] → [Este sistema] → [Bitrix24 CRM]</p>
                 <p><strong>Resultado:</strong> aparece un lead nuevo en el CRM sin captura manual.</p>
-                <p><strong>Flujo automático 2 — Un agente responde desde el CRM:</strong><br>[Agente en Bitrix24] → [Este sistema] → [Botmaker] → [WhatsApp] → [Cliente]</p>
-                <p><strong>Resultado:</strong> el cliente recibe la respuesta por WhatsApp sin abrir WhatsApp en operación.</p>
+                <p><strong>Flujo operativo actual:</strong> Botmaker envía el webhook y este sistema crea el lead en Bitrix24.</p>
+                <p><strong>Resultado:</strong> la integración queda enfocada en captura de leads y trazabilidad.</p>
                 <p><strong>Ninguna persona interviene en la transferencia de datos.</strong> Todo es automático.</p>
                 <div class="im-flow">
                     <button class="im-box im-client" type="button" onclick="document.getElementById('sec-1').scrollIntoView({behavior:'smooth'})">Cliente</button>
@@ -102,7 +102,7 @@
                     </article>
                     <article class="im-kpi">
                         <h3>Soy de Operaciones (Bitrix24 CRM)</h3>
-                        <p>✅ Configurar webhooks entrantes/salientes<br>✅ Definir campos del lead<br>✅ Configurar notificaciones<br>✅ Validar creación de leads</p>
+                        <p>✅ Configurar webhook REST de Bitrix24<br>✅ Definir campos del lead<br>✅ Validar creación de leads<br>✅ Revisar fallos y reintentos</p>
                         <button class="btn btn-sm" type="button" onclick="document.getElementById('sec-6').scrollIntoView({behavior:'smooth'})">Ir a mi guía completa</button>
                     </article>
                     <article class="im-kpi">
@@ -155,18 +155,16 @@
             <section class="im-card manual-section" id="sec-6" data-title="Guía completa para Operaciones (Bitrix24)">
                 <h2>6) Guía completa para Operaciones (Bitrix24)</h2>
                 <h3>6.1 ¿Qué es Bitrix24 en este sistema?</h3>
-                <p>Es el CRM donde se crean leads y desde donde salen eventos para notificar al cliente.</p>
+                <p>Es el CRM donde se crean y actualizan leads desde los eventos de Botmaker.</p>
                 <h3>6.2 Webhook entrante</h3>
                 <ol><li>Bitrix24 > Aplicaciones > Webhooks.</li><li>Crear/editar webhook entrante.</li><li>Permisos CRM completos.</li><li>Copiar URL.</li><li>Pegar en Configuración > Conexión Bitrix24.</li><li>Probar conexión.</li></ol>
-                <h3>6.3 Webhook saliente</h3>
-                <ol><li>Crear webhook saliente.</li><li>URL controlador: <code>https://[dominio]/api/webhook/bitrix24</code>.</li><li>Eventos ONCRMLEADUPDATE y ONCRMLEADADD.</li><li>Copiar token app.</li><li>Agregar en Webhooks autorizados > Bitrix24.</li></ol>
-                <h3>6.4 Mapeo de campos</h3>
+                <h3>6.3 Mapeo de campos</h3>
                 <p>Configura origen Botmaker → destino Bitrix24. Para personalizados usa ID <code>UF_CRM_...</code>.</p>
-                <h3>6.5 Reglas de notificación</h3>
-                <p>Configura evento, condición por estatus y mensaje con variables.</p>
-                <h3>6.6 Problemas frecuentes</h3>
+                <h3>6.4 Reglas de notificación</h3>
+                <p>Esta versión está enfocada en creación de leads. Mantén las reglas de notificación desactivadas si no se usan.</p>
+                <h3>6.5 Problemas frecuentes</h3>
                 <details><summary>No se crean leads</summary><p>Revisar webhook entrante y estado de registros fallidos.</p></details>
-                <details><summary>No hay salida a WhatsApp</summary><p>Revisar webhook saliente y token autorizado.</p></details>
+                <details><summary>Errores repetidos al crear lead</summary><p>Validar URL REST de Bitrix24, permisos del webhook y mapeo de campos.</p></details>
                 <div class="im-print"><button class="btn btn-sm" type="button" onclick="printSection('sec-6')">Imprimir esta sección</button></div>
             </section>
 
@@ -203,7 +201,7 @@ sudo systemctl restart mysql</pre>
                     <div class="im-kpi"><span class="im-tag">SSL/HTTPS</span><p>Candado digital. Sin esto Botmaker no conecta.</p></div>
                     <div class="im-kpi"><span class="im-tag">Cola</span><p>Fila de procesamiento mensaje por mensaje.</p></div>
                     <div class="im-kpi"><span class="im-tag">Flujo A</span><p>Cliente escribe → lead en CRM.</p></div>
-                    <div class="im-kpi"><span class="im-tag">Flujo B</span><p>Agente actúa → cliente recibe mensaje.</p></div>
+                    <div class="im-kpi"><span class="im-tag">Flujo principal</span><p>Cliente escribe → lead en CRM.</p></div>
                 </div>
                 <div class="im-print"><button class="btn btn-sm" type="button" onclick="printSection('sec-8')">Imprimir esta sección</button></div>
             </section>
@@ -223,7 +221,7 @@ sudo systemctl restart mysql</pre>
                 <table class="table-clean" style="min-width:0;">
                     <thead><tr><th>Situación</th><th>Quién lo resuelve</th><th>Qué hacer</th></tr></thead>
                     <tbody>
-                    @foreach($this->filteredResponsibilities as $row)
+                    @foreach($filteredResponsibilities as $row)
                         <tr>
                             <td>{{ $row['situation'] }}</td>
                             <td>{{ $row['owner'] }}</td>
@@ -237,13 +235,13 @@ sudo systemctl restart mysql</pre>
 
             <section class="im-card manual-section" id="sec-10" data-title="Historial de cambios">
                 <h2>10) Historial de cambios</h2>
-                @if($this->changeHistory->isEmpty())
+                @if($changeHistory->isEmpty())
                     <p>El historial se registra automáticamente cuando se hacen cambios desde la configuración.</p>
                 @else
                     <table class="table-clean" style="min-width:0;">
                         <thead><tr><th>Quién</th><th>Qué cambió</th><th>Cuándo</th></tr></thead>
                         <tbody>
-                        @foreach($this->changeHistory as $item)
+                        @foreach($changeHistory as $item)
                             <tr>
                                 <td>{{ $item['who'] }}</td>
                                 <td>{{ $item['what'] }}</td>

@@ -45,7 +45,8 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse ($latestWebhooks as $log)
+                    @if ($latestWebhooks->count() > 0)
+                    @foreach ($latestWebhooks as $log)
                         <tr class="clickable-row" title="Clic para ver detalle" style="cursor: pointer;" onclick="window.location='{{ url('/monitor/logs/'.$log['id']) }}'">
                             <td>
                                 <span style="font-weight:700; color: {{ $log['direction_icon'] === '->' ? '#16a34a' : '#f97316' }};">{{ $log['direction_icon'] }}</span>
@@ -53,22 +54,17 @@
                             </td>
                             <td>{{ $log['source_event'] }}</td>
                             <td>
-                                @php($statusStyle = match($log['status']) {
-                                    'sent' => 'background:#dcfce7;color:#166534;',
-                                    'failed' => 'background:#fee2e2;color:#991b1b;',
-                                    'processing' => 'background:#fef9c3;color:#92400e;',
-                                    default => 'background:#dbeafe;color:#1e3a8a;',
-                                })
-                                <span class="badge-soft" style="{{ $statusStyle }}">{{ $log['status_label'] }}</span>
+                                <span class="badge-soft {{ $log['status_class'] }}">{{ $log['status_label'] }}</span>
                             </td>
                             <td>{{ $log['contact'] }}</td>
                             <td>{{ $log['created_at'] }}</td>
                         </tr>
-                    @empty
+                    @endforeach
+                    @else
                         <tr>
                             <td colspan="5">No hay registros todavia.</td>
                         </tr>
-                    @endforelse
+                    @endif
                 </tbody>
             </table>
         </div>

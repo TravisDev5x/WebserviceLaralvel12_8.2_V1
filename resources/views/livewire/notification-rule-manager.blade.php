@@ -55,27 +55,18 @@
             </div>
         </div>
         <div class="table-wrap"><table class="table-clean"><thead><tr><th>ID</th><th>Nombre</th><th>Evento</th><th>Condición</th><th>Activa</th><th></th></tr></thead><tbody>
-            @forelse($rows as $row)
-                @php
-                    $opLabel = match ((string) $row->condition_operator) {
-                        'equals' => 'Igual a',
-                        'not_equals' => 'Diferente de',
-                        'contains' => 'Contiene',
-                        'changed_to' => 'Cambió a',
-                        'is_empty' => 'Está vacío',
-                        'is_not_empty' => 'No está vacío',
-                        default => (string) $row->condition_operator,
-                    };
-                @endphp
+            @if($rows->count() > 0)
+            @foreach($rows as $row)
                 <tr>
                     <td>{{ $row->id }}</td><td>{{ $row->name }}</td><td>{{ $row->event_type }}</td>
-                    <td>{{ $row->condition_field }} {{ $opLabel }} {{ $row->condition_value }}</td>
+                    <td>{{ $row->condition_field }} {{ $row->condition_operator }} {{ $row->condition_value }}</td>
                     <td>{{ $row->is_active ? 'Sí' : 'No' }}</td>
                     <td style="display:flex; gap:.35rem;"><button class="btn" wire:click="edit({{ $row->id }})" type="button">Editar</button><button class="btn btn-danger" wire:click="confirmDelete({{ $row->id }})" type="button">Eliminar</button></td>
                 </tr>
-            @empty
+            @endforeach
+            @else
                 <tr><td colspan="6">Sin reglas.</td></tr>
-            @endforelse
+            @endif
         </tbody></table></div>
         <div style="margin-top:.75rem;">{{ $rows->links() }}</div>
     </section>

@@ -1,4 +1,3 @@
-@php($isAdmin = auth()->check() && (string) (auth()->user()->role ?? '') === 'admin')
 <div>
     <div class="page-header">
         <div>
@@ -18,7 +17,7 @@
                         @if($botmakerConfigured)<span class="badge-soft" style="border-color: #16a34a; color: #16a34a;">Configurado</span>@else<span class="badge-soft" style="border-color: #dc2626; color: #dc2626;">Requiere configuración</span>@endif
                     </div>
                     <p class="muted" style="margin: 0; font-size: 0.88rem; line-height: 1.45;">Configura la conexión con la API de Botmaker para enviar y recibir mensajes de WhatsApp.</p>
-                    <p class="muted" style="margin:.35rem 0 0; font-size:.78rem;">Actualizado {{ $botmakerUpdatedAt ? \Illuminate\Support\Carbon::parse($botmakerUpdatedAt)->diffForHumans() : 'nunca' }}</p>
+                    <p class="muted" style="margin:.35rem 0 0; font-size:.78rem;">Actualizado {{ $botmakerUpdatedAt }}</p>
                 </div>
             </div>
         </a>
@@ -31,7 +30,7 @@
                         @if($bitrixConfigured)<span class="badge-soft" style="border-color: #16a34a; color: #16a34a;">Configurado</span>@else<span class="badge-soft" style="border-color: #eab308; color: #a16207;">Verificar</span>@endif
                     </div>
                     <p class="muted" style="margin: 0; font-size: 0.88rem; line-height: 1.45;">Configura la conexión con Bitrix24 CRM para crear y actualizar leads.</p>
-                    <p class="muted" style="margin:.35rem 0 0; font-size:.78rem;">Actualizado {{ $bitrixUpdatedAt ? \Illuminate\Support\Carbon::parse($bitrixUpdatedAt)->diffForHumans() : 'nunca' }}</p>
+                    <p class="muted" style="margin:.35rem 0 0; font-size:.78rem;">Actualizado {{ $bitrixUpdatedAt }}</p>
                 </div>
             </div>
         </a>

@@ -58,32 +58,23 @@
             <table class="table-clean">
                 <thead><tr><th>ID</th><th>Origen</th><th>Destino</th><th>Transformación</th><th>Activo</th><th>Acciones</th></tr></thead>
                 <tbody>
-                @forelse($rows as $row)
-                    @php
-                        $transformLabel = match ((string) ($row->transform_type ?: 'none')) {
-                            'uppercase' => 'Mayúsculas',
-                            'lowercase' => 'Minúsculas',
-                            'trim' => 'Quitar espacios',
-                            'date_format' => 'Formato de fecha',
-                            'currency' => 'Moneda',
-                            'catalog' => 'Catálogo',
-                            default => 'Sin transformación',
-                        };
-                    @endphp
+                @if($rows->count() > 0)
+                @foreach($rows as $row)
                     <tr>
                         <td>{{ $row->id }}</td>
                         <td>{{ $row->source_platform }}.{{ $row->source_field }}</td>
                         <td>{{ $row->target_platform }}.{{ $row->target_field }}</td>
-                        <td>{{ $transformLabel }}</td>
+                        <td>{{ $row->transform_type ?: 'none' }}</td>
                         <td>{{ $row->is_active ? 'Sí' : 'No' }}</td>
                         <td style="display:flex; gap:.35rem;">
                             <button class="btn" wire:click="edit({{ $row->id }})" type="button">Editar</button>
                             <button class="btn btn-danger" wire:click="confirmDelete({{ $row->id }})" type="button">Eliminar</button>
                         </td>
                     </tr>
-                @empty
+                @endforeach
+                @else
                     <tr><td colspan="6">Sin registros.</td></tr>
-                @endforelse
+                @endif
                 </tbody>
             </table>
         </div>

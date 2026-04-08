@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace App\Livewire;
 
 use App\Enums\WebhookDirection;
-use App\Jobs\ProcessBitrix24Payload;
 use App\Jobs\ProcessBotmakerPayload;
 use App\Models\FailedWebhook;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
+use stdClass;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -45,10 +45,6 @@ class FailedWebhookList extends Component
 
         if ($failedWebhook->direction === WebhookDirection::BotmakerToBitrix->value) {
             ProcessBotmakerPayload::dispatch($failedWebhook->webhookLog)->onQueue('webhooks');
-        }
-
-        if ($failedWebhook->direction === WebhookDirection::BitrixToBotmaker->value) {
-            ProcessBitrix24Payload::dispatch($failedWebhook->webhookLog)->onQueue('webhooks');
         }
 
         $failedWebhook->update([
@@ -88,10 +84,6 @@ class FailedWebhookList extends Component
                 ProcessBotmakerPayload::dispatch($failedWebhook->webhookLog)->onQueue('webhooks');
             }
 
-            if ($failedWebhook->direction === WebhookDirection::BitrixToBotmaker->value) {
-                ProcessBitrix24Payload::dispatch($failedWebhook->webhookLog)->onQueue('webhooks');
-            }
-
             $failedWebhook->update([
                 'status' => FailedWebhook::STATUS_RETRYING,
                 'next_retry_at' => null,
@@ -107,7 +99,49 @@ class FailedWebhookList extends Component
                 $query->where('status', $this->statusFilter);
             })
             ->latest()
-            ->paginate(15);
+            ->paginate(15)
+            ->through(function (FailedWebhook $failedWebhook): stdClass {
+                $payload = is_array($failedWebhook->payload) ? $failedWebhook->payload : [];
+                $leadValue = $failedWebhook->webhookLog?->external_id ?? ($payload['data']['FIELDS']['ID'] ?? '-');
+                $leadId = is_scalar($leadValue) ? (string) $leadValue : '-';
+                $lastErrorRaw = (string) ($failedWebhook->last_error ?? '');
+                $lastErrorShort = $lastErrorRaw === '' ? '-' : Str::limit($lastErrorRaw, 90);
+                $errorText = strtolower($lastErrorRaw);
+                $friendlyError = $lastErrorShort;
+                if (str_contains($errorText, '401')) {
+                    $friendlyError = 'Token rechazado — verificar permisos en Botmaker';
+                } elseif (str_contains($errorText, 'timed out')) {
+                    $friendlyError = 'No se pudo conectar — el servicio puede estar caído';
+                } elseif (str_contains($errorText, '500')) {
+                    $friendlyError = 'Error interno del servicio destino';
+                }
+
+                $statusClass = 'status-pending';
+                if ($failedWebhook->status === FailedWebhook::STATUS_RESOLVED) {
+                    $statusClass = 'status-resolved';
+                } elseif ($failedWebhook->status === FailedWebhook::STATUS_RETRYING) {
+                    $statusClass = 'status-retrying';
+                } elseif ($failedWebhook->status === FailedWebhook::STATUS_EXHAUSTED) {
+                    $statusClass = 'status-exhausted';
+                }
+
+                $canRetry = in_array($failedWebhook->status, [FailedWebhook::STATUS_PENDING, FailedWebhook::STATUS_EXHAUSTED], true);
+
+                return (object) [
+                    'id' => $failedWebhook->id,
+                    'direction' => (string) $failedWebhook->direction,
+                    'lead_id' => $leadId,
+                    'attempts' => (int) $failedWebhook->attempts,
+                    'max_attempts' => (int) $failedWebhook->max_attempts,
+                    'status' => (string) $failedWebhook->status,
+                    'status_class' => $statusClass,
+                    'last_error' => $friendlyError,
+                    'last_error_full' => $lastErrorRaw === '' ? '-' : $lastErrorRaw,
+                    'next_retry_at' => $failedWebhook->next_retry_at?->format('Y-m-d H:i:s') ?? '-',
+                    'created_at' => $failedWebhook->created_at?->format('Y-m-d H:i:s') ?? '-',
+                    'can_retry' => $canRetry,
+                ];
+            });
 
         return view('livewire.failed-webhook-list', [
             'failedWebhooks' => $failedWebhooks,
@@ -122,64 +156,5 @@ class FailedWebhookList extends Component
         ])->layout('layouts.app', [
             'title' => 'Webhooks Fallidos',
         ]);
-    }
-
-    public function failedWebhookLeadId(FailedWebhook $failedWebhook): string
-    {
-        $payload = is_array($failedWebhook->payload) ? $failedWebhook->payload : [];
-        $value = $failedWebhook->webhookLog?->external_id ?? ($payload['data']['FIELDS']['ID'] ?? '-');
-
-        return is_scalar($value) ? (string) $value : '-';
-    }
-
-    public function failedWebhookLastErrorShort(FailedWebhook $failedWebhook): string
-    {
-        if ($failedWebhook->last_error === null || $failedWebhook->last_error === '') {
-            return '-';
-        }
-
-        return Str::limit((string) $failedWebhook->last_error, 90);
-    }
-
-    public function failedWebhookFriendlyError(FailedWebhook $failedWebhook): string
-    {
-        $lastError = $this->failedWebhookLastErrorShort($failedWebhook);
-        $errorText = strtolower((string) $failedWebhook->last_error);
-
-        if (str_contains($errorText, '401')) {
-            return 'Token rechazado — verificar permisos en Botmaker';
-        }
-        if (str_contains($errorText, 'timed out')) {
-            return 'No se pudo conectar — el servicio puede estar caído';
-        }
-        if (str_contains($errorText, '500')) {
-            return 'Error interno del servicio destino';
-        }
-
-        return $lastError;
-    }
-
-    public function failedWebhookRowCanRetry(FailedWebhook $failedWebhook): bool
-    {
-        return in_array($failedWebhook->status, [FailedWebhook::STATUS_PENDING, FailedWebhook::STATUS_EXHAUSTED], true);
-    }
-
-    public function failedWebhookProgressPercent(FailedWebhook $failedWebhook): int
-    {
-        if ($failedWebhook->max_attempts <= 0) {
-            return 0;
-        }
-
-        return min(100, (int) (($failedWebhook->attempts / $failedWebhook->max_attempts) * 100));
-    }
-
-    public function failedWebhookStatusStyle(FailedWebhook $failedWebhook): string
-    {
-        return match ($failedWebhook->status) {
-            FailedWebhook::STATUS_RESOLVED => 'background: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 999px;',
-            FailedWebhook::STATUS_RETRYING => 'background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 999px;',
-            FailedWebhook::STATUS_EXHAUSTED => 'background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 999px;',
-            default => 'background: #dbeafe; color: #1e3a8a; padding: 2px 8px; border-radius: 999px;',
-        };
     }
 }

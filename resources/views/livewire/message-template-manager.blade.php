@@ -42,23 +42,16 @@
             </div>
         </div>
         <div class="table-wrap"><table class="table-clean"><thead><tr><th>ID</th><th>Nombre</th><th>Categoría</th><th>Activa</th><th></th></tr></thead><tbody>
-            @forelse($rows as $row)
-                @php
-                    $categoryLabel = match ((string) $row->category) {
-                        'notification' => 'Notificación',
-                        'confirmation' => 'Confirmación',
-                        'follow_up' => 'Seguimiento',
-                        'custom' => 'Personalizado',
-                        default => (string) $row->category,
-                    };
-                @endphp
+            @if($rows->count() > 0)
+            @foreach($rows as $row)
                 <tr>
-                    <td>{{ $row->id }}</td><td>{{ $row->name }}</td><td>{{ $categoryLabel }}</td><td>{{ $row->is_active ? 'Sí' : 'No' }}</td>
+                    <td>{{ $row->id }}</td><td>{{ $row->name }}</td><td>{{ $row->category }}</td><td>{{ $row->is_active ? 'Sí' : 'No' }}</td>
                     <td style="display:flex; gap:.35rem;"><button class="btn" wire:click="edit({{ $row->id }})" type="button">Editar</button><button class="btn btn-danger" wire:click="confirmDelete({{ $row->id }})" type="button">Eliminar</button></td>
                 </tr>
-            @empty
+            @endforeach
+            @else
                 <tr><td colspan="5">Sin plantillas.</td></tr>
-            @endforelse
+            @endif
         </tbody></table></div>
         <div style="margin-top:.75rem;">{{ $rows->links() }}</div>
     </section>

@@ -7,7 +7,7 @@
     @if($step === 'root')
         <div class="diag-options">
             <button type="button" class="btn" wire:click="go('a1')">No se crean leads en Bitrix24</button>
-            <button type="button" class="btn" wire:click="go('b1')">El cliente no recibe respuesta por WhatsApp</button>
+            <button type="button" class="btn" wire:click="go('b1')">¿Hay configuraciones heredadas de flujo inverso?</button>
             <button type="button" class="btn" wire:click="go('c')">El tablero muestra todo en cero</button>
             <button type="button" class="btn" wire:click="go('d')">Hay muchos webhooks fallidos</button>
             <button type="button" class="btn" wire:click="go('e')">No puedo entrar al panel</button>
@@ -83,29 +83,29 @@
 
     @if($step === 'b1')
         <div class="diag-card">
-            <p>¿Hay registros tipo <strong>CRM → WhatsApp</strong> en el tablero?</p>
+            <p>Este proyecto está enfocado en <strong>Botmaker → Bitrix24</strong>. ¿Aún ves referencias del flujo inverso?</p>
             <div class="diag-options">
-                <button type="button" class="btn" wire:click="go('b-red')">Sí, pero en rojo</button>
-                <button type="button" class="btn" wire:click="go('b-none')">No hay registros</button>
-                <button type="button" class="btn" wire:click="go('b-green')">Sí, en verde</button>
+                <button type="button" class="btn" wire:click="go('b-red')">Sí, hay referencias antiguas</button>
+                <button type="button" class="btn" wire:click="go('b-none')">No, todo apunta a Botmaker</button>
+                <button type="button" class="btn" wire:click="go('b-green')">No aplica en esta versión</button>
             </div>
         </div>
     @endif
     @if($step === 'b-red')
         <div class="diag-card">
-            <p>El sistema intentó enviar pero falló. ¿Qué error muestra?</p>
+            <p>Hay referencias de flujo inverso. Actualiza manual/configuración para que solo use Botmaker → Bitrix24.</p>
             <div class="diag-options">
-                <button type="button" class="btn" wire:click="go('b-401')">401</button>
-                <button type="button" class="btn" wire:click="go('b-other')">Otro</button>
+                <button type="button" class="btn" wire:click="go('b-401')">Ver manual actualizado</button>
+                <button type="button" class="btn" wire:click="go('b-other')">Revisar rutas API activas</button>
             </div>
         </div>
     @endif
-    @if($step === 'b-401') <div class="diag-card"><p>El token API de Botmaker no tiene permisos de envío. Telecomunicaciones debe validar permisos en API Keys o generar uno nuevo y actualizarlo en Conexión Botmaker.</p></div> @endif
-    @if($step === 'b-other') <div class="diag-card"><p>Muestra el error, cópialo y repórtalo al grupo de soporte.</p></div> @endif
-    @if($step === 'b-none') <div class="diag-card"><p>Bitrix24 no está notificando. Verifica webhook saliente: <code>https://[dominio]/api/webhook/bitrix24</code>.</p></div> @endif
-    @if($step === 'b-green') <div class="diag-card"><p>El sistema envió correctamente. Si el cliente no recibe, el problema es de WhatsApp/Botmaker. Contacta a Telecomunicaciones.</p></div> @endif
+    @if($step === 'b-401') <div class="diag-card"><p>Consulta el manual de integración: el flujo activo es solo <code>/api/webhook/botmaker</code>.</p></div> @endif
+    @if($step === 'b-other') <div class="diag-card"><p>Confirma que no existan integraciones que intenten usar <code>/api/webhook/bitrix24</code>.</p></div> @endif
+    @if($step === 'b-none') <div class="diag-card"><p>Correcto. Mantén únicamente el webhook de Botmaker y la URL REST de Bitrix24 para crear leads.</p></div> @endif
+    @if($step === 'b-green') <div class="diag-card"><p>No aplica. El flujo inverso fue deshabilitado en esta versión.</p></div> @endif
 
-    @if($step === 'c') <div class="diag-card"><p>Todo en cero indica que ninguna plataforma envía datos. Revisa webhook Botmaker, webhook Bitrix24 y accesibilidad del servidor. Si sigue igual, Infraestructura.</p></div> @endif
+    @if($step === 'c') <div class="diag-card"><p>Todo en cero indica que Botmaker no está enviando datos o la cola no procesa. Revisa webhook Botmaker y accesibilidad del servidor.</p></div> @endif
     @if($step === 'd') <div class="diag-card"><p>Los fallidos se reintentan hasta 5 veces. Si todos tienen el mismo error (401), corrige token una vez y reintenta todos. Si son timeout/refused, espera recuperación del servicio destino.</p></div> @endif
     @if($step === 'e') <div class="diag-card"><p>Verifica cuenta, recuperación de contraseña, estado activo del usuario y permisos/rol.</p></div> @endif
     @if($step === 'f') <div class="diag-card"><p>Al cambiar token, el anterior muere al instante. Actualiza en ambos lados, copia token completo y usa Probar conexión.</p></div> @endif

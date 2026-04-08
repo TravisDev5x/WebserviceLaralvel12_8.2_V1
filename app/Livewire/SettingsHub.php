@@ -12,6 +12,7 @@ use App\Models\NotificationRule;
 use App\Models\Setting;
 use App\Models\WhatsappNumber;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Component;
 
@@ -31,7 +32,10 @@ class SettingsHub extends Component
             $activeTokens = (int) AuthorizedToken::query()->where('is_active', true)->count();
         }
 
+        $settingsReady = Schema::hasTable('settings');
+
         return view('livewire.settings-hub', [
+            'isAdmin' => auth()->check() && (string) (auth()->user()->role ?? '') === 'admin',
             'botmakerConfigured' => $botmakerOk,
             'bitrixConfigured' => $bitrixOk,
             'activeTokensCount' => $activeTokens,
@@ -40,10 +44,23 @@ class SettingsHub extends Component
             'templatesCount' => MessageTemplate::query()->count(),
             'whatsappActive' => WhatsappNumber::query()->where('is_active', true)->count(),
             'alertsActive' => AlertRule::query()->where('is_active', true)->count(),
-            'botmakerUpdatedAt' => Setting::query()->where('group', 'botmaker')->max('updated_at'),
-            'bitrixUpdatedAt' => Setting::query()->where('group', 'bitrix24')->max('updated_at'),
+            'botmakerUpdatedAt' => $this->humanUpdatedAt($settingsReady ? Setting::query()->where('group', 'botmaker')->max('updated_at') : null),
+            'bitrixUpdatedAt' => $this->humanUpdatedAt($settingsReady ? Setting::query()->where('group', 'bitrix24')->max('updated_at') : null),
         ])->layout('layouts.app', [
             'title' => 'Centro de configuración',
         ]);
+    }
+
+    private function humanUpdatedAt(mixed $value): string
+    {
+        if ($value === null) {
+            return 'nunca';
+        }
+
+        try {
+            return Carbon::parse((string) $value)->diffForHumans();
+        } catch (\Throwable) {
+            return 'nunca';
+        }
     }
 }

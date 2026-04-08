@@ -1,42 +1,21 @@
 {{-- Contenido único del manual (web pública, panel y PDF) --}}
 <section class="manual-block" id="introduccion">
     <h2>1. ¿Qué es esta aplicación?</h2>
-    <p>Es un <strong>middleware</strong> (puente) entre <strong>Botmaker</strong> (WhatsApp / bots conversacionales) y <strong>Bitrix24</strong> (CRM y leads). Recibe eventos por <strong>webhooks</strong>, los registra, los procesa en <strong>cola</strong> y llama a las APIs necesarias en ambos sentidos.</p>
+    <p>Es un <strong>middleware</strong> (puente) entre <strong>Botmaker</strong> (WhatsApp / bots conversacionales) y <strong>Bitrix24</strong> (CRM y leads). Recibe eventos por <strong>webhooks</strong>, los registra, los procesa y crea leads en Bitrix24.</p>
     <ul>
         <li><strong>Botmaker → Bitrix24:</strong> crea o actualiza <strong>leads</strong> en el CRM con los datos que llegan del bot.</li>
-        <li><strong>Bitrix24 → Botmaker:</strong> cuando Bitrix avisa un evento, la app puede enviar un <strong>mensaje de WhatsApp</strong> al contacto mediante la API de Botmaker.</li>
+        <li><strong>Flujo activo:</strong> el sistema está enfocado en Botmaker → Bitrix24.</li>
     </ul>
 </section>
 
 <section class="manual-block" id="bitrix-requisitos">
     <h2>2. Bitrix24 — qué debes configurar (explícito)</h2>
 
-    <h3>2.1 Webhook de entrada hacia esta aplicación</h3>
-    <p>Bitrix debe poder enviar peticiones <strong>POST</strong> a:</p>
-    <p><code>{{ $appBaseUrl }}/webhook/bitrix24</code></p>
-    <p>Configura en Bitrix24 un <strong>webhook saliente</strong> (suscripción a eventos del CRM) que apunte a esa URL. La ruta exacta depende de tu <code>APP_URL</code> en <code>.env</code>.</p>
-
-    <h3>2.2 Seguridad: token compartido (obligatorio)</h3>
-    <p>En el cuerpo JSON del webhook, Bitrix envía normalmente un bloque <code>auth</code>. Esta aplicación exige que el campo:</p>
-    <p><code>auth.application_token</code></p>
-    <p>sea <strong>exactamente igual</strong> al valor que guardes en tu servidor como:</p>
-    <p><code>BITRIX24_WEBHOOK_SECRET</code> (en <code>.env</code> o en Configuración del panel).</p>
-    <p>Si no coinciden, la respuesta será <strong>401 Invalid signature</strong> y no se procesará el evento.</p>
-
-    <h3>2.3 Formato mínimo del JSON que valida la aplicación</h3>
-    <p>Para que el webhook sea aceptado (antes de filtros y cola), el payload debe incluir:</p>
-    <ul>
-        <li><code>event</code>: cadena no vacía (nombre del evento de Bitrix).</li>
-        <li><code>data.FIELDS.ID</code>: identificador del lead (u objeto relacionado según el evento).</li>
-        <li><code>auth.application_token</code>: presente y coincidente con el secreto configurado.</li>
-    </ul>
-    <p><strong>Nota:</strong> el parseo de teléfono y mensajes para Bitrix→Botmaker asume estructuras típicas de lead (<code>PHONE</code>, <code>COMMENTS</code>, <code>NAME</code>, etc.). Si tu portal usa campos distintos, deberás ajustar <strong>mapeos dinámicos</strong> en el panel (<em>Mapeo de campos</em> para plataforma Bitrix24) o el código.</p>
-
-    <h3>2.4 Webhook de salida (REST) hacia Bitrix24</h3>
+    <h3>2.1 Webhook REST hacia Bitrix24</h3>
     <p>Para crear/actualizar leads desde el flujo Botmaker→Bitrix, necesitas una URL de webhook de Bitrix24 con permisos de CRM, por ejemplo:</p>
     <p><code>https://TU_PORTAL.bitrix24.com/rest/USUARIO/CODIGO_SECRETO/</code></p>
-    <p>Esa URL completa va en <code>BITRIX24_WEBHOOK_URL</code>. La aplicación llamará métodos como <code>crm.lead.add</code>, <code>crm.lead.update</code> y <code>crm.contact.list</code> mediante POST a <code>{WEBHOOK_URL}/{metodo}</code>.</p>
-    <p>Asegúrate de que el webhook tenga permisos para: <strong>leer contactos</strong>, <strong>crear y actualizar leads</strong>.</p>
+    <p>Esa URL completa va en <code>BITRIX24_WEBHOOK_URL</code>. La aplicación llamará <code>crm.lead.add</code> mediante POST a <code>{WEBHOOK_URL}/{metodo}</code>.</p>
+    <p>Asegúrate de que el webhook tenga permisos para: <strong>crear leads</strong>.</p>
 </section>
 
 <section class="manual-block" id="botmaker-requisitos">
@@ -58,13 +37,13 @@
     </ul>
     <p>La aplicación fusiona datos de <code>messages</code>, <code>clientPayload</code>, <code>context</code>, <code>attributes</code> y <code>variables</code> para obtener nombre, apellidos, fechas, etc. Conviene que el flujo del bot rellene esos datos de forma coherente con tus <strong>mapeos</strong>.</p>
 
-    <h3>3.4 API de salida (envío de WhatsApp desde Bitrix→Botmaker)</h3>
+    <h3>3.4 API de salida (opcional)</h3>
     <p>Debes disponer de:</p>
     <ul>
         <li><code>BOTMAKER_API_URL</code>: por defecto <code>https://go.botmaker.com/api/v1.0</code></li>
         <li><code>BOTMAKER_API_TOKEN</code>: token Bearer válido con permiso para enviar mensajes.</li>
     </ul>
-    <p>La aplicación llama al endpoint (POST):</p>
+    <p>La aplicación puede llamar al endpoint (POST):</p>
     <p><code>{BOTMAKER_API_URL}/chats-actions/send-messages</code></p>
     <p>con cuerpo JSON que incluye <code>chatPlatform: whatsapp</code>, <code>whatsappNumber</code> normalizado y el texto del mensaje. Si en el panel defines un <strong>número/canal por defecto</strong> (WhatsApp), se envía también <code>chatChannelId</code> cuando corresponde.</p>
 
@@ -104,19 +83,10 @@
     <ol>
         <li>Llega POST a <code>/webhook/botmaker</code> con firma válida.</li>
         <li>Se crea un registro en <em>Registros de Webhooks</em> con <code>correlation_id</code>.</li>
-        <li>Si pasa <em>Filtros de eventos</em>, se encola el trabajo en la cola <code>webhooks</code>.</li>
-        <li>El worker parsea el payload, aplica mapeos (BD o integración por defecto).</li>
-        <li>Se busca contacto por teléfono en Bitrix; si hay lead asociado se <strong>actualiza</strong>, si no se <strong>crea</strong> lead.</li>
-        <li>Los campos estándar del lead incluyen título, comentarios, teléfono, <strong>correo</strong>, nombre y apellidos, fecha de nacimiento, listas (semanas cotizadas, estatus laboral, estado) y último salario, según el mapeo en configuración (clase <code>MapBotmakerCanonicalToBitrixLead</code> y/o mapeos dinámicos en BD).</li>
+        <li>Se valida firma/token de Botmaker y se registra en <em>Registros de Webhooks</em>.</li>
+        <li>Se mapean los campos del payload (nombre, teléfono, correo, estado + mapeos dinámicos activos).</li>
+        <li>Se envía a Bitrix24 por <code>crm.lead.add</code>.</li>
         <li>El resultado (éxito o error) queda en el mismo registro de webhook.</li>
-    </ol>
-
-    <h3>5.2 Bitrix24 → Botmaker</h3>
-    <ol>
-        <li>Llega POST a <code>/webhook/bitrix24</code> con <code>auth.application_token</code> válido.</li>
-        <li>Registro en base de datos y, si aplica, filtros.</li>
-        <li>El worker obtiene teléfono y datos del evento, aplica reglas de <strong>notificación</strong> y plantillas.</li>
-        <li>Se llama a la API de Botmaker para enviar el mensaje al número indicado.</li>
     </ol>
 </section>
 
@@ -129,7 +99,7 @@
         <li><strong>Webhooks fallidos</strong> — reintentos y diagnóstico.</li>
         <li><strong>Configuración</strong> — credenciales y parámetros persistidos.</li>
         <li><strong>Mapeo de campos</strong> — rutas JSON → campos destino por plataforma.</li>
-        <li><strong>Reglas de notificación</strong> — mensajes salientes Bitrix→Botmaker por evento.</li>
+        <li><strong>Reglas de notificación</strong> — disponibles en panel (opcional, no forman parte del flujo principal actual).</li>
         <li><strong>Plantillas</strong> — textos reutilizables con variables.</li>
         <li><strong>Números WhatsApp</strong> — canal por defecto para envíos.</li>
         <li><strong>Filtros de eventos</strong> — ignorar o aceptar eventos según reglas.</li>
@@ -176,7 +146,7 @@
         <li><code>POST {{ $appBaseUrl }}/monitor/integration-probes/bitrix-sample</code> — crea el lead de prueba; respuesta JSON con <code>success</code>, <code>lead_id</code>, <code>fields</code>, <code>body</code>, etc. Requiere cabecera <code>X-XSRF-TOKEN</code> (valor de la cookie <code>XSRF-TOKEN</code>) y cookie de sesión. Límite aproximado: 15 peticiones por minuto (throttle).</li>
         <li><code>GET {{ $appBaseUrl }}/monitor/integration-probes/connectivity</code> — estado de Botmaker, Bitrix, cola y resumen de webhooks del día. Límite: 60 peticiones por minuto.</li>
     </ul>
-    <p>No están pensados para integración pública sin autenticación; no sustituyen a los webhooks oficiales <code>/webhook/botmaker</code> y <code>/webhook/bitrix24</code>.</p>
+    <p>No están pensados para integración pública sin autenticación; no sustituyen al webhook oficial <code>/webhook/botmaker</code>.</p>
 
     <h3>9.3 Servicio interno</h3>
     <p>La lógica compartida vive en <code>App\Services\IntegrationProbeService</code>, usada por los comandos, el panel Livewire y el controlador JSON.</p>

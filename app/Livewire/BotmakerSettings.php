@@ -122,10 +122,9 @@ class BotmakerSettings extends Component
         $client = new Client(['timeout' => 10]);
 
         try {
-            $response = $client->request('GET', rtrim($url, '/').'/chats', [
+            $response = $client->request('GET', rtrim($url, '/') . '/chats', [
                 'headers' => [
                     'access-token' => $token,
-                    'Authorization' => 'Bearer '.$token,
                     'Accept' => 'application/json',
                 ],
             ]);

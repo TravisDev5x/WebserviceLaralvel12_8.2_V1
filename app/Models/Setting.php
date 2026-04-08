@@ -6,6 +6,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Schema;
 
 class Setting extends Model
 {
@@ -15,6 +16,10 @@ class Setting extends Model
     {
         [$group, $key] = self::splitDotKey($dotKey);
         if ($group === null || $key === null) {
+            return $default;
+        }
+
+        if (! Schema::hasTable('settings')) {
             return $default;
         }
 
@@ -56,6 +61,10 @@ class Setting extends Model
      */
     public static function getGroup(string $group): array
     {
+        if (! Schema::hasTable('settings')) {
+            return [];
+        }
+
         $cacheKey = "settings:group:{$group}";
 
         return Cache::remember($cacheKey, 60, static function () use ($group): array {

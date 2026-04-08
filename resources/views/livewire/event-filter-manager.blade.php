@@ -59,29 +59,18 @@
             </div>
         </div>
         <div class="table-wrap"><table class="table-clean"><thead><tr><th>ID</th><th>Plataforma</th><th>Evento</th><th>Filtro</th><th>Acción</th><th></th></tr></thead><tbody>
-            @forelse($rows as $row)
-                @php
-                    $platformLabel = $row->platform === 'botmaker' ? 'Botmaker (WhatsApp)' : ($row->platform === 'bitrix24' ? 'Bitrix24 (CRM)' : (string) $row->platform);
-                    $operatorLabel = match ((string) $row->filter_operator) {
-                        'equals' => 'Igual a',
-                        'not_equals' => 'Diferente de',
-                        'contains' => 'Contiene',
-                        'not_contains' => 'No contiene',
-                        'is_empty' => 'Está vacío',
-                        'is_not_empty' => 'No está vacío',
-                        default => (string) $row->filter_operator,
-                    };
-                    $actionLabel = $row->action === 'ignore' ? 'Ignorar (descartar)' : 'Procesar normalmente';
-                @endphp
+            @if($rows->count() > 0)
+            @foreach($rows as $row)
                 <tr>
-                    <td>{{ $row->id }}</td><td>{{ $platformLabel }}</td><td>{{ $row->event_type }}</td>
-                    <td>{{ $row->filter_field }} {{ $operatorLabel }} {{ $row->filter_value }}</td>
-                    <td>{{ $actionLabel }}</td>
+                    <td>{{ $row->id }}</td><td>{{ $row->platform }}</td><td>{{ $row->event_type }}</td>
+                    <td>{{ $row->filter_field }} {{ $row->filter_operator }} {{ $row->filter_value }}</td>
+                    <td>{{ $row->action }}</td>
                     <td style="display:flex; gap:.35rem;"><button class="btn" wire:click="edit({{ $row->id }})" type="button">Editar</button><button class="btn btn-danger" wire:click="confirmDelete({{ $row->id }})" type="button">Eliminar</button></td>
                 </tr>
-            @empty
+            @endforeach
+            @else
                 <tr><td colspan="6">Sin filtros.</td></tr>
-            @endforelse
+            @endif
         </tbody></table></div>
         <div style="margin-top:.75rem;">{{ $rows->links() }}</div>
     </section>

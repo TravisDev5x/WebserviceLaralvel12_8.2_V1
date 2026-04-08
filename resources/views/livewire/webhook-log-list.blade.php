@@ -22,20 +22,7 @@
         </div>
         <div style="display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:.75rem;">
             @foreach ($statuses as $value => $label)
-                @php
-                    $isActive = $statusFilter === $value;
-                    $badgeColor = '#64748b';
-                    if ($value === 'sent') {
-                        $badgeColor = '#16a34a';
-                    } elseif ($value === 'failed') {
-                        $badgeColor = '#dc2626';
-                    } elseif ($value === 'processing') {
-                        $badgeColor = '#ca8a04';
-                    } elseif ($value === 'received') {
-                        $badgeColor = '#2563eb';
-                    }
-                @endphp
-                <button type="button" class="badge-soft" style="border-color:{{ $badgeColor }}; color:{{ $isActive ? '#fff' : $badgeColor }}; background:{{ $isActive ? $badgeColor : 'transparent' }};" wire:click="$set('statusFilter','{{ $value }}')">{{ $label }}</button>
+                <button type="button" class="badge-soft @if($statusFilter === $value) btn-primary @endif" wire:click="$set('statusFilter','{{ $value }}')">{{ $label }}</button>
             @endforeach
         </div>
         <div class="grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
@@ -73,37 +60,24 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse ($webhooks as $webhook)
-                        @php
-                            $payload = is_array($webhook->payload_in) ? $webhook->payload_in : [];
-                            $contactName = trim((string) (($payload['firstName'] ?? '').' '.($payload['lastName'] ?? '')));
-                            $contactPhone = (string) ($payload['whatsappNumber'] ?? $payload['contact']['phone'] ?? $payload['phone'] ?? '');
-                            $contact = $contactName !== '' ? $contactName : ($contactPhone !== '' ? $contactPhone : ($webhook->external_id ?: '-'));
-                            $resultText = $webhook->status === 'sent'
-                                ? 'Lead creado ✓'
-                                : ($webhook->error_message ? 'Error: '.\Illuminate\Support\Str::limit($webhook->error_message, 42) : (($webhook->http_status ? "HTTP {$webhook->http_status}" : 'Sin respuesta')));
-                            $badgeStyle = match ($webhook->status) {
-                                'sent' => 'background: #d1fae5; color: #065f46; padding: 2px 8px; border-radius: 12px;',
-                                'failed' => 'background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 12px;',
-                                'processing' => 'background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 12px;',
-                                default => 'background: #dbeafe; color: #1e3a8a; padding: 2px 8px; border-radius: 12px;',
-                            };
-                        @endphp
+                    @if ($webhooks->count() > 0)
+                    @foreach ($webhooks as $webhook)
                         <tr class="clickable-row" style="cursor: pointer;" onclick="window.location='{{ url('/monitor/logs/'.$webhook->id) }}'">
                             <td>{{ $webhook->id }}</td>
                             <td>{{ $webhook->direction }}</td>
                             <td>{{ $webhook->source_event }}</td>
-                            <td>{{ $contact }}</td>
-                            <td><span style="{{ $badgeStyle }}">{{ $webhook->status }}</span></td>
-                            <td>{{ $resultText }}</td>
+                            <td>{{ $webhook->external_id ?: '-' }}</td>
+                            <td>{{ $webhook->status }}</td>
+                            <td>{{ $webhook->error_message ?: 'OK' }}</td>
                             <td>{{ $webhook->processing_ms ?: '-' }}</td>
                             <td>{{ $webhook->created_at?->format('Y-m-d H:i:s') }}</td>
                         </tr>
-                    @empty
+                    @endforeach
+                    @else
                         <tr>
                             <td colspan="8">No hay registros para los filtros seleccionados.</td>
                         </tr>
-                    @endforelse
+                    @endif
                 </tbody>
             </table>
         </div>

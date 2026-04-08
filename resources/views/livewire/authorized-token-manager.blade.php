@@ -112,7 +112,8 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($rows as $row)
+                    @if($rows->count() > 0)
+                    @foreach($rows as $row)
                         <tr wire:key="atm-{{ $row->id }}">
                             <td>{{ $row->label }}</td>
                             <td>
@@ -135,9 +136,10 @@
                                 <button type="button" class="btn btn-sm btn-danger" wire:click="confirmDelete({{ $row->id }})">Eliminar</button>
                             </td>
                         </tr>
-                    @empty
+                    @endforeach
+                    @else
                         <tr><td colspan="6">Sin registros en esta sección.</td></tr>
-                    @endforelse
+                    @endif
                 </tbody>
             </table>
         </div>

@@ -53,11 +53,13 @@
 
             <h4 style="margin:1rem 0 .35rem; font-size:.95rem;">Últimas pruebas</h4>
             <ul style="margin:0; padding-left:1.1rem; font-size:.85rem;">
-                @forelse(array_reverse($botHistory) as $h)
-                    <li style="margin-bottom:.25rem;"><span class="muted">{{ $h['at'] }}</span> — @if($h['ok'])<span style="color:#166534;">OK</span>@else<span style="color:#b91c1c;">Error</span>@endif — {{ Str::limit($h['text'], 80) }}</li>
-                @empty
+                @if(count($botHistoryView) > 0)
+                @foreach($botHistoryView as $h)
+                    <li style="margin-bottom:.25rem;"><span class="muted">{{ $h['at'] }}</span> — @if($h['ok'])<span style="color:#166534;">OK</span>@else<span style="color:#b91c1c;">Error</span>@endif — {{ $h['text_short'] }}</li>
+                @endforeach
+                @else
                     <li class="muted">Sin historial en esta sesión.</li>
-                @endforelse
+                @endif
             </ul>
         </section>
 
@@ -95,11 +97,13 @@
 
             <h4 style="margin:1rem 0 .35rem; font-size:.95rem;">Últimas pruebas</h4>
             <ul style="margin:0; padding-left:1.1rem; font-size:.85rem;">
-                @forelse(array_reverse($bitrixHistory) as $h)
-                    <li style="margin-bottom:.25rem;"><span class="muted">{{ $h['at'] }}</span> — @if($h['ok'])<span style="color:#166534;">OK</span>@else<span style="color:#b91c1c;">Error</span>@endif — {{ Str::limit($h['text'], 80) }}</li>
-                @empty
+                @if(count($bitrixHistoryView) > 0)
+                @foreach($bitrixHistoryView as $h)
+                    <li style="margin-bottom:.25rem;"><span class="muted">{{ $h['at'] }}</span> — @if($h['ok'])<span style="color:#166534;">OK</span>@else<span style="color:#b91c1c;">Error</span>@endif — {{ $h['text_short'] }}</li>
+                @endforeach
+                @else
                     <li class="muted">Sin historial en esta sesión.</li>
-                @endforelse
+                @endif
             </ul>
         </section>
     </div>
@@ -145,7 +149,7 @@
         <p class="muted" style="font-size:.85rem; margin:0 0 .75rem;">Las peticiones salen del servidor hacia <code>/api/webhook/…</code> usando el mismo secreto configurado.</p>
         <div style="display:flex; flex-wrap:wrap; gap:.5rem;">
             <button type="button" class="btn" wire:click="simulateFlowBotmakerToBitrix" wire:loading.attr="disabled">Simular Flujo A (Botmaker → Bitrix24)</button>
-            <button type="button" class="btn" wire:click="simulateFlowBitrixToBotmaker" wire:loading.attr="disabled">Simular Flujo B (Bitrix24 → Botmaker)</button>
+            <button type="button" class="btn" wire:click="simulateFlowBitrixToBotmaker" wire:loading.attr="disabled">Flujo B deshabilitado (solo Botmaker → Bitrix24)</button>
         </div>
         @if(count($flowSteps) > 0)
             <ol style="margin:.75rem 0 0; padding-left:1.2rem; font-size:.9rem;">

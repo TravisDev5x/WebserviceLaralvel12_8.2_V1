@@ -24,14 +24,16 @@
             </div>
         </div>
         <div class="table-wrap"><table class="table-clean"><thead><tr><th>ID</th><th>Número</th><th>Etiqueta</th><th>Default</th><th></th></tr></thead><tbody>
-            @forelse($rows as $row)
+            @if($rows->count() > 0)
+            @foreach($rows as $row)
                 <tr>
                     <td>{{ $row->id }}</td><td>{{ $row->phone_number }}</td><td>{{ $row->label }}</td><td>{{ $row->is_default ? 'Sí' : 'No' }}</td>
                     <td style="display:flex; gap:.35rem;"><button class="btn" wire:click="edit({{ $row->id }})" type="button">Editar</button><button class="btn btn-danger" wire:click="confirmDelete({{ $row->id }})" type="button">Eliminar</button></td>
                 </tr>
-            @empty
+            @endforeach
+            @else
                 <tr><td colspan="5">Sin números.</td></tr>
-            @endforelse
+            @endif
         </tbody></table></div>
         <div style="margin-top:.75rem;">{{ $rows->links() }}</div>
     </section>

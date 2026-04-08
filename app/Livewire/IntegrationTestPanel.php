@@ -11,6 +11,7 @@ use App\Services\IntegrationProbeService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Livewire\Component;
 use Throwable;
 
@@ -186,26 +187,8 @@ class IntegrationTestPanel extends Component
     public function simulateFlowBitrixToBotmaker(): void
     {
         $this->flowSteps = [];
-        $secret = $this->resolveBitrixApplicationToken();
-        if ($secret === '') {
-            $this->flowSteps[] = 'Error: no hay token de aplicación Bitrix (webhooks salientes o configuración).';
-
-            return;
-        }
-
-        $payload = [
-            'event' => 'ONCRMLEADUPDATE',
-            'data' => ['FIELDS' => ['ID' => 1]],
-            'auth' => ['application_token' => $secret],
-        ];
-
-        $this->flowSteps[] = '1. Enviando POST a /api/webhook/bitrix24…';
-        try {
-            $response = Http::asJson()->timeout(30)->post(url('/api/webhook/bitrix24'), $payload);
-            $this->flowSteps[] = '2. Respuesta HTTP '.$response->status().': '.substr($response->body(), 0, 200);
-        } catch (Throwable $e) {
-            $this->flowSteps[] = '2. Error: '.$e->getMessage();
-        }
+        $this->flowSteps[] = 'El flujo Bitrix24 -> Middleware fue deshabilitado en esta versión.';
+        $this->flowSteps[] = 'Flujo activo: Botmaker -> Middleware -> Bitrix24.';
     }
 
     private function resolveBotmakerWebhookSecret(): string
@@ -252,7 +235,28 @@ class IntegrationTestPanel extends Component
 
     public function render(): View
     {
-        return view('livewire.integration-test-panel')
+        $botHistoryView = collect($this->botHistory)
+            ->reverse()
+            ->values()
+            ->map(function (array $item): array {
+                $item['text_short'] = Str::limit((string) ($item['text'] ?? ''), 80);
+                return $item;
+            })
+            ->all();
+
+        $bitrixHistoryView = collect($this->bitrixHistory)
+            ->reverse()
+            ->values()
+            ->map(function (array $item): array {
+                $item['text_short'] = Str::limit((string) ($item['text'] ?? ''), 80);
+                return $item;
+            })
+            ->all();
+
+        return view('livewire.integration-test-panel', [
+            'botHistoryView' => $botHistoryView,
+            'bitrixHistoryView' => $bitrixHistoryView,
+        ])
             ->layout('layouts.app', [
                 'title' => 'Pruebas de integración',
             ]);

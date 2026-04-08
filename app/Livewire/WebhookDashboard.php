@@ -51,6 +51,7 @@ class WebhookDashboard extends Component
                     'source_event' => (string) $log->source_event,
                     'status' => (string) $log->status,
                     'status_label' => $this->statusLabel((string) $log->status),
+                    'status_class' => $this->statusClass((string) $log->status),
                     'contact' => $this->extractContact($log),
                     'created_at' => $this->humanDate($log->created_at),
                 ];
@@ -105,6 +106,16 @@ class WebhookDashboard extends Component
             WebhookStatus::Failed->value => 'Fallido',
             WebhookStatus::Processing->value => 'Procesando',
             default => 'Recibido',
+        };
+    }
+
+    private function statusClass(string $status): string
+    {
+        return match ($status) {
+            WebhookStatus::Sent->value => 'status-resolved',
+            WebhookStatus::Failed->value => 'status-exhausted',
+            WebhookStatus::Processing->value => 'status-retrying',
+            default => 'status-pending',
         };
     }
 

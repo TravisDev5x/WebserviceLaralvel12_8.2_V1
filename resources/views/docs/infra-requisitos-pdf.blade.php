@@ -19,7 +19,7 @@
 </head>
 <body>
     <h1>Requisitos de infraestructura (breve)</h1>
-    <p class="meta">Middleware Laravel — Botmaker ↔ Bitrix24 · Orientado a Ubuntu Server 24.04 (o similar) · {{ $generatedAt }}</p>
+    <p class="meta">Middleware Laravel — Botmaker → Bitrix24 · Orientado a Ubuntu Server 24.04 (o similar) · {{ $generatedAt }}</p>
 
     <h2>1. Software mínimo</h2>
     <table>
@@ -49,7 +49,7 @@
         <li><code>.env</code> con <code>APP_URL</code> público HTTPS, credenciales DB, Botmaker y Bitrix24.</li>
         <li><code>php artisan migrate</code> (y seeders si aplica).</li>
         <li>Permisos escritura: <code>storage/</code>, <code>bootstrap/cache/</code>.</li>
-        <li>Webhooks externos apuntando a <code>/webhook/botmaker</code> y <code>/webhook/bitrix24</code>.</li>
+        <li>Webhook externo apuntando a <code>/webhook/botmaker</code>.</li>
     </ul>
 
     <p class="note">Documentación ampliada: manual en <code>/manual</code> o PDF <code>public/docs/Manual-Integracion-Bitrix24-Botmaker.pdf</code>.</p>

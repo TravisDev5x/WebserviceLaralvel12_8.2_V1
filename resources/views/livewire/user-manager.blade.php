@@ -56,20 +56,8 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($users as $user)
-                        @php
-                            $isSelf = $user->id === auth()->id();
-                            $roleLabel = match ($user->role) {
-                                'admin' => 'Administrador',
-                                'operator' => 'Operador',
-                                default => 'Solo lectura',
-                            };
-                            $badgeStyle = match ($user->role) {
-                                'admin' => 'background:#4c1d95;color:#fff;',
-                                'operator' => 'background:#1d4ed8;color:#fff;',
-                                default => 'background:#e5e7eb;color:#374151;',
-                            };
-                        @endphp
+                    @if($users->count() > 0)
+                    @foreach($users as $user)
                         <tr wire:key="u-{{ $user->id }}-v{{ $tableVersion }}">
                             <td>{{ $user->name }}</td>
                             <td>
@@ -81,8 +69,8 @@
                             </td>
                             <td>{{ $user->employee_number ?? '—' }}</td>
                             <td style="min-width: 11rem;">
-                                @if($isSelf)
-                                    <span class="badge-soft" style="{{ $badgeStyle }}padding:.2rem .5rem;border-radius:999px;font-size:.78rem;">{{ $roleLabel }}</span>
+                                @if($user->id === auth()->id())
+                                    <span class="badge-soft" style="padding:.2rem .5rem;border-radius:999px;font-size:.78rem;">{{ $user->role }}</span>
                                     <p class="muted" style="margin:.25rem 0 0;font-size:.75rem;">Su rol no se cambia aquí</p>
                                 @else
                                     <select class="select" style="max-width:100%;font-size:.85rem;padding:.35rem .5rem;"
@@ -95,7 +83,7 @@
                                 @endif
                             </td>
                             <td>
-                                @if($isSelf)
+                                @if($user->id === auth()->id())
                                     <span class="muted">—</span>
                                 @else
                                     <label class="muted" style="display:inline-flex;align-items:center;gap:.35rem;cursor:pointer;font-size:.85rem;">
@@ -111,9 +99,10 @@
                                 <button class="btn btn-sm" type="button" wire:click="openEditUser({{ $user->id }})">Editar</button>
                             </td>
                         </tr>
-                    @empty
+                    @endforeach
+                    @else
                         <tr><td colspan="8" class="muted">No hay usuarios que coincidan.</td></tr>
-                    @endforelse
+                    @endif
                 </tbody>
             </table>
         </div>
@@ -124,14 +113,7 @@
         <div style="position: fixed; inset: 0; background: rgba(0,0,0,.45); display:flex; align-items:center; justify-content:center; z-index:60;">
             <div class="card card-pad" style="width:min(95vw, 480px);">
                 <h3 style="margin-top:0;">Confirmar cambio de rol</h3>
-                @php
-                    $rl = static fn (string $r): string => match ($r) {
-                        'admin' => 'Administrador',
-                        'operator' => 'Operador',
-                        default => 'Solo lectura',
-                    };
-                @endphp
-                <p style="margin:0 0 1rem;line-height:1.5;">¿Cambiar el rol de <strong>{{ $roleModalName }}</strong> de <strong>{{ $rl($roleModalOld) }}</strong> a <strong>{{ $rl($roleModalNew) }}</strong>?</p>
+                <p style="margin:0 0 1rem;line-height:1.5;">¿Cambiar el rol de <strong>{{ $roleModalName }}</strong> de <strong>{{ $roleModalOld }}</strong> a <strong>{{ $roleModalNew }}</strong>?</p>
                 <div style="display:flex;justify-content:flex-end;gap:.5rem;">
                     <button class="btn" type="button" wire:click="cancelRoleModal">Cancelar</button>
                     <button class="btn btn-primary" type="button" wire:click="confirmRoleModal">Sí, cambiar</button>

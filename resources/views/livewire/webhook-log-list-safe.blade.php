@@ -42,29 +42,21 @@
                 </tr>
                 </thead>
                 <tbody>
-                @forelse ($webhooks as $webhook)
-                    @php
-                        $directionLabel = $webhook->direction === 'botmaker_to_bitrix' ? 'WhatsApp → CRM' : ($webhook->direction === 'bitrix_to_botmaker' ? 'CRM → WhatsApp' : (string) $webhook->direction);
-                        $statusLabel = match ((string) $webhook->status) {
-                            'received' => 'Recibido',
-                            'processing' => 'Procesando',
-                            'sent' => 'Enviado',
-                            'failed' => 'Fallido',
-                            default => (string) $webhook->status,
-                        };
-                    @endphp
+                @if ($webhooks->count() > 0)
+                @foreach ($webhooks as $webhook)
                     <tr class="clickable-row" style="cursor:pointer;" onclick="window.location='{{ url('/monitor/logs/'.$webhook->id) }}'">
                         <td>{{ $webhook->id }}</td>
-                        <td>{{ $directionLabel }}</td>
+                        <td>{{ $webhook->direction }}</td>
                         <td>{{ $webhook->source_event }}</td>
-                        <td>{{ $statusLabel }}</td>
+                        <td>{{ $webhook->status }}</td>
                         <td>{{ $webhook->http_status ?: '-' }}</td>
-                        <td>{{ \Illuminate\Support\Str::limit((string) $webhook->error_message, 70) }}</td>
+                        <td>{{ $webhook->error_message }}</td>
                         <td>{{ $webhook->created_at?->format('Y-m-d H:i:s') }}</td>
                     </tr>
-                @empty
+                @endforeach
+                @else
                     <tr><td colspan="7">No hay registros para los filtros seleccionados.</td></tr>
-                @endforelse
+                @endif
                 </tbody>
             </table>
         </div>

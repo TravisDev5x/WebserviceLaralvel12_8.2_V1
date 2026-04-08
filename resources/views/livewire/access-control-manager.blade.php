@@ -219,7 +219,8 @@
                     </tr>
                 </thead>
                 <tbody>
-                @forelse($users as $user)
+                @if($users->count() > 0)
+                @foreach($users as $user)
                     <tr>
                         <td>{{ $user->id }}</td>
                         <td>
@@ -265,7 +266,8 @@
                             </div>
                         </td>
                     </tr>
-                @empty
+                @endforeach
+                @else
                     <tr>
                         <td colspan="7">
                             <div style="padding:.75rem 0;">
@@ -274,7 +276,7 @@
                             </div>
                         </td>
                     </tr>
-                @endforelse
+                @endif
                 </tbody>
             </table>
         </div>
@@ -412,21 +414,20 @@
             <table class="table-clean">
                 <thead><tr><th>ID</th><th>Nombre</th><th>Slug</th><th>Permisos</th><th>Activo</th><th>Acciones</th></tr></thead>
                 <tbody>
-                @forelse($roles as $role)
+                @if($roles->count() > 0)
+                @foreach($roles as $role)
                     <tr>
                         <td>{{ $role->id }}</td>
                         <td>{{ $role->name }}</td>
                         <td>{{ $role->slug }}</td>
-                        <td>
-                            @php($labels = collect((array) $role->permissions)->map(fn ($permission) => $permissionLabels[$permission] ?? $permission)->implode(', '))
-                            {{ $labels }}
-                        </td>
+                        <td>{{ $role->description }}</td>
                         <td>{{ $role->is_active ? 'Sí' : 'No' }}</td>
                         <td><button class="btn" wire:click="editRole({{ $role->id }})" type="button" data-tooltip="Editar rol" aria-label="Editar rol"><span style="display:inline-flex; align-items:center;"><i data-lucide="pencil"></i></span></button></td>
                     </tr>
-                @empty
+                @endforeach
+                @else
                     <tr><td colspan="6">No hay roles.</td></tr>
-                @endforelse
+                @endif
                 </tbody>
             </table>
         </div>

@@ -42,22 +42,16 @@
             </div>
         </div>
         <div class="table-wrap"><table class="table-clean"><thead><tr><th>ID</th><th>Nombre</th><th>Tipo</th><th>Umbral</th><th>Email</th><th></th></tr></thead><tbody>
-            @forelse($rows as $row)
-                @php
-                    $typeLabel = match ((string) $row->condition_type) {
-                        'failed_webhooks' => 'Webhooks fallidos',
-                        'webhook_errors' => 'Errores de webhook',
-                        'queue_stuck' => 'Cola atorada',
-                        default => (string) $row->condition_type,
-                    };
-                @endphp
+            @if($rows->count() > 0)
+            @foreach($rows as $row)
                 <tr>
-                    <td>{{ $row->id }}</td><td>{{ $row->name }}</td><td>{{ $typeLabel }}</td><td>{{ $row->threshold }}</td><td>{{ $row->notify_email }}</td>
+                    <td>{{ $row->id }}</td><td>{{ $row->name }}</td><td>{{ $row->condition_type }}</td><td>{{ $row->threshold }}</td><td>{{ $row->notify_email }}</td>
                     <td style="display:flex; gap:.35rem;"><button class="btn" wire:click="edit({{ $row->id }})" type="button">Editar</button><button class="btn btn-danger" wire:click="confirmDelete({{ $row->id }})" type="button">Eliminar</button></td>
                 </tr>
-            @empty
+            @endforeach
+            @else
                 <tr><td colspan="6">Sin reglas.</td></tr>
-            @endforelse
+            @endif
         </tbody></table></div>
         <div style="margin-top:.75rem;">{{ $rows->links() }}</div>
     </section>

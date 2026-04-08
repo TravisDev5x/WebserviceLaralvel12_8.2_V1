@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
-use App\Enums\WebhookDirection;
 use App\Models\FailedWebhook;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -43,10 +42,8 @@ class RetryFailedWebhooks implements ShouldQueue
 
             $direction = (string) $failedWebhook->direction;
 
-            if ($direction === WebhookDirection::BotmakerToBitrix->value) {
+            if ($direction === 'botmaker_to_bitrix') {
                 ProcessBotmakerPayload::dispatch($failedWebhook->webhookLog)->onQueue('webhooks');
-            } elseif ($direction === WebhookDirection::BitrixToBotmaker->value) {
-                ProcessBitrix24Payload::dispatch($failedWebhook->webhookLog)->onQueue('webhooks');
             } else {
                 Log::channel('webhook')->warning('Dirección de webhook desconocida al reintentar', [
                     'failed_webhook_id' => $failedWebhook->id,
