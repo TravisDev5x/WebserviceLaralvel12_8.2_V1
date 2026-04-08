@@ -4,44 +4,29 @@ declare(strict_types=1);
 
 namespace App\Livewire;
 
-use App\Models\AuthorizedToken;
-use App\Models\Setting;
 use Illuminate\Contracts\View\View;
-use Illuminate\Support\Collection;
 use Livewire\Component;
 
 class IntegrationManual extends Component
 {
     public string $search = '';
 
-    public string $responsibilityFilter = 'todos';
-
     /** @var array<int, array{id:string,title:string,keywords:string}> */
     private array $sectionMeta = [
-        ['id' => 'sec-1', 'title' => '¿Qué es este sistema y cómo funciona?', 'keywords' => 'sistema flujo whatsapp botmaker bitrix crm puente unidireccional diagrama'],
-        ['id' => 'sec-2', 'title' => 'Guía rápida por rol', 'keywords' => 'roles telecomunicaciones operaciones infraestructura guia rapida'],
-        ['id' => 'sec-3', 'title' => 'Tablero — Cómo leerlo en 10 segundos', 'keywords' => 'tablero dashboard contadores semaforo verificacion diaria'],
-        ['id' => 'sec-4', 'title' => 'Diagnóstico — Algo no funciona', 'keywords' => 'diagnostico wizard arbol decisiones errores fallas'],
-        ['id' => 'sec-5', 'title' => 'Guía completa para Telecomunicaciones', 'keywords' => 'telecom botmaker token webhook api jwt auth-bm-token'],
-        ['id' => 'sec-6', 'title' => 'Guía completa para Operaciones (Bitrix24)', 'keywords' => 'operaciones bitrix24 crm webhook mapeo campos leads'],
-        ['id' => 'sec-7', 'title' => 'Guía completa para Infraestructura', 'keywords' => 'infraestructura servidor ssl https nginx mysql supervisor'],
-        ['id' => 'sec-8', 'title' => 'Glosario visual', 'keywords' => 'glosario webhook lead token api ssl cola flujo'],
-        ['id' => 'sec-9', 'title' => 'Tabla de responsabilidades', 'keywords' => 'responsabilidades quien resuelve situaciones telecom operaciones infraestructura'],
-        ['id' => 'sec-10', 'title' => 'Historial de cambios', 'keywords' => 'historial cambios configuracion activity log settings authorized tokens'],
+        ['id' => 'sec-1', 'title' => 'Flujo del sistema', 'keywords' => 'flujo botmaker webhook bitrix lead'],
+        ['id' => 'sec-2', 'title' => 'Configuración mínima', 'keywords' => 'app_url webhook auth-bm-token https'],
+        ['id' => 'sec-3', 'title' => 'Validación diaria', 'keywords' => 'monitor logs recibidos exitosos fallidos'],
+        ['id' => 'sec-4', 'title' => 'Errores comunes y solución', 'keywords' => '401 422 500 queue bitrix token'],
+        ['id' => 'sec-5', 'title' => 'Responsables por área', 'keywords' => 'telecom operaciones infraestructura'],
     ];
 
     /** @var array<int, array{situation:string,owner:string,action:string,section:string}> */
     public array $responsibilities = [
-        ['situation' => 'No llegan eventos de Botmaker al sistema', 'owner' => 'Telecomunicaciones', 'action' => 'Verificar webhook de salida en Botmaker', 'section' => '5.2'],
-        ['situation' => 'Los leads no se crean en Bitrix24', 'owner' => 'Operaciones', 'action' => 'Verificar webhook entrante en Bitrix24', 'section' => '6.2'],
-        ['situation' => 'Error 401 en webhook de Botmaker', 'owner' => 'Telecomunicaciones', 'action' => 'Verificar token de firma X-Botmaker-Signature', 'section' => '5.3'],
-        ['situation' => 'Webhook de Bitrix24 inválido', 'owner' => 'Operaciones', 'action' => 'Regenerar webhook entrante y actualizar en el sistema', 'section' => '6.2'],
-        ['situation' => 'El servidor no responde', 'owner' => 'Infraestructura', 'action' => 'Verificar servicios y reiniciar', 'section' => '7.4'],
-        ['situation' => 'Falta HTTPS/SSL', 'owner' => 'Infraestructura', 'action' => 'Configurar dominio y certificado', 'section' => '7.2'],
-        ['situation' => 'Necesito agregar un campo nuevo al lead', 'owner' => 'Operaciones', 'action' => 'Configurar en Mapeo de campos', 'section' => '6.4'],
-        ['situation' => 'Quiero ajustar qué datos se envían al lead', 'owner' => 'Operaciones', 'action' => 'Configurar en Mapeo de campos', 'section' => '6.3'],
-        ['situation' => 'Un usuario necesita acceso al panel', 'owner' => 'Admin del sistema', 'action' => 'Ir a Usuarios y activar o cambiar rol', 'section' => 'Sistema'],
-        ['situation' => 'El procesamiento está lento', 'owner' => 'Infraestructura', 'action' => 'Verificar workers con supervisorctl', 'section' => '7.4'],
+        ['situation' => 'No llegan webhooks al sistema', 'owner' => 'Telecomunicaciones', 'action' => 'Revisar URL de salida y token auth-bm-token en Botmaker', 'section' => '2'],
+        ['situation' => 'Llega webhook pero no se crea lead', 'owner' => 'Operaciones', 'action' => 'Validar webhook de Bitrix24 y revisar errores en Monitor', 'section' => '4'],
+        ['situation' => 'Respuesta 401', 'owner' => 'Telecomunicaciones', 'action' => 'Sincronizar token activo entre Botmaker y authorized_tokens', 'section' => '4'],
+        ['situation' => 'Respuesta 500 o cola detenida', 'owner' => 'Infraestructura', 'action' => 'Revisar workers/servicios y logs del servidor', 'section' => '4'],
+        ['situation' => 'Sin actividad en 24h', 'owner' => 'Telecomunicaciones', 'action' => 'Confirmar que el webhook en Botmaker siga activo', 'section' => '3'],
     ];
 
     public function getFilteredSectionsProperty(): array
@@ -58,54 +43,11 @@ class IntegrationManual extends Component
         }));
     }
 
-    public function getFilteredResponsibilitiesProperty(): array
-    {
-        if ($this->responsibilityFilter === 'todos') {
-            return $this->responsibilities;
-        }
-
-        return array_values(array_filter($this->responsibilities, function (array $row): bool {
-            return mb_strtolower($row['owner']) === mb_strtolower($this->responsibilityFilter);
-        }));
-    }
-
-    public function getChangeHistoryProperty(): Collection
-    {
-        $settingChanges = Setting::query()
-            ->select(['id', 'group', 'key', 'updated_at'])
-            ->orderByDesc('updated_at')
-            ->limit(20)
-            ->get()
-            ->map(fn (Setting $item): array => [
-                'who' => 'Sistema',
-                'what' => 'Ajuste '.$item->group.'.'.$item->key,
-                'when' => $item->updated_at,
-            ]);
-
-        $tokenChanges = AuthorizedToken::query()
-            ->select(['id', 'platform', 'label', 'updated_at'])
-            ->orderByDesc('updated_at')
-            ->limit(20)
-            ->get()
-            ->map(fn (AuthorizedToken $item): array => [
-                'who' => 'Sistema',
-                'what' => 'Token '.$item->platform.' ('.$item->label.')',
-                'when' => $item->updated_at,
-            ]);
-
-        return $settingChanges
-            ->concat($tokenChanges)
-            ->sortByDesc('when')
-            ->take(20)
-            ->values();
-    }
-
     public function render(): View
     {
         return view('livewire.integration-manual', [
             'filteredSections' => $this->filteredSections,
-            'filteredResponsibilities' => $this->filteredResponsibilities,
-            'changeHistory' => $this->changeHistory,
+            'responsibilities' => $this->responsibilities,
         ])->layout('layouts.app', [
             'title' => 'Manual de integración',
             'breadcrumbs' => [
