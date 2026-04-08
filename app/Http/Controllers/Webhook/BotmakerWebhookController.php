@@ -57,7 +57,7 @@ class BotmakerWebhookController extends Controller
 
     private function isSignatureValid(Request $request): bool
     {
-        $incoming = (string) $request->header('X-Botmaker-Signature', '');
+        $incoming = (string) $request->header('auth-bm-token', '');
         if ($incoming === '') {
             return false;
         }

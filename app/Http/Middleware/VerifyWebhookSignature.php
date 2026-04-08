@@ -32,7 +32,7 @@ class VerifyWebhookSignature
      */
     private function validateBotmaker(Request $request, Closure $next): Response
     {
-        $incoming = (string) $request->header('X-Botmaker-Signature', '');
+        $incoming = (string) $request->header('auth-bm-token', '');
         $fallback = (string) config_dynamic('botmaker.webhook_secret', config('services.botmaker.webhook_secret', ''));
 
         if ($this->tokenAccepted('botmaker', $incoming, $fallback)) {
@@ -43,7 +43,7 @@ class VerifyWebhookSignature
             'source' => 'botmaker',
             'ip' => $request->ip(),
             'user_agent' => (string) $request->userAgent(),
-            'header' => 'X-Botmaker-Signature',
+            'header' => 'auth-bm-token',
         ]);
 
         return new JsonResponse([

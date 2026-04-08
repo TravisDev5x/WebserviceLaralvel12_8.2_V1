@@ -1,124 +1,157 @@
 <div>
     <div class="page-header">
         <div>
-            <h2 class="page-title">Conexión Botmaker</h2>
-            <p class="page-subtitle">Credenciales de la API y mapeo avanzado. Los secretos de webhook entrante se gestionan en <a href="{{ url('/monitor/settings/tokens') }}">Webhooks autorizados</a>.</p>
+            <h2 class="page-title">Recepción de webhooks de Botmaker</h2>
+            <p class="page-subtitle">Configura cómo el sistema recibe y valida los datos que Botmaker envía cuando un cliente escribe por WhatsApp.</p>
         </div>
         <a class="btn" href="{{ url('/monitor/settings') }}">Volver al centro</a>
     </div>
 
-    @if ($successMessage)
-        <section class="card card-pad" style="margin-bottom: 1rem; border-left: 4px solid #16a34a;"><p style="margin:0;">{{ $successMessage }}</p></section>
-    @endif
-    @if ($errorMessage)
-        <section class="card card-pad" style="margin-bottom: 1rem; border-left: 4px solid #dc2626;"><p style="margin:0;">{{ $errorMessage }}</p></section>
-    @endif
-
     <section class="card card-pad" style="margin-bottom: 1rem;">
-        <h3 class="settings-section-title">Credenciales de API</h3>
-        <div class="grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
-            <div>
-                <label for="bm-api-url">URL de la API de Botmaker</label>
-                <input id="bm-api-url" class="input" type="url" wire:model.live="botmakerApiUrl" placeholder="https://api.botmaker.com/v2.0">
-                <small class="field-help muted">URL base de la API de Botmaker. Se obtiene en Botmaker &gt; Integraciones &gt; API. Ejemplo: <code>https://api.botmaker.com/v2.0</code>.</small>
-                @error('botmakerApiUrl') <small class="text-error">{{ $message }}</small> @enderror
-            </div>
-            <div>
-                <label for="bm-api-token">Token de autenticación (JWT)</label>
-                <div style="display:flex; gap:.5rem; align-items:center;">
-                    <input id="bm-api-token" class="input" type="password" wire:model.live="botmakerApiToken" placeholder="eyJhbGciOiJIUzUxMiJ9.eyJzdWIi..." autocomplete="off">
-                    <button type="button" class="btn" data-toggle-password="bm-api-token">Ver</button>
-                    <button type="button" class="btn" wire:click="testConnection" wire:loading.attr="disabled" wire:target="testConnection">Probar conexión</button>
-                </div>
-                <small class="field-help muted">Token JWT para autenticarte con la API de Botmaker. Se obtiene en Botmaker &gt; Configuración &gt; API Keys &gt; Access Token. Ejemplo: <code>eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJFZHVhcmRvI...</code>. ⚠️ Si la prueba da 401, el token no es válido para consulta.</small>
-                @error('botmakerApiToken') <small class="text-error">{{ $message }}</small> @enderror
-            </div>
+        <h3 class="settings-section-title" title="Copia esta URL en el panel de Botmaker">URL del webhook (para configurar en Botmaker)</h3>
+        <div style="display:flex; gap:.5rem; align-items:center; flex-wrap:wrap;">
+            <input id="botmaker-webhook-url" class="input" type="text" value="{{ $webhookUrl }}" readonly style="min-width: 320px;">
+            <button type="button" class="btn" onclick="copyWebhookUrl()">Copiar</button>
         </div>
-    </section>
-
-    <section class="card card-pad" style="margin-bottom: 1rem;">
-        <h3 class="settings-section-title">Estado de la conexión</h3>
-        <div style="display:flex; align-items:center; gap:.75rem; flex-wrap:wrap; margin-bottom:.5rem;">
-            @if($testMessage === null && !$lastTestAt)
-                <span class="health-dot health-dot--neutral" title="Sin prueba"></span>
-                <span class="muted">No probado aún</span>
-            @elseif($testOk)
-                <span class="health-dot health-dot--ok" title="OK"></span>
-                <span style="color:#166534;">Última prueba exitosa @if($lastTestAt) ({{ $lastTestAt }}) @endif</span>
-            @else
-                <span class="health-dot health-dot--bad" title="Error"></span>
-                <span style="color:#b91c1c;">{{ $testMessage }}</span>
-            @endif
-        </div>
-        <button type="button" class="btn" wire:click="testConnection" wire:loading.attr="disabled" wire:target="testConnection">Probar ahora</button>
-        <span class="muted" wire:loading wire:target="testConnection" style="margin-left:.5rem;">Probando…</span>
-        @if($testMessage && $lastTestAt)
-            <p class="muted" style="margin:.5rem 0 0; font-size:.85rem;">Registrado: {{ $lastTestAt }}</p>
+        <small class="field-help muted">Esta es la URL que Telecomunicaciones debe configurar como webhook de salida en el panel de Botmaker. Debe ser HTTPS.</small>
+        @if($appUrlIsHttp)
+            <p class="text-warn">⚠️ Botmaker requiere HTTPS. Contacta a Infraestructura para configurar el certificado SSL.</p>
         @endif
     </section>
 
     <section class="card card-pad" style="margin-bottom: 1rem;">
-        <h3 class="settings-section-title">Mapeo avanzado (JSON)</h3>
-        <p class="muted field-hint">Para usuarios avanzados. La moneda se usa al interpretar salarios.</p>
-        <div class="grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
-            <div>
-                <label for="bm-currency">Moneda (ISO 4217)</label>
-                <input id="bm-currency" class="input" maxlength="3" wire:model.live="botmakerSalaryCurrency" placeholder="MXN">
-                <small class="field-help muted">Moneda ISO para montos convertidos. Se obtiene del catálogo de moneda del negocio. Ejemplo: <code>MXN</code>.</small>
-                @error('botmakerSalaryCurrency') <small class="text-error">{{ $message }}</small> @enderror
-            </div>
+        <h3 class="settings-section-title" title="Tokens para validar webhooks entrantes">Token de seguridad</h3>
+        <small class="field-help muted">El token de seguridad se envía en el header <code>auth-bm-token</code>. Debe coincidir exactamente con el configurado en Botmaker.</small>
+
+        <div style="margin-top:.75rem; overflow-x:auto;">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Etiqueta</th>
+                        <th>Valor</th>
+                        <th>Estado</th>
+                        <th>Último uso</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if($this->botmakerTokens->isEmpty())
+                        <tr>
+                            <td colspan="5" class="muted">No hay tokens de Botmaker registrados.</td>
+                        </tr>
+                    @endif
+                    @foreach($this->botmakerTokens as $token)
+                        <tr>
+                            <td>{{ $token->label !== '' ? $token->label : 'Sin etiqueta' }}</td>
+                            <td>
+                                @if(!empty($visibleTokens[$token->id]))
+                                    <code>{{ $token->token }}</code>
+                                @else
+                                    <code>{{ str_repeat('*', 12) }}</code>
+                                @endif
+                            </td>
+                            <td>
+                                @if($token->is_active)
+                                    <span class="badge badge-ok">Activo</span>
+                                @else
+                                    <span class="badge badge-muted">Inactivo</span>
+                                @endif
+                            </td>
+                            <td>{{ optional($token->last_used_at)->timezone(config('app.timezone'))->format('Y-m-d H:i:s') ?? 'Nunca' }}</td>
+                            <td>
+                                <button type="button" class="btn btn-sm" wire:click="toggleTokenVisibility({{ $token->id }})">
+                                    @if(!empty($visibleTokens[$token->id])) Ocultar @else Ver @endif
+                                </button>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
         </div>
-        <div class="grid gap-3" style="grid-template-columns: 1fr; margin-top:.75rem;">
-            <div>
-                <label for="bm-alias">Alias de origen (JSON)</label>
-                <textarea id="bm-alias" class="textarea" rows="10" wire:model.live="botmakerSourceAliasesJson" style="font-family:Consolas,monospace;" placeholder="{&quot;nombre&quot;:[&quot;firstName&quot;,&quot;name&quot;]}"></textarea>
-                <small class="field-help muted">Alias de campos entrantes para estandarizar nombres. Se obtiene del payload real de Botmaker. Ejemplo: <code>{"nombre":["firstName","name"]}</code>.</small>
-                @error('botmakerSourceAliasesJson') <small class="text-error">{{ $message }}</small> @enderror
-            </div>
-            <div>
-                <label for="bm-fields">Campos Bitrix destino (JSON)</label>
-                <textarea id="bm-fields" class="textarea" rows="10" wire:model.live="botmakerBitrixFieldsJson" style="font-family:Consolas,monospace;" placeholder="{&quot;nombre_completo&quot;:&quot;UF_CRM_1774547362498&quot;}"></textarea>
-                <small class="field-help muted">Mapa de campos destino de Bitrix24. Se obtiene de CRM &gt; Configuración &gt; Campos del lead. Ejemplo: <code>{"nombre_completo":"UF_CRM_1774547362498"}</code>.</small>
-                @error('botmakerBitrixFieldsJson') <small class="text-error">{{ $message }}</small> @enderror
-            </div>
-            <div>
-                <label for="bm-enums">Catálogos (JSON)</label>
-                <textarea id="bm-enums" class="textarea" rows="10" wire:model.live="botmakerEnumMapsJson" style="font-family:Consolas,monospace;" placeholder="{&quot;estatus_laboral&quot;:{&quot;Empleado&quot;:&quot;590&quot;,&quot;Desempleado&quot;:&quot;592&quot;}}"></textarea>
-                <small class="field-help muted">Catálogo para convertir etiquetas a IDs de Bitrix24. Se obtiene de los valores de lista del CRM. Ejemplo: <code>{"estatus_laboral":{"Empleado":"590","Desempleado":"592"}}</code>.</small>
-                @error('botmakerEnumMapsJson') <small class="text-error">{{ $message }}</small> @enderror
-            </div>
+        <div style="margin-top:.75rem;">
+            <a class="btn" href="{{ url('/monitor/settings/tokens') }}">Gestionar tokens</a>
         </div>
     </section>
 
-    <div id="unsaved-banner-bm" class="card card-pad" style="display:none; margin-bottom:.75rem; border-left:4px solid #eab308;">
-        Tienes cambios sin guardar
-    </div>
-    <div class="sticky-save-bar" style="display:flex; gap:.5rem; flex-wrap:wrap;">
-        <button type="button" class="btn btn-primary" wire:click="save">Guardar configuración</button>
-        <a class="btn" href="{{ url('/monitor/settings') }}">Cancelar</a>
-    </div>
-    @if ($successMessage)
-        <div class="toast-ok">Configuración guardada correctamente</div>
-    @endif
+    <section class="card card-pad" style="margin-bottom: 1rem;">
+        <h3 class="settings-section-title" title="Resumen de actividad reciente">Estado de la recepción</h3>
+        <small class="field-help muted">Monitorea la llegada de webhooks Botmaker hacia este webservice.</small>
+
+        <div class="grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-top:.75rem;">
+            <div class="stat-box">
+                <div class="muted">Último webhook recibido</div>
+                <strong>{{ $lastWebhookAt ?? 'Sin registros' }}</strong>
+            </div>
+            <div class="stat-box">
+                <div class="muted">Total webhooks recibidos hoy</div>
+                <strong>{{ $totalToday }}</strong>
+            </div>
+            <div class="stat-box">
+                <div class="muted">Webhooks exitosos hoy</div>
+                <strong>{{ $successToday }}</strong>
+            </div>
+            <div class="stat-box">
+                <div class="muted">Webhooks fallidos hoy</div>
+                <strong>{{ $failedToday }}</strong>
+            </div>
+        </div>
+
+        @if($lastWebhookAt === null)
+            <p class="text-warn">No se han recibido webhooks todavía. Configura la URL en Botmaker para comenzar.</p>
+        @elseif(\Carbon\Carbon::parse($lastWebhookAt)->lt(now()->subHours(24)))
+            <p class="text-warn">⚠️ No se han recibido webhooks en las últimas 24 horas. Verifica que el webhook en Botmaker esté activo.</p>
+        @endif
+    </section>
+
+    <section class="card card-pad" style="margin-bottom: 1rem;">
+        <h3 class="settings-section-title" title="Pasos mínimos para activar el webhook">Guía rápida</h3>
+        <ol style="margin:.4rem 0 0 1.1rem; line-height:1.7;">
+            <li>Copia la URL de arriba</li>
+            <li>En el panel de Botmaker, ve a Webhooks de salida</li>
+            <li>Pega la URL como destino del webhook</li>
+            <li>Configura el token de seguridad (debe coincidir con el de la sección 2)</li>
+            <li>Guarda en Botmaker</li>
+            <li>Envía un mensaje de prueba al WhatsApp del bot</li>
+            <li>Regresa aquí y verifica que aparezca en "Estado de la recepción"</li>
+        </ol>
+    </section>
+
+    <section class="card card-pad" style="margin-bottom: 1rem;">
+        <h3 class="settings-section-title" title="Prueba controlada del endpoint local">Probar recepción</h3>
+        <small class="field-help muted">Esto simula un mensaje de Botmaker para verificar que el endpoint funciona. No crea un lead real en Bitrix24 (se marca como prueba).</small>
+        <div style="display:flex; align-items:center; gap:.5rem; margin-top:.75rem;">
+            <button type="button" class="btn btn-primary" wire:click="sendTestWebhook" wire:loading.attr="disabled" wire:target="sendTestWebhook">Enviar webhook de prueba</button>
+            <span class="muted" wire:loading wire:target="sendTestWebhook">Enviando...</span>
+        </div>
+        @if($testMessage)
+            <p style="margin-top:.75rem;" @class(['text-ok' => $testOk, 'text-error' => ! $testOk])>{{ $testMessage }}</p>
+        @endif
+    </section>
+
+    <style>
+        .settings-section-title { margin: 0 0 .65rem; font-size: 1.05rem; }
+        .field-help { display:block; margin:.35rem 0 0; font-size:.82rem; line-height:1.4; color:var(--app-muted); }
+        .text-error { color: #b91c1c; }
+        .text-ok { color: #166534; }
+        .text-warn { color: #92400e; margin-top: .75rem; }
+        .badge { padding: .2rem .45rem; border-radius: .45rem; font-size: .78rem; }
+        .badge-ok { background: #dcfce7; color: #166534; }
+        .badge-muted { background: #e2e8f0; color: #334155; }
+        .stat-box { border: 1px solid var(--app-border); border-radius: .6rem; padding: .65rem; }
+    </style>
 </div>
 
-<style>
-    .settings-section-title { margin: 0 0 .65rem; font-size: 1.05rem; }
-    .field-hint { margin: .35rem 0 0; font-size: .82rem; line-height: 1.4; }
-    .field-help { display:block; margin:.35rem 0 0; font-size:.8rem; line-height:1.4; color:var(--app-muted); }
-    .text-error { color: #dc2626; }
-    .health-dot { width: .75rem; height: .75rem; border-radius: 999px; display: inline-block; }
-    .health-dot--ok { background: #16a34a; }
-    .health-dot--bad { background: #dc2626; }
-    .health-dot--neutral { background: #94a3b8; }
-    .sticky-save-bar { position: sticky; bottom: .5rem; background: var(--app-surface); padding: .6rem; border: 1px solid var(--app-border); border-radius: .6rem; }
-    .toast-ok { position: fixed; right: 1rem; bottom: 1rem; background:#16a34a; color:#fff; padding:.55rem .8rem; border-radius:.5rem; z-index:50; }
-</style>
 <script>
-    (function () {
-        const banner = document.getElementById('unsaved-banner-bm');
-        document.querySelectorAll('input,textarea,select').forEach((el) => {
-            el.addEventListener('input', () => { if (banner) banner.style.display = 'block'; });
-        });
-    })();
+    function copyWebhookUrl() {
+        const input = document.getElementById('botmaker-webhook-url');
+        if (!input) return;
+        const text = input.value;
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text);
+            return;
+        }
+        input.select();
+        input.setSelectionRange(0, 99999);
+        document.execCommand('copy');
+    }
 </script>

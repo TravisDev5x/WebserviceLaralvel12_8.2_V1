@@ -5,171 +5,144 @@ declare(strict_types=1);
 namespace App\Livewire;
 
 use App\Models\AuthorizedToken;
-use App\Models\Setting;
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\RequestException;
+use App\Models\WebhookLog;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Http;
 use Livewire\Component;
 
 class BotmakerSettings extends Component
 {
-    public string $botmakerApiUrl = '';
+    public string $webhookUrl = '';
 
-    public string $botmakerApiToken = '';
+    public bool $appUrlIsHttp = false;
 
-    public string $botmakerSalaryCurrency = 'MXN';
-
-    public string $botmakerSourceAliasesJson = '';
-
-    public string $botmakerBitrixFieldsJson = '';
-
-    public string $botmakerEnumMapsJson = '';
-
-    public ?string $successMessage = null;
-
-    public ?string $errorMessage = null;
+    /** @var array<int, bool> */
+    public array $visibleTokens = [];
 
     public ?string $testMessage = null;
 
     public bool $testOk = false;
 
-    public ?string $lastTestAt = null;
+    public ?string $lastWebhookAt = null;
+
+    public int $totalToday = 0;
+
+    public int $successToday = 0;
+
+    public int $failedToday = 0;
 
     public function mount(): void
     {
-        $this->botmakerApiUrl = (string) config_dynamic('botmaker.api_url', config('services.botmaker.api_url', ''));
-        if (trim($this->botmakerApiUrl) === '' && Schema::hasTable('authorized_tokens')) {
-            $fromToken = AuthorizedToken::getWebhookUrl('botmaker');
-            if (is_string($fromToken) && trim($fromToken) !== '') {
-                $this->botmakerApiUrl = trim($fromToken);
-            }
-        }
-        $this->botmakerApiToken = (string) config_dynamic('botmaker.api_token', config('services.botmaker.api_token', ''));
-        $this->botmakerSalaryCurrency = (string) config_dynamic('botmaker.salary_currency', config('integrations.botmaker_to_bitrix.currency', 'MXN'));
-        $this->botmakerSourceAliasesJson = $this->jsonForEditor(config_dynamic('botmaker.source_aliases', config('integrations.botmaker_to_bitrix.source_aliases', [])));
-        $this->botmakerBitrixFieldsJson = $this->jsonForEditor(config_dynamic('botmaker.bitrix_fields', config('integrations.botmaker_to_bitrix.bitrix_fields', [])));
-        $this->botmakerEnumMapsJson = $this->jsonForEditor(config_dynamic('botmaker.enum_maps', config('integrations.botmaker_to_bitrix.enum_maps', [])));
+        $baseUrl = rtrim((string) config('app.url', ''), '/');
+        $this->webhookUrl = $baseUrl !== '' ? $baseUrl.'/api/webhook/botmaker' : '/api/webhook/botmaker';
+        $this->appUrlIsHttp = str_starts_with(strtolower($baseUrl), 'http://');
+        $this->refreshStats();
     }
 
-    public function save(): void
+    public function toggleTokenVisibility(int $tokenId): void
     {
-        $this->reset('successMessage', 'errorMessage');
-
-        $validated = $this->validate([
-            'botmakerApiUrl' => ['required', 'url'],
-            'botmakerApiToken' => ['nullable', 'string', 'max:2000'],
-            'botmakerSalaryCurrency' => ['required', 'string', 'min:3', 'max:3'],
-            'botmakerSourceAliasesJson' => ['required', 'string'],
-            'botmakerBitrixFieldsJson' => ['required', 'string'],
-            'botmakerEnumMapsJson' => ['required', 'string'],
-        ], [], [
-            'botmakerApiUrl' => 'URL de la API',
-            'botmakerApiToken' => 'Token JWT',
-            'botmakerSalaryCurrency' => 'Moneda',
-            'botmakerSourceAliasesJson' => 'Alias de origen',
-            'botmakerBitrixFieldsJson' => 'Campos Bitrix',
-            'botmakerEnumMapsJson' => 'Catálogos',
-        ]);
-
-        try {
-            $sourceAliases = $this->decodeJsonOrFail((string) $validated['botmakerSourceAliasesJson'], 'Alias de origen');
-            $bitrixFields = $this->decodeJsonOrFail((string) $validated['botmakerBitrixFieldsJson'], 'Campos Bitrix');
-            $enumMaps = $this->decodeJsonOrFail((string) $validated['botmakerEnumMapsJson'], 'Catálogos');
-            $currency = strtoupper((string) $validated['botmakerSalaryCurrency']);
-            $token = trim((string) ($validated['botmakerApiToken'] ?? ''));
-
-            Setting::set('botmaker.api_url', (string) $validated['botmakerApiUrl']);
-            if ($token !== '') {
-                Setting::set('botmaker.api_token', $token);
-            }
-            Setting::set('botmaker.salary_currency', $currency);
-            Setting::set('botmaker.source_aliases', $sourceAliases, 'json');
-            Setting::set('botmaker.bitrix_fields', $bitrixFields, 'json');
-            Setting::set('botmaker.enum_maps', $enumMaps, 'json');
-
-            $this->botmakerSalaryCurrency = $currency;
-            $this->botmakerSourceAliasesJson = $this->jsonForEditor($sourceAliases);
-            $this->botmakerBitrixFieldsJson = $this->jsonForEditor($bitrixFields);
-            $this->botmakerEnumMapsJson = $this->jsonForEditor($enumMaps);
-            $this->successMessage = 'Configuración de Botmaker guardada.';
-        } catch (\Throwable $exception) {
-            $this->errorMessage = 'No se pudo guardar: '.$exception->getMessage();
+        if (isset($this->visibleTokens[$tokenId]) && $this->visibleTokens[$tokenId] === true) {
+            unset($this->visibleTokens[$tokenId]);
+        } else {
+            $this->visibleTokens[$tokenId] = true;
         }
     }
 
-    public function testConnection(): void
+    public function sendTestWebhook(): void
     {
         $this->testMessage = null;
         $this->testOk = false;
 
-        $url = rtrim($this->botmakerApiUrl !== '' ? $this->botmakerApiUrl : AuthorizedToken::resolvedBotmakerApiUrl(), '/');
-        $token = trim($this->botmakerApiToken !== '' ? $this->botmakerApiToken : AuthorizedToken::resolvedBotmakerApiToken());
-
-        if ($url === '' || $token === '') {
-            $this->testMessage = 'Indica la URL de la API y el token JWT, o guarda primero la configuración.';
+        if (! Schema::hasTable('authorized_tokens')) {
+            $this->testMessage = 'Error: no existe la tabla authorized_tokens.';
 
             return;
         }
 
-        $client = new Client(['timeout' => 10]);
+        $token = (string) (AuthorizedToken::query()
+            ->where('platform', 'botmaker')
+            ->where('direction', AuthorizedToken::DIRECTION_OUTGOING)
+            ->where('is_active', true)
+            ->where('token', '!=', '')
+            ->orderBy('id')
+            ->value('token') ?? '');
+
+        if ($token === '') {
+            $this->testMessage = 'Error: no hay tokens activos de Botmaker para firmar la prueba.';
+            return;
+        }
 
         try {
-            $response = $client->request('GET', rtrim($url, '/') . '/chats', [
-                'headers' => [
-                    'access-token' => $token,
-                    'Accept' => 'application/json',
+            // El payload de prueba no incluye contactId para evitar crear un lead real.
+            $payload = [
+                'firstName' => 'Prueba',
+                'lastName' => 'Webhook',
+                'messages' => [
+                    ['message' => 'Mensaje de prueba desde monitor'],
                 ],
-            ]);
+                'event' => 'test_webhook',
+                'is_test' => true,
+            ];
 
-            $status = $response->getStatusCode();
-            $this->testOk = $status >= 200 && $status < 300;
-            $this->testMessage = $this->testOk
-                ? "Conexión correcta (HTTP {$status})"
-                : "Error HTTP {$status}";
-        } catch (RequestException $exception) {
-            $status = $exception->getResponse()?->getStatusCode();
-            $reason = $exception->getResponse()?->getReasonPhrase() ?: $exception->getMessage();
-            $this->testMessage = $status !== null
-                ? "Error HTTP {$status} — {$reason}"
-                : "Error de red: {$reason}";
+            $response = Http::timeout(10)
+                ->acceptJson()
+                ->withHeaders(['auth-bm-token' => $token])
+                ->post($this->webhookUrl, $payload);
+
+            if (in_array($response->status(), [200, 202, 422], true)) {
+                $this->testOk = true;
+                $this->testMessage = 'Webhook recibido correctamente ✅';
+            } else {
+                $this->testMessage = 'Error: HTTP '.$response->status().' - '.$response->body();
+            }
         } catch (\Throwable $exception) {
             $this->testMessage = 'Error: '.$exception->getMessage();
         }
 
-        $this->lastTestAt = now()->timezone(config('app.timezone'))->format('Y-m-d H:i:s');
-        session([
-            'health_botmaker_ok' => $this->testOk,
-            'health_botmaker_at' => $this->lastTestAt,
-        ]);
+        $this->refreshStats();
     }
 
-    private function jsonForEditor(mixed $value): string
+    private function refreshStats(): void
     {
-        if (! is_array($value)) {
-            return '{}';
+        if (! Schema::hasTable('webhook_logs')) {
+            $this->lastWebhookAt = null;
+            $this->totalToday = 0;
+            $this->successToday = 0;
+            $this->failedToday = 0;
+
+            return;
         }
 
-        return (string) json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $baseQuery = WebhookLog::query()
+            ->where('direction', WebhookLog::DIRECTION_BOTMAKER_TO_BITRIX);
+
+        $lastWebhook = (clone $baseQuery)->latest('created_at')->first();
+        $this->lastWebhookAt = $lastWebhook?->created_at?->timezone(config('app.timezone'))->format('Y-m-d H:i:s');
+
+        $todayQuery = (clone $baseQuery)->whereDate('created_at', now()->toDateString());
+        $this->totalToday = (clone $todayQuery)->count();
+        $this->successToday = (clone $todayQuery)->where('status', WebhookLog::STATUS_SENT)->count();
+        $this->failedToday = (clone $todayQuery)->where('status', WebhookLog::STATUS_FAILED)->count();
     }
 
-    /**
-     * @return array<string, mixed>
-     */
-    private function decodeJsonOrFail(string $json, string $label): array
+    public function getBotmakerTokensProperty()
     {
-        $decoded = json_decode($json, true);
-
-        if (! is_array($decoded)) {
-            throw new \RuntimeException("{$label}: JSON no válido.");
+        if (! Schema::hasTable('authorized_tokens')) {
+            return collect();
         }
 
-        return $decoded;
+        return AuthorizedToken::query()
+            ->where('platform', 'botmaker')
+            ->where('direction', AuthorizedToken::DIRECTION_OUTGOING)
+            ->orderBy('is_active', 'desc')
+            ->orderBy('id')
+            ->get(['id', 'label', 'token', 'is_active', 'last_used_at']);
     }
 
     public function render(): View
     {
         return view('livewire.botmaker-settings')
-            ->layout('layouts.app', ['title' => 'Conexión Botmaker']);
+            ->layout('layouts.app', ['title' => 'Recepción de webhooks de Botmaker']);
     }
 }

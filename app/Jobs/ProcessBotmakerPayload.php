@@ -9,9 +9,7 @@ use App\Models\FailedWebhook;
 use App\Models\FieldMapping;
 use App\Models\WebhookLog;
 use App\Services\Bitrix24Service;
-use App\Services\BotmakerService;
 use App\Support\BitrixLeadDefaults;
-use App\Support\MapBotmakerCanonicalToBitrixLead;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\InteractsWithQueue;
@@ -42,7 +40,6 @@ class ProcessBotmakerPayload implements ShouldQueue
 
     public function handle(
         Bitrix24Service $bitrix24Service,
-        BotmakerService $botmakerService,
     ): void {
         $webhookLog = WebhookLog::query()->findOrFail($this->webhookLogId);
         $startedAt = microtime(true);
@@ -50,13 +47,12 @@ class ProcessBotmakerPayload implements ShouldQueue
         $this->markAsProcessing($webhookLog);
 
         $payload = $this->normalizePayload($webhookLog->payload_in);
-        $parsed = $botmakerService->parseIncomingPayload($payload);
 
         try {
-            $phone = (string) ($parsed['phone'] ?? '');
+            $phone = (string) ($payload['contactId'] ?? '');
             $contact = $phone !== '' ? $bitrix24Service->findContactByPhone($phone) : null;
 
-            $leadData = $this->mapLeadData($parsed);
+            $leadData = $this->mapLeadData($payload);
 
             if (is_array($contact) && isset($contact['LEAD_ID'])) {
                 $response = $bitrix24Service->updateLead((int) $contact['LEAD_ID'], $leadData);
@@ -113,20 +109,35 @@ class ProcessBotmakerPayload implements ShouldQueue
     }
 
     /**
-     * @param  array<string, mixed>  $parsed
+     * @param  array<string, mixed>  $payload
      * @return array<string, mixed>
      */
-    private function mapLeadData(array $parsed): array
+    private function mapLeadData(array $payload): array
     {
+        $firstName = (string) ($payload['firstName'] ?? '');
+        $lastName = (string) ($payload['lastName'] ?? '');
+        $phone = (string) ($payload['contactId'] ?? '');
+        $comments = (string) data_get($payload, 'messages.0.message', '');
+        $fullName = trim($firstName.' '.$lastName);
+
+        $base = [
+            'NAME' => $firstName,
+            'LAST_NAME' => $lastName,
+            'PHONE' => [[
+                'VALUE' => $phone,
+                'VALUE_TYPE' => 'MOBILE',
+            ]],
+            'COMMENTS' => $comments,
+            'TITLE' => trim('Consulta WhatsApp - '.$fullName),
+        ];
+
         $dynamicMappings = FieldMapping::getMappings('botmaker');
         if ($dynamicMappings->isNotEmpty()) {
-            $mapped = $this->applyDynamicMappings($parsed, $dynamicMappings->all());
-            if ($mapped !== []) {
-                return BitrixLeadDefaults::merge($mapped);
-            }
+            $mapped = $this->applyDynamicMappings($payload, $dynamicMappings->all());
+            $base = array_merge($base, $mapped);
         }
 
-        return BitrixLeadDefaults::merge(MapBotmakerCanonicalToBitrixLead::fromParsed($parsed));
+        return BitrixLeadDefaults::merge($base);
     }
 
     /**
