@@ -58,15 +58,24 @@ class BotmakerWebhookController extends Controller
     private function isSignatureValid(Request $request): bool
     {
         $incoming = (string) $request->header('auth-bm-token', '');
+
         if ($incoming === '') {
             return false;
         }
 
-        if (AuthorizedToken::hasActiveForPlatform('botmaker')) {
-            return AuthorizedToken::isValid('botmaker', $incoming);
+        $tokens = AuthorizedToken::query()
+            ->where('platform', 'botmaker')
+            ->where('is_active', true)
+            ->pluck('token')
+            ->all();
+
+        foreach ($tokens as $dbToken) {
+            if (hash_equals((string) $dbToken, $incoming)) {
+                return true;
+            }
         }
 
-        $fallback = (string) config_dynamic('botmaker.webhook_secret', config('services.botmaker.webhook_secret', ''));
+        $fallback = (string) config('services.botmaker.webhook_secret', '');
 
         return $fallback !== '' && hash_equals($fallback, $incoming);
     }

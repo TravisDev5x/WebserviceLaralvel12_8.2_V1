@@ -21,46 +21,59 @@ class VerifyWebhookSignature
         $path = $request->path();
 
         if (str_contains($path, 'webhook/botmaker')) {
-            return $this->validateBotmaker($request, $next);
-        }
+            $incoming = (string) $request->header('auth-bm-token', '');
 
-        return $next($request);
-    }
+            if ($incoming === '') {
+                Log::channel('webhook')->warning('Webhook sin token', [
+                    'source' => 'botmaker',
+                    'ip' => $request->ip(),
+                ]);
 
-    /**
-     * @param  Closure(Request): Response  $next
-     */
-    private function validateBotmaker(Request $request, Closure $next): Response
-    {
-        $incoming = (string) $request->header('auth-bm-token', '');
-        $fallback = (string) config_dynamic('botmaker.webhook_secret', config('services.botmaker.webhook_secret', ''));
+                return new JsonResponse(['error' => 'Invalid signature'], Response::HTTP_UNAUTHORIZED);
+            }
 
-        if ($this->tokenAccepted('botmaker', $incoming, $fallback)) {
+            $tokens = AuthorizedToken::query()
+                ->where('platform', 'botmaker')
+                ->where('is_active', true)
+                ->pluck('token')
+                ->all();
+
+            $matched = false;
+            foreach ($tokens as $dbToken) {
+                if (hash_equals((string) $dbToken, $incoming)) {
+                    $matched = true;
+                    break;
+                }
+            }
+
+            if (! $matched) {
+                $fallback = (string) config('services.botmaker.webhook_secret', '');
+                if ($fallback !== '' && hash_equals($fallback, $incoming)) {
+                    $matched = true;
+                }
+            }
+
+            if (! $matched) {
+                Log::channel('webhook')->info('DEBUG VALIDACION', [
+                    'incoming_token' => $incoming,
+                    'tokens_in_db' => $tokens,
+                    'matched' => $matched,
+                    'fallback' => config('services.botmaker.webhook_secret', ''),
+                ]);
+
+                Log::channel('webhook')->warning('Token no reconocido', [
+                    'source' => 'botmaker',
+                    'ip' => $request->ip(),
+                    'token_received' => substr($incoming, 0, 10).'...',
+                    'tokens_in_db' => count($tokens),
+                ]);
+
+                return new JsonResponse(['error' => 'Invalid signature'], Response::HTTP_UNAUTHORIZED);
+            }
+
             return $next($request);
         }
 
-        Log::channel('webhook')->warning('Firma de webhook inválida', [
-            'source' => 'botmaker',
-            'ip' => $request->ip(),
-            'user_agent' => (string) $request->userAgent(),
-            'header' => 'auth-bm-token',
-        ]);
-
-        return new JsonResponse([
-            'error' => 'Invalid signature',
-        ], Response::HTTP_UNAUTHORIZED);
-    }
-
-    private function tokenAccepted(string $platform, string $incoming, string $fallbackSecret): bool
-    {
-        if ($incoming === '') {
-            return false;
-        }
-
-        if (AuthorizedToken::hasActiveForPlatform($platform)) {
-            return AuthorizedToken::isValid($platform, $incoming);
-        }
-
-        return $fallbackSecret !== '' && hash_equals($fallbackSecret, $incoming);
+        return $next($request);
     }
 }
