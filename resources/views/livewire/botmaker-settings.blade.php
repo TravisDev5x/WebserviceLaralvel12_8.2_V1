@@ -30,19 +30,9 @@
                     <button type="button" class="btn" data-toggle-password="bm-api-token">Ver</button>
                     <button type="button" class="btn" wire:click="testConnection" wire:loading.attr="disabled" wire:target="testConnection">Probar conexión</button>
                 </div>
-                <small class="field-help muted">Token JWT para autenticarte con la API de Botmaker. Se obtiene en Botmaker &gt; Configuración &gt; API Keys &gt; Access Token. Ejemplo: <code>eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJFZHVhcmRvI...</code>. ⚠️ Si la prueba da 401, el token no tiene permisos de envío.</small>
+                <small class="field-help muted">Token JWT para autenticarte con la API de Botmaker. Se obtiene en Botmaker &gt; Configuración &gt; API Keys &gt; Access Token. Ejemplo: <code>eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJFZHVhcmRvI...</code>. ⚠️ Si la prueba da 401, el token no es válido para consulta.</small>
                 @error('botmakerApiToken') <small class="text-error">{{ $message }}</small> @enderror
             </div>
-        </div>
-    </section>
-
-    <section class="card card-pad" style="margin-bottom: 1rem;">
-        <h3 class="settings-section-title">Endpoint de envío de mensajes</h3>
-        <div>
-            <label for="bm-send-url">URL para enviar mensajes</label>
-            <input id="bm-send-url" class="input" type="url" wire:model.live="botmakerSendMessageUrl" placeholder="https://api.botmaker.com/v2.0/chats-actions/send-messages">
-            <small class="field-help muted">Endpoint donde el sistema envía mensajes por WhatsApp. Se obtiene de la documentación o soporte de Botmaker. Ejemplo: <code>https://api.botmaker.com/v2.0/chats-actions/send-messages</code>.</small>
-            @error('botmakerSendMessageUrl') <small class="text-error">{{ $message }}</small> @enderror
         </div>
     </section>
 

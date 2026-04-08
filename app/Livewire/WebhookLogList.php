@@ -56,12 +56,11 @@ class WebhookLogList extends Component
     {
         $webhooks = $this->baseQuery()->latest()->paginate(15);
 
-        return view('livewire.webhook-log-list-safe', [
+        return view('livewire.webhook-log-list', [
             'webhooks' => $webhooks,
             'directions' => [
                 'all' => 'Todas',
                 WebhookDirection::BotmakerToBitrix->value => WebhookDirection::BotmakerToBitrix->label(),
-                WebhookDirection::BitrixToBotmaker->value => WebhookDirection::BitrixToBotmaker->label(),
             ],
             'statuses' => [
                 'all' => 'Todos',

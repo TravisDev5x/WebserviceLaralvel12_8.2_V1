@@ -17,8 +17,7 @@
     <section class="card card-pad" style="margin-bottom: 1rem;">
         <div style="display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:.75rem;">
             <button type="button" class="btn btn-sm {{ $directionFilter === 'all' ? 'btn-primary' : '' }}" wire:click="$set('directionFilter','all')">Todas</button>
-            <button type="button" class="btn btn-sm {{ $directionFilter === 'botmaker_to_bitrix' ? 'btn-primary' : '' }}" wire:click="$set('directionFilter','botmaker_to_bitrix')">WhatsApp -> CRM</button>
-            <button type="button" class="btn btn-sm {{ $directionFilter === 'bitrix_to_botmaker' ? 'btn-primary' : '' }}" wire:click="$set('directionFilter','bitrix_to_botmaker')">CRM -> WhatsApp</button>
+            <button type="button" class="btn btn-sm {{ $directionFilter === 'botmaker_to_bitrix' ? 'btn-primary' : '' }}" wire:click="$set('directionFilter','botmaker_to_bitrix')">Botmaker -> Bitrix24</button>
         </div>
         <div style="display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:.75rem;">
             @foreach ($statuses as $value => $label)

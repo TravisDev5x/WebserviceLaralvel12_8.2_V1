@@ -89,7 +89,7 @@ class WebhookDashboard extends Component
     {
         return match ($direction) {
             WebhookDirection::BotmakerToBitrix->value => 'WhatsApp -> CRM',
-            WebhookDirection::BitrixToBotmaker->value => 'CRM -> WhatsApp',
+            WebhookDirection::BitrixToBotmaker->value => 'No soportado',
             default => $direction,
         };
     }

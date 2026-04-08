@@ -31,7 +31,7 @@ class ProcessBotmakerPayload implements ShouldQueue
 
     public int $timeout = 15;
 
-    public function __construct(public WebhookLog $webhookLog)
+    public function __construct(public int $webhookLogId)
     {
         $this->onQueue('webhooks');
         $this->tries = (int) config_dynamic('retry.max_attempts', 5);
@@ -44,11 +44,12 @@ class ProcessBotmakerPayload implements ShouldQueue
         Bitrix24Service $bitrix24Service,
         BotmakerService $botmakerService,
     ): void {
+        $webhookLog = WebhookLog::query()->findOrFail($this->webhookLogId);
         $startedAt = microtime(true);
 
-        $this->markAsProcessing();
+        $this->markAsProcessing($webhookLog);
 
-        $payload = $this->normalizePayload($this->webhookLog->payload_in);
+        $payload = $this->normalizePayload($webhookLog->payload_in);
         $parsed = $botmakerService->parseIncomingPayload($payload);
 
         try {
@@ -63,28 +64,33 @@ class ProcessBotmakerPayload implements ShouldQueue
                 $response = $bitrix24Service->createLead($leadData);
             }
 
-            $this->finalizeFromResponse($response, $startedAt);
+            $this->finalizeFromResponse($webhookLog, $response, $startedAt);
 
             if (! $response['success']) {
                 throw new \RuntimeException($response['body']);
             }
         } catch (Throwable $exception) {
-            $this->markAsFailed($exception, $startedAt);
+            $this->markAsFailed($webhookLog, $exception, $startedAt);
             throw $exception;
         }
     }
 
     public function failed(Throwable $exception): void
     {
-        $payload = $this->normalizePayload($this->webhookLog->payload_in);
+        $webhookLog = WebhookLog::query()->find($this->webhookLogId);
+        if (! $webhookLog instanceof WebhookLog) {
+            return;
+        }
+
+        $payload = $this->normalizePayload($webhookLog->payload_in);
         $targetUrl = AuthorizedToken::resolvedBitrix24WebhookUrl();
 
         FailedWebhook::createFromLog(
-            $this->webhookLog,
+            $webhookLog,
             $payload,
             $targetUrl,
             $exception->getMessage(),
-            (int) ($this->webhookLog->http_status ?? 0),
+            (int) ($webhookLog->http_status ?? 0),
         );
     }
 
@@ -144,72 +150,72 @@ class ProcessBotmakerPayload implements ShouldQueue
         return $result;
     }
 
-    private function markAsProcessing(): void
+    private function markAsProcessing(WebhookLog $webhookLog): void
     {
-        if (method_exists($this->webhookLog, 'markAsProcessing')) {
-            $this->webhookLog->markAsProcessing();
+        if (method_exists($webhookLog, 'markAsProcessing')) {
+            $webhookLog->markAsProcessing();
 
             return;
         }
 
-        $this->webhookLog->status = 'processing';
-        $this->webhookLog->save();
+        $webhookLog->status = 'processing';
+        $webhookLog->save();
     }
 
     /**
      * @param  array{success: bool, http_status: int, body: string}  $response
      */
-    private function finalizeFromResponse(array $response, float $startedAt): void
+    private function finalizeFromResponse(WebhookLog $webhookLog, array $response, float $startedAt): void
     {
         $processingMs = (int) round((microtime(true) - $startedAt) * 1000);
 
         if ($response['success']) {
-            if (method_exists($this->webhookLog, 'markAsSent')) {
-                $this->webhookLog->markAsSent(
+            if (method_exists($webhookLog, 'markAsSent')) {
+                $webhookLog->markAsSent(
                     httpStatus: $response['http_status'],
                     responseBody: $response['body'],
                     processingMs: $processingMs,
                 );
             }
 
-            $this->webhookLog->status = 'sent';
+            $webhookLog->status = 'sent';
         } else {
-            if (method_exists($this->webhookLog, 'markAsFailed')) {
-                $this->webhookLog->markAsFailed(
+            if (method_exists($webhookLog, 'markAsFailed')) {
+                $webhookLog->markAsFailed(
                     errorMessage: (string) $response['body'],
                     errorType: WebhookLog::ERROR_SERVER,
                     httpStatus: $response['http_status'],
                 );
             }
 
-            $this->webhookLog->status = 'failed';
-            $this->webhookLog->error_message = (string) $response['body'];
-            $this->webhookLog->error_type = 'remote_error';
+            $webhookLog->status = 'failed';
+            $webhookLog->error_message = (string) $response['body'];
+            $webhookLog->error_type = 'remote_error';
         }
 
-        $this->webhookLog->payload_out = $response;
-        $this->webhookLog->http_status = $response['http_status'];
-        $this->webhookLog->response_body = $response['body'];
-        $this->webhookLog->processing_ms = $processingMs;
-        $this->webhookLog->save();
+        $webhookLog->payload_out = $response;
+        $webhookLog->http_status = $response['http_status'];
+        $webhookLog->response_body = $response['body'];
+        $webhookLog->processing_ms = $processingMs;
+        $webhookLog->save();
     }
 
-    private function markAsFailed(Throwable $exception, float $startedAt): void
+    private function markAsFailed(WebhookLog $webhookLog, Throwable $exception, float $startedAt): void
     {
         $processingMs = (int) round((microtime(true) - $startedAt) * 1000);
 
-        if (method_exists($this->webhookLog, 'markAsFailed')) {
-            $this->webhookLog->markAsFailed(
+        if (method_exists($webhookLog, 'markAsFailed')) {
+            $webhookLog->markAsFailed(
                 errorMessage: $exception->getMessage(),
                 errorType: WebhookLog::ERROR_UNKNOWN,
-                httpStatus: (int) ($this->webhookLog->http_status ?? 0),
+                httpStatus: (int) ($webhookLog->http_status ?? 0),
             );
         }
 
-        $this->webhookLog->status = 'failed';
-        $this->webhookLog->error_message = $exception->getMessage();
-        $this->webhookLog->error_type = $exception::class;
-        $this->webhookLog->processing_ms = $processingMs;
-        $this->webhookLog->save();
+        $webhookLog->status = 'failed';
+        $webhookLog->error_message = $exception->getMessage();
+        $webhookLog->error_type = $exception::class;
+        $webhookLog->processing_ms = $processingMs;
+        $webhookLog->save();
     }
 }

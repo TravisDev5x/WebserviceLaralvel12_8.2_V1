@@ -18,11 +18,6 @@ class RoleSeeder extends Seeder
             'failed.manage',
             'settings.manage',
             'mappings.manage',
-            'notifications.manage',
-            'templates.manage',
-            'whatsapp.manage',
-            'filters.manage',
-            'alerts.manage',
             'users.manage',
         ];
 

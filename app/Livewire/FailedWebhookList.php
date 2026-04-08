@@ -44,7 +44,7 @@ class FailedWebhookList extends Component
         }
 
         if ($failedWebhook->direction === WebhookDirection::BotmakerToBitrix->value) {
-            ProcessBotmakerPayload::dispatch($failedWebhook->webhookLog)->onQueue('webhooks');
+            ProcessBotmakerPayload::dispatch($failedWebhook->webhookLog->id)->onQueue('webhooks');
         }
 
         $failedWebhook->update([
@@ -81,7 +81,7 @@ class FailedWebhookList extends Component
             }
 
             if ($failedWebhook->direction === WebhookDirection::BotmakerToBitrix->value) {
-                ProcessBotmakerPayload::dispatch($failedWebhook->webhookLog)->onQueue('webhooks');
+                ProcessBotmakerPayload::dispatch($failedWebhook->webhookLog->id)->onQueue('webhooks');
             }
 
             $failedWebhook->update([

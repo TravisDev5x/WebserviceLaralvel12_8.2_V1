@@ -43,7 +43,7 @@ class RetryFailedWebhooks implements ShouldQueue
             $direction = (string) $failedWebhook->direction;
 
             if ($direction === 'botmaker_to_bitrix') {
-                ProcessBotmakerPayload::dispatch($failedWebhook->webhookLog)->onQueue('webhooks');
+                ProcessBotmakerPayload::dispatch($failedWebhook->webhookLog->id)->onQueue('webhooks');
             } else {
                 Log::channel('webhook')->warning('Dirección de webhook desconocida al reintentar', [
                     'failed_webhook_id' => $failedWebhook->id,

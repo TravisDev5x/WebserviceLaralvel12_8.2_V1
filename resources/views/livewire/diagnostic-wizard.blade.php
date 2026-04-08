@@ -101,7 +101,7 @@
         </div>
     @endif
     @if($step === 'b-401') <div class="diag-card"><p>Consulta el manual de integración: el flujo activo es solo <code>/api/webhook/botmaker</code>.</p></div> @endif
-    @if($step === 'b-other') <div class="diag-card"><p>Confirma que no existan integraciones que intenten usar <code>/api/webhook/bitrix24</code>.</p></div> @endif
+    @if($step === 'b-other') <div class="diag-card"><p>Confirma que todas las integraciones externas estén apuntando únicamente a <code>/api/webhook/botmaker</code>.</p></div> @endif
     @if($step === 'b-none') <div class="diag-card"><p>Correcto. Mantén únicamente el webhook de Botmaker y la URL REST de Bitrix24 para crear leads.</p></div> @endif
     @if($step === 'b-green') <div class="diag-card"><p>No aplica. El flujo inverso fue deshabilitado en esta versión.</p></div> @endif
 

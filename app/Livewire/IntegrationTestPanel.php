@@ -6,7 +6,6 @@ namespace App\Livewire;
 
 use App\Models\AuthorizedToken;
 use App\Services\Bitrix24Service;
-use App\Services\BotmakerService;
 use App\Services\IntegrationProbeService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Http;
@@ -26,12 +25,6 @@ class IntegrationTestPanel extends Component
     /** @var array<string, mixed>|null */
     public ?array $summary = null;
 
-    public string $testPhone = '';
-
-    public string $testMessageText = '';
-
-    public ?string $sendTestResult = null;
-
     public string $bitrixLeadFirstName = 'Prueba';
 
     public string $bitrixLeadPhone = '+5255512345678';
@@ -39,9 +32,6 @@ class IntegrationTestPanel extends Component
     public string $bitrixLeadTitle = '';
 
     public ?string $createLeadResult = null;
-
-    /** @var list<array{at:string,ok:bool,text:string}> */
-    public array $botHistory = [];
 
     /** @var list<array{at:string,ok:bool,text:string}> */
     public array $bitrixHistory = [];
@@ -52,7 +42,6 @@ class IntegrationTestPanel extends Component
     public function mount(IntegrationProbeService $probe): void
     {
         $this->summary = $probe->webhookSummaryToday();
-        $this->botHistory = session()->get('integration_test_bot_history', []);
         $this->bitrixHistory = session()->get('integration_test_bitrix_history', []);
         $suffix = (string) now()->format('His');
         $this->bitrixLeadTitle = "Lead prueba panel {$suffix}";
@@ -107,23 +96,6 @@ class IntegrationTestPanel extends Component
             $this->summary = $probe->webhookSummaryToday();
         } catch (Throwable) {
         }
-    }
-
-    public function sendTestWhatsApp(BotmakerService $botmaker): void
-    {
-        $this->sendTestResult = null;
-        $this->validate([
-            'testPhone' => ['required', 'string', 'max:30'],
-            'testMessageText' => ['required', 'string', 'max:500'],
-        ], [], [
-            'testPhone' => 'Número destino',
-            'testMessageText' => 'Mensaje',
-        ]);
-
-        $response = $botmaker->sendMessage($this->testPhone, $this->testMessageText);
-        $ok = $response['success'];
-        $this->sendTestResult = ($ok ? 'Éxito' : 'Error')." — HTTP {$response['http_status']}: ".substr((string) $response['body'], 0, 400);
-        $this->pushBotHistory($ok, $this->sendTestResult);
     }
 
     public function createTestLead(Bitrix24Service $bitrix): void
@@ -184,13 +156,6 @@ class IntegrationTestPanel extends Component
         }
     }
 
-    public function simulateFlowBitrixToBotmaker(): void
-    {
-        $this->flowSteps = [];
-        $this->flowSteps[] = 'El flujo Bitrix24 -> Middleware fue deshabilitado en esta versión.';
-        $this->flowSteps[] = 'Flujo activo: Botmaker -> Middleware -> Bitrix24.';
-    }
-
     private function resolveBotmakerWebhookSecret(): string
     {
         if (Schema::hasTable('authorized_tokens')) {
@@ -201,27 +166,6 @@ class IntegrationTestPanel extends Component
         }
 
         return trim((string) config_dynamic('botmaker.webhook_secret', config('services.botmaker.webhook_secret', '')));
-    }
-
-    private function resolveBitrixApplicationToken(): string
-    {
-        if (Schema::hasTable('authorized_tokens')) {
-            $row = AuthorizedToken::query()->active()->platform('bitrix24')->outgoing()->where('token', '!=', '')->orderBy('id')->first(['token']);
-            if ($row !== null && trim((string) $row->token) !== '') {
-                return (string) $row->token;
-            }
-        }
-
-        return trim((string) config_dynamic('bitrix24.webhook_secret', config('services.bitrix24.webhook_secret', '')));
-    }
-
-    private function pushBotHistory(bool $ok, string $text): void
-    {
-        $list = session()->get('integration_test_bot_history', []);
-        $list[] = ['at' => now()->format('Y-m-d H:i:s'), 'ok' => $ok, 'text' => $text];
-        $list = array_slice($list, -5);
-        session()->put('integration_test_bot_history', $list);
-        $this->botHistory = $list;
     }
 
     private function pushBitrixHistory(bool $ok, string $text): void
@@ -235,15 +179,6 @@ class IntegrationTestPanel extends Component
 
     public function render(): View
     {
-        $botHistoryView = collect($this->botHistory)
-            ->reverse()
-            ->values()
-            ->map(function (array $item): array {
-                $item['text_short'] = Str::limit((string) ($item['text'] ?? ''), 80);
-                return $item;
-            })
-            ->all();
-
         $bitrixHistoryView = collect($this->bitrixHistory)
             ->reverse()
             ->values()
@@ -254,7 +189,6 @@ class IntegrationTestPanel extends Component
             ->all();
 
         return view('livewire.integration-test-panel', [
-            'botHistoryView' => $botHistoryView,
             'bitrixHistoryView' => $bitrixHistoryView,
         ])
             ->layout('layouts.app', [

@@ -730,11 +730,6 @@
                     @php($canFailed = user_can('failed.view'))
                     @php($canSettings = user_can('settings.manage'))
                     @php($canMappings = user_can('mappings.manage'))
-                    @php($canNotifications = user_can('notifications.manage'))
-                    @php($canTemplates = user_can('templates.manage'))
-                    @php($canWhatsapp = user_can('whatsapp.manage'))
-                    @php($canFilters = user_can('filters.manage'))
-                    @php($canAlerts = user_can('alerts.manage'))
                     @php($canUsers = user_can('users.manage'))
                     @php($isAdmin = auth()->check() && (string) (auth()->user()->role ?? '') === 'admin')
                     @php($isOps = in_array((string) (auth()->user()->role ?? ''), ['admin', 'operator'], true))
@@ -782,6 +777,7 @@
                                 </a>
                             </li>
                             <li><a class="sidebar-link" href="{{ route('monitor.tokens') }}" data-tooltip="Tokens y URLs" data-side="right" @if(request()->is('monitor/settings/tokens')) aria-current="page" @endif><i data-lucide="key"></i><span>Webhooks autorizados</span></a></li>
+                            @if($canMappings)<li><a class="sidebar-link" href="{{ url('/monitor/field-mappings') }}" data-side="right" @if(request()->is('monitor/field-mappings*')) aria-current="page" @endif><i data-lucide="git-compare-arrows"></i><span>Mapeo de campos</span></a></li>@endif
                             <li><a class="sidebar-link" href="{{ url('/monitor/settings/retry') }}" data-tooltip="Cola y reintentos" data-side="right" @if(request()->is('monitor/settings/retry')) aria-current="page" @endif><i data-lucide="timer"></i><span>Reintentos</span></a></li>
                             <li><a class="sidebar-link" href="{{ route('integration-tests.panel') }}" data-tooltip="Pruebas y simulación" data-side="right" @if(request()->is('monitor/settings/test') || request()->is('monitor/integration-probes*')) aria-current="page" @endif><i data-lucide="flask-conical"></i><span>Pruebas de integración</span></a></li>
                         </ul>
@@ -795,27 +791,12 @@
                     </details>
                     @endif
 
-                    @if($isOps && ($canMappings || $canNotifications || $canTemplates || $canFilters || $canWhatsapp))
-                    <details class="sidebar-group" @if(request()->is('monitor/mappings*') || request()->is('monitor/notifications*') || request()->is('monitor/templates*') || request()->is('monitor/event-filters*') || request()->is('monitor/whatsapp-numbers*')) open @endif>
-                        <summary class="sidebar-group-summary">Automatización</summary>
-                        <ul class="sidebar-nav">
-                            @if($canMappings)<li><a class="sidebar-link" href="{{ url('/monitor/mappings') }}" data-side="right" @if(request()->is('monitor/mappings*')) aria-current="page" @endif><i data-lucide="git-compare-arrows"></i><span>Mapeo de campos</span></a></li>@endif
-                            @if($canNotifications)<li><a class="sidebar-link" href="{{ url('/monitor/notifications') }}" data-side="right" @if(request()->is('monitor/notifications*')) aria-current="page" @endif><i data-lucide="bell-ring"></i><span>Reglas de notificación</span></a></li>@endif
-                            @if($canTemplates)<li><a class="sidebar-link" href="{{ url('/monitor/templates') }}" data-side="right" @if(request()->is('monitor/templates*')) aria-current="page" @endif><i data-lucide="message-square-text"></i><span>Plantillas</span></a></li>@endif
-                            @if($canFilters)<li><a class="sidebar-link" href="{{ url('/monitor/event-filters') }}" data-side="right" @if(request()->is('monitor/event-filters*')) aria-current="page" @endif><i data-lucide="filter"></i><span>Filtros de eventos</span></a></li>@endif
-                            @if($canWhatsapp)<li><a class="sidebar-link" href="{{ url('/monitor/whatsapp-numbers') }}" data-side="right" @if(request()->is('monitor/whatsapp-numbers*')) aria-current="page" @endif><i data-lucide="phone-call"></i><span>Números WhatsApp</span></a></li>@endif
-                        </ul>
-                    </details>
-                    @endif
-
-                    @if(($canAlerts && $isOps) || $canUsers)
-                    <details class="sidebar-group" @if(request()->is('monitor/alerts*') || request()->is('monitor/access-control*') || request()->is('monitor/users*')) open @endif>
+                    @if($canUsers)
+                    <details class="sidebar-group" @if(request()->is('monitor/access-control*') || request()->is('monitor/users*')) open @endif>
                         <summary class="sidebar-group-summary">Sistema</summary>
                         <ul class="sidebar-nav">
-                            @if($canAlerts && $isOps)<li><a class="sidebar-link" href="{{ url('/monitor/alerts') }}" data-side="right" @if(request()->is('monitor/alerts*')) aria-current="page" @endif><i data-lucide="mail-warning"></i><span>Alertas por correo</span></a></li>@endif
                             @if($canUsers)
                                 <li><a class="sidebar-link" href="{{ url('/monitor/access-control') }}" data-side="right" @if(request()->is('monitor/access-control*')) aria-current="page" @endif><i data-lucide="users-round"></i><span>Usuarios, roles y permisos</span></a></li>
-                                <li><a class="sidebar-link" href="{{ url('/monitor/users') }}" data-side="right" @if(request()->is('monitor/users*')) aria-current="page" @endif><i data-lucide="user-cog"></i><span>Usuarios (lista rápida)</span></a></li>
                             @endif
                         </ul>
                     </details>

@@ -72,21 +72,21 @@
         <main>
             <section class="im-card manual-section" id="sec-1" data-title="¿Qué es este sistema y cómo funciona?">
                 <h2>1) ¿Qué es este sistema y cómo funciona?</h2>
-                <p>Este sistema es un puente automático entre WhatsApp y el CRM.</p>
-                <p><strong>Flujo automático 1 — Un cliente escribe por WhatsApp:</strong><br>[Cliente] → [WhatsApp] → [Botmaker] → [Este sistema] → [Bitrix24 CRM]</p>
+                <p>Este sistema es un puente automático y unidireccional entre Botmaker y Bitrix24.</p>
+                <p><strong>Flujo único:</strong><br>[Cliente WhatsApp] → [Botmaker] → [WebService] → [Bitrix24 CRM]</p>
                 <p><strong>Resultado:</strong> aparece un lead nuevo en el CRM sin captura manual.</p>
                 <p><strong>Flujo operativo actual:</strong> Botmaker envía el webhook y este sistema crea el lead en Bitrix24.</p>
                 <p><strong>Resultado:</strong> la integración queda enfocada en captura de leads y trazabilidad.</p>
                 <p><strong>Ninguna persona interviene en la transferencia de datos.</strong> Todo es automático.</p>
                 <div class="im-flow">
                     <button class="im-box im-client" type="button" onclick="document.getElementById('sec-1').scrollIntoView({behavior:'smooth'})">Cliente</button>
-                    <div class="im-arrow">⇄</div>
+                    <div class="im-arrow">→</div>
                     <button class="im-box im-wa" type="button" onclick="document.getElementById('sec-1').scrollIntoView({behavior:'smooth'})">WhatsApp</button>
-                    <div class="im-arrow">⇄</div>
+                    <div class="im-arrow">→</div>
                     <button class="im-box im-bm" type="button" onclick="document.getElementById('sec-5').scrollIntoView({behavior:'smooth'})">Botmaker</button>
-                    <div class="im-arrow">⇄</div>
+                    <div class="im-arrow">→</div>
                     <button class="im-box im-sys" type="button" onclick="document.getElementById('sec-3').scrollIntoView({behavior:'smooth'})">Este sistema</button>
-                    <div class="im-arrow">⇄</div>
+                    <div class="im-arrow">→</div>
                     <button class="im-box im-bx" type="button" onclick="document.getElementById('sec-6').scrollIntoView({behavior:'smooth'})">Bitrix24</button>
                 </div>
                 <div class="im-print"><button class="btn btn-sm" type="button" onclick="printSection('sec-1')">Imprimir esta sección</button></div>
@@ -97,7 +97,7 @@
                 <div class="im-grid-3">
                     <article class="im-kpi">
                         <h3>Soy de Telecomunicaciones (Botmaker)</h3>
-                        <p>✅ Configurar/cambiar tokens de Botmaker<br>✅ Cambiar URL webhook<br>✅ Verificar conexión<br>✅ Diagnosticar por qué no llegan mensajes</p>
+                        <p>✅ Configurar/cambiar tokens de Botmaker<br>✅ Cambiar URL webhook<br>✅ Verificar conexión<br>✅ Diagnosticar por qué no llegan eventos</p>
                         <button class="btn btn-sm" type="button" onclick="document.getElementById('sec-5').scrollIntoView({behavior:'smooth'})">Ir a mi guía completa</button>
                     </article>
                     <article class="im-kpi">
@@ -117,9 +117,9 @@
             <section class="im-card manual-section" id="sec-3" data-title="Tablero — Cómo leerlo en 10 segundos">
                 <h2>3) Tablero — Cómo leerlo en 10 segundos</h2>
                 <div class="im-grid-3">
-                    <div class="im-kpi"><p><strong>Contadores</strong></p><p>Estos números muestran cuántos mensajes se procesaron hoy.</p></div>
+                    <div class="im-kpi"><p><strong>Contadores</strong></p><p>Estos números muestran cuántos webhooks se procesaron hoy.</p></div>
                     <div class="im-kpi"><p><strong>Semáforo</strong></p><p>🟢 Verde = todo bien, 🔴 Rojo = algo necesita atención.</p></div>
-                    <div class="im-kpi"><p><strong>Tabla</strong></p><p>Últimos mensajes procesados. Clic para ver detalle.</p></div>
+                    <div class="im-kpi"><p><strong>Tabla</strong></p><p>Últimos webhooks procesados. Clic para ver detalle.</p></div>
                 </div>
                 <h3>Checklist diaria</h3>
                 <p>□ Los contadores se mueven<br>□ El semáforo está en verde<br>□ No hay webhooks fallidos nuevos<br>□ El último webhook es de hace menos de una hora (si operación activa)</p>
@@ -137,16 +137,16 @@
             <section class="im-card manual-section" id="sec-5" data-title="Guía completa para Telecomunicaciones">
                 <h2>5) Guía completa para Telecomunicaciones</h2>
                 <h3>5.1 ¿Qué es Botmaker en este sistema?</h3>
-                <p>Botmaker conecta WhatsApp con este sistema: avisa mensajes entrantes y recibe instrucciones de envío.</p>
+                <p>Botmaker toma datos de WhatsApp y los envía a este sistema para crear leads en Bitrix24.</p>
                 <h3>5.2 Cómo configurar webhook de salida en Botmaker</h3>
-                <ol><li>Entrar al panel de Botmaker.</li><li>Ir a Integraciones/Webhooks.</li><li>URL: <code>https://[dominio]/api/webhook/botmaker</code>.</li><li>Usar token de seguridad.</li><li>Guardar.</li><li>En este sistema: Configuración > Webhooks autorizados > Botmaker > Tokens.</li><li>Registrar el mismo token.</li><li>Guardar.</li><li>Probar enviando mensaje al bot.</li></ol>
+                <ol><li>Entrar al panel de Botmaker.</li><li>Ir a Integraciones/Webhooks.</li><li>URL: <code>https://[dominio]/api/webhook/botmaker</code>.</li><li>Usar token de seguridad.</li><li>Guardar.</li><li>En este sistema: Configuración > Webhooks autorizados.</li><li>Registrar el mismo token.</li><li>Guardar.</li><li>Probar enviando un evento desde Botmaker.</li></ol>
                 <h3>5.3 Cómo actualizar token de API</h3>
                 <ol><li>Copiar Access Token nuevo.</li><li>Configuración > Conexión Botmaker.</li><li>Pegar JWT.</li><li>Guardar.</li><li>Probar conexión.</li></ol>
                 <h3>5.4 Cambiar token de seguridad del webhook</h3>
                 <ol><li>Copiar token nuevo en Botmaker.</li><li>Actualizar en Webhooks autorizados.</li><li>Desactivar token anterior.</li></ol>
                 <h3>5.5 Problemas frecuentes</h3>
                 <details><summary>Botmaker no envía datos al sistema</summary><p>Verifica URL HTTPS, token igual en ambos lados y webhook activo.</p></details>
-                <details><summary>Error 401 al enviar mensajes</summary><p>Token API sin permisos de envío. Revisar API Keys.</p></details>
+                <details><summary>Error 401 en el webhook</summary><p>Token de firma inválido. Debe coincidir con el valor configurado en Webhooks autorizados.</p></details>
                 <details><summary>El token dice auth-bm-token</summary><p>Es el encabezado usado por Botmaker; no hay que cambiarlo.</p></details>
                 <details><summary>¿Cada cuánto expira el token de API?</summary><p>El JWT expira. Si deja de enviar de repente, renovar y actualizar.</p></details>
                 <div class="im-print"><button class="btn btn-sm" type="button" onclick="printSection('sec-5')">Imprimir esta sección</button></div>
@@ -155,13 +155,11 @@
             <section class="im-card manual-section" id="sec-6" data-title="Guía completa para Operaciones (Bitrix24)">
                 <h2>6) Guía completa para Operaciones (Bitrix24)</h2>
                 <h3>6.1 ¿Qué es Bitrix24 en este sistema?</h3>
-                <p>Es el CRM donde se crean y actualizan leads desde los eventos de Botmaker.</p>
+                <p>Es el CRM donde se crean leads desde los eventos de Botmaker.</p>
                 <h3>6.2 Webhook entrante</h3>
                 <ol><li>Bitrix24 > Aplicaciones > Webhooks.</li><li>Crear/editar webhook entrante.</li><li>Permisos CRM completos.</li><li>Copiar URL.</li><li>Pegar en Configuración > Conexión Bitrix24.</li><li>Probar conexión.</li></ol>
                 <h3>6.3 Mapeo de campos</h3>
                 <p>Configura origen Botmaker → destino Bitrix24. Para personalizados usa ID <code>UF_CRM_...</code>.</p>
-                <h3>6.4 Reglas de notificación</h3>
-                <p>Esta versión está enfocada en creación de leads. Mantén las reglas de notificación desactivadas si no se usan.</p>
                 <h3>6.5 Problemas frecuentes</h3>
                 <details><summary>No se crean leads</summary><p>Revisar webhook entrante y estado de registros fallidos.</p></details>
                 <details><summary>Errores repetidos al crear lead</summary><p>Validar URL REST de Bitrix24, permisos del webhook y mapeo de campos.</p></details>
@@ -199,7 +197,7 @@ sudo systemctl restart mysql</pre>
                     <div class="im-kpi"><span class="im-tag">Token</span><p>Llave digital para validar identidad entre sistemas.</p></div>
                     <div class="im-kpi"><span class="im-tag">API</span><p>Dos engranes conectados: comunicación automática.</p></div>
                     <div class="im-kpi"><span class="im-tag">SSL/HTTPS</span><p>Candado digital. Sin esto Botmaker no conecta.</p></div>
-                    <div class="im-kpi"><span class="im-tag">Cola</span><p>Fila de procesamiento mensaje por mensaje.</p></div>
+                    <div class="im-kpi"><span class="im-tag">Cola</span><p>Fila de procesamiento webhook por webhook.</p></div>
                     <div class="im-kpi"><span class="im-tag">Flujo A</span><p>Cliente escribe → lead en CRM.</p></div>
                     <div class="im-kpi"><span class="im-tag">Flujo principal</span><p>Cliente escribe → lead en CRM.</p></div>
                 </div>

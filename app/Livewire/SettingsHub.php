@@ -4,13 +4,9 @@ declare(strict_types=1);
 
 namespace App\Livewire;
 
-use App\Models\AlertRule;
 use App\Models\AuthorizedToken;
 use App\Models\FieldMapping;
-use App\Models\MessageTemplate;
-use App\Models\NotificationRule;
 use App\Models\Setting;
-use App\Models\WhatsappNumber;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Schema;
@@ -40,10 +36,6 @@ class SettingsHub extends Component
             'bitrixConfigured' => $bitrixOk,
             'activeTokensCount' => $activeTokens,
             'fieldMappingsCount' => FieldMapping::query()->count(),
-            'notificationRulesActive' => NotificationRule::query()->where('is_active', true)->count(),
-            'templatesCount' => MessageTemplate::query()->count(),
-            'whatsappActive' => WhatsappNumber::query()->where('is_active', true)->count(),
-            'alertsActive' => AlertRule::query()->where('is_active', true)->count(),
             'botmakerUpdatedAt' => $this->humanUpdatedAt($settingsReady ? Setting::query()->where('group', 'botmaker')->max('updated_at') : null),
             'bitrixUpdatedAt' => $this->humanUpdatedAt($settingsReady ? Setting::query()->where('group', 'bitrix24')->max('updated_at') : null),
         ])->layout('layouts.app', [

@@ -18,8 +18,6 @@ class BotmakerSettings extends Component
 
     public string $botmakerApiToken = '';
 
-    public string $botmakerSendMessageUrl = '';
-
     public string $botmakerSalaryCurrency = 'MXN';
 
     public string $botmakerSourceAliasesJson = '';
@@ -48,7 +46,6 @@ class BotmakerSettings extends Component
             }
         }
         $this->botmakerApiToken = (string) config_dynamic('botmaker.api_token', config('services.botmaker.api_token', ''));
-        $this->botmakerSendMessageUrl = (string) config_dynamic('botmaker.send_message_url', '');
         $this->botmakerSalaryCurrency = (string) config_dynamic('botmaker.salary_currency', config('integrations.botmaker_to_bitrix.currency', 'MXN'));
         $this->botmakerSourceAliasesJson = $this->jsonForEditor(config_dynamic('botmaker.source_aliases', config('integrations.botmaker_to_bitrix.source_aliases', [])));
         $this->botmakerBitrixFieldsJson = $this->jsonForEditor(config_dynamic('botmaker.bitrix_fields', config('integrations.botmaker_to_bitrix.bitrix_fields', [])));
@@ -62,7 +59,6 @@ class BotmakerSettings extends Component
         $validated = $this->validate([
             'botmakerApiUrl' => ['required', 'url'],
             'botmakerApiToken' => ['nullable', 'string', 'max:2000'],
-            'botmakerSendMessageUrl' => ['nullable', 'string', 'max:500'],
             'botmakerSalaryCurrency' => ['required', 'string', 'min:3', 'max:3'],
             'botmakerSourceAliasesJson' => ['required', 'string'],
             'botmakerBitrixFieldsJson' => ['required', 'string'],
@@ -70,7 +66,6 @@ class BotmakerSettings extends Component
         ], [], [
             'botmakerApiUrl' => 'URL de la API',
             'botmakerApiToken' => 'Token JWT',
-            'botmakerSendMessageUrl' => 'URL de envío de mensajes',
             'botmakerSalaryCurrency' => 'Moneda',
             'botmakerSourceAliasesJson' => 'Alias de origen',
             'botmakerBitrixFieldsJson' => 'Campos Bitrix',
@@ -82,14 +77,12 @@ class BotmakerSettings extends Component
             $bitrixFields = $this->decodeJsonOrFail((string) $validated['botmakerBitrixFieldsJson'], 'Campos Bitrix');
             $enumMaps = $this->decodeJsonOrFail((string) $validated['botmakerEnumMapsJson'], 'Catálogos');
             $currency = strtoupper((string) $validated['botmakerSalaryCurrency']);
-            $sendUrl = trim((string) ($validated['botmakerSendMessageUrl'] ?? ''));
             $token = trim((string) ($validated['botmakerApiToken'] ?? ''));
 
             Setting::set('botmaker.api_url', (string) $validated['botmakerApiUrl']);
             if ($token !== '') {
                 Setting::set('botmaker.api_token', $token);
             }
-            Setting::set('botmaker.send_message_url', $sendUrl);
             Setting::set('botmaker.salary_currency', $currency);
             Setting::set('botmaker.source_aliases', $sourceAliases, 'json');
             Setting::set('botmaker.bitrix_fields', $bitrixFields, 'json');

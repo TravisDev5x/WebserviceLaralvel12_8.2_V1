@@ -2,7 +2,7 @@
     <div class="page-header">
         <div>
             <h2 class="page-title">Pruebas de integración</h2>
-            <p class="page-subtitle">Comprueba conectividad, envía mensajes de prueba y simula webhooks hacia el propio middleware.</p>
+            <p class="page-subtitle">Comprueba conectividad y simula webhooks del flujo Botmaker → Bitrix24.</p>
         </div>
         <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
             <button type="button" class="btn" wire:click="refreshSummary" wire:loading.attr="disabled">Actualizar resumen</button>
@@ -30,37 +30,6 @@
                 <button type="button" class="btn" wire:click="runConnectivity" wire:loading.attr="disabled" wire:target="runConnectivity">Probar conexión API</button>
             </div>
             <p class="muted" style="font-size:.85rem; margin:0 0 .75rem;">Usa la misma prueba global de conectividad (ver bloque inferior).</p>
-
-            <h4 style="margin:.75rem 0 .35rem; font-size:.95rem;">Enviar mensaje de prueba</h4>
-            <div class="grid gap-2">
-                <div>
-                    <label>Número destino</label>
-                    <input class="input" type="tel" wire:model.live="testPhone" placeholder="5215591108797">
-                    <small class="muted">Número de prueba con código país sin símbolos. Ejemplo: <code>5215591108797</code>.</small>
-                    @error('testPhone') <small style="color:#dc2626;">{{ $message }}</small> @enderror
-                </div>
-                <div>
-                    <label>Mensaje (máx. 500)</label>
-                    <textarea class="textarea" rows="3" maxlength="500" wire:model.live="testMessageText" placeholder="Hola Juan, este es un mensaje de prueba del sistema."></textarea>
-                    <small class="muted">Mensaje real para validar envío Botmaker. Ejemplo: "Hola Juan, prueba de integración".</small>
-                    @error('testMessageText') <small style="color:#dc2626;">{{ $message }}</small> @enderror
-                </div>
-                <button type="button" class="btn btn-primary" wire:click="sendTestWhatsApp" wire:loading.attr="disabled">Enviar</button>
-            </div>
-            @if($sendTestResult)
-                <p style="margin:.5rem 0 0; font-size:.9rem;">{{ $sendTestResult }}</p>
-            @endif
-
-            <h4 style="margin:1rem 0 .35rem; font-size:.95rem;">Últimas pruebas</h4>
-            <ul style="margin:0; padding-left:1.1rem; font-size:.85rem;">
-                @if(count($botHistoryView) > 0)
-                @foreach($botHistoryView as $h)
-                    <li style="margin-bottom:.25rem;"><span class="muted">{{ $h['at'] }}</span> — @if($h['ok'])<span style="color:#166534;">OK</span>@else<span style="color:#b91c1c;">Error</span>@endif — {{ $h['text_short'] }}</li>
-                @endforeach
-                @else
-                    <li class="muted">Sin historial en esta sesión.</li>
-                @endif
-            </ul>
         </section>
 
         <section class="card card-pad">
@@ -109,7 +78,7 @@
     </div>
 
     <section class="card card-pad" style="margin-top:1rem; border-left:4px solid #ca8a04;">
-        <p style="margin:0 0 .75rem;"><strong>Importante:</strong> crear leads o enviar mensajes reales puede afectar tu CRM o usuarios. Úsalo en entornos de prueba.</p>
+        <p style="margin:0 0 .75rem;"><strong>Importante:</strong> crear leads de prueba puede afectar tu CRM. Úsalo en entornos de prueba.</p>
         <div style="display:flex; flex-wrap:wrap; gap:.5rem;">
             <button type="button" class="btn" wire:click="runBitrixSampleLead" wire:loading.attr="disabled" wire:target="runBitrixSampleLead">Crear lead demo (mapeo completo)</button>
             <button type="button" class="btn" wire:click="runConnectivity" wire:loading.attr="disabled" wire:target="runConnectivity">Probar todo (Botmaker, Bitrix, cola)</button>
@@ -149,7 +118,6 @@
         <p class="muted" style="font-size:.85rem; margin:0 0 .75rem;">Las peticiones salen del servidor hacia <code>/api/webhook/…</code> usando el mismo secreto configurado.</p>
         <div style="display:flex; flex-wrap:wrap; gap:.5rem;">
             <button type="button" class="btn" wire:click="simulateFlowBotmakerToBitrix" wire:loading.attr="disabled">Simular Flujo A (Botmaker → Bitrix24)</button>
-            <button type="button" class="btn" wire:click="simulateFlowBitrixToBotmaker" wire:loading.attr="disabled">Flujo B deshabilitado (solo Botmaker → Bitrix24)</button>
         </div>
         @if(count($flowSteps) > 0)
             <ol style="margin:.75rem 0 0; padding-left:1.2rem; font-size:.9rem;">

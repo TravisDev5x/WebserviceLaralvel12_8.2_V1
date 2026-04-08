@@ -37,15 +37,13 @@
     </ul>
     <p>La aplicación fusiona datos de <code>messages</code>, <code>clientPayload</code>, <code>context</code>, <code>attributes</code> y <code>variables</code> para obtener nombre, apellidos, fechas, etc. Conviene que el flujo del bot rellene esos datos de forma coherente con tus <strong>mapeos</strong>.</p>
 
-    <h3>3.4 API de salida (opcional)</h3>
+    <h3>3.4 API de Botmaker (consulta/configuración)</h3>
     <p>Debes disponer de:</p>
     <ul>
         <li><code>BOTMAKER_API_URL</code>: por defecto <code>https://go.botmaker.com/api/v1.0</code></li>
-        <li><code>BOTMAKER_API_TOKEN</code>: token Bearer válido con permiso para enviar mensajes.</li>
+        <li><code>BOTMAKER_API_TOKEN</code>: token Bearer válido para pruebas de conectividad.</li>
     </ul>
-    <p>La aplicación puede llamar al endpoint (POST):</p>
-    <p><code>{BOTMAKER_API_URL}/chats-actions/send-messages</code></p>
-    <p>con cuerpo JSON que incluye <code>chatPlatform: whatsapp</code>, <code>whatsappNumber</code> normalizado y el texto del mensaje. Si en el panel defines un <strong>número/canal por defecto</strong> (WhatsApp), se envía también <code>chatChannelId</code> cuando corresponde.</p>
+    <p>La aplicación utiliza estas credenciales para verificar conectividad técnica con Botmaker desde el panel.</p>
 
     <h3>3.5 Correo electrónico (E-mail) hacia Bitrix</h3>
     <p>El flujo Botmaker→Bitrix puede enviar el <strong>EMAIL</strong> estándar del lead en Bitrix (mismo formato multivalor que <code>PHONE</code>: <code>VALUE</code> + <code>VALUE_TYPE: WORK</code>). Los alias de origen incluyen <code>email</code>, <code>correo</code>, <code>mail</code>, etc. (configurable en <code>config/integrations.php</code> o JSON en <code>.env</code>). El valor debe ser un correo válido; si no lo es, el campo no se envía.</p>
@@ -62,7 +60,7 @@
             <tbody>
                 <tr><td><code>APP_URL</code></td><td>URL base pública del middleware (webhooks y enlaces).</td></tr>
                 <tr><td><code>BOTMAKER_API_URL</code></td><td>Base de la API REST de Botmaker.</td></tr>
-                <tr><td><code>BOTMAKER_API_TOKEN</code></td><td>Token para enviar mensajes y llamadas salientes.</td></tr>
+                <tr><td><code>BOTMAKER_API_TOKEN</code></td><td>Token de conectividad para API de Botmaker.</td></tr>
                 <tr><td><code>BOTMAKER_WEBHOOK_SECRET</code></td><td>Debe coincidir con <code>X-Botmaker-Signature</code>.</td></tr>
                 <tr><td><code>BITRIX24_WEBHOOK_URL</code></td><td>URL REST de entrada (crm.lead.*, crm.contact.*).</td></tr>
                 <tr><td><code>BITRIX24_WEBHOOK_SECRET</code></td><td>Debe coincidir con <code>auth.application_token</code>.</td></tr>
@@ -99,10 +97,6 @@
         <li><strong>Webhooks fallidos</strong> — reintentos y diagnóstico.</li>
         <li><strong>Configuración</strong> — credenciales y parámetros persistidos.</li>
         <li><strong>Mapeo de campos</strong> — rutas JSON → campos destino por plataforma.</li>
-        <li><strong>Reglas de notificación</strong> — disponibles en panel (opcional, no forman parte del flujo principal actual).</li>
-        <li><strong>Plantillas</strong> — textos reutilizables con variables.</li>
-        <li><strong>Números WhatsApp</strong> — canal por defecto para envíos.</li>
-        <li><strong>Filtros de eventos</strong> — ignorar o aceptar eventos según reglas.</li>
         <li><strong>Pruebas de integración</strong> — (permiso <code>settings.manage</code>, misma categoría que Configuración) permite ejecutar desde el navegador: creación de un <strong>lead de prueba completo</strong> en Bitrix24 y comprobación de conectividad (API Botmaker, API Bitrix vía <code>crm.lead.list</code>, y revisión de registros de webhook atorados en cola). Muestra resumen de webhooks del día. Ruta: <code>/monitor/integration-tests</code>.</li>
     </ul>
     <p>En la pantalla de <strong>inicio de sesión</strong> hay un enlace al manual público <code>/manual</code>.</p>

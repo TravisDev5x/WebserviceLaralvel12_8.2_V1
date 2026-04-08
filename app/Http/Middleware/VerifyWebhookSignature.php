@@ -24,10 +24,6 @@ class VerifyWebhookSignature
             return $this->validateBotmaker($request, $next);
         }
 
-        if (str_contains($path, 'webhook/bitrix24')) {
-            return $this->validateBitrix24($request, $next);
-        }
-
         return $next($request);
     }
 
@@ -48,30 +44,6 @@ class VerifyWebhookSignature
             'ip' => $request->ip(),
             'user_agent' => (string) $request->userAgent(),
             'header' => 'X-Botmaker-Signature',
-        ]);
-
-        return new JsonResponse([
-            'error' => 'Invalid signature',
-        ], Response::HTTP_UNAUTHORIZED);
-    }
-
-    /**
-     * @param  Closure(Request): Response  $next
-     */
-    private function validateBitrix24(Request $request, Closure $next): Response
-    {
-        $incoming = (string) $request->input('auth.application_token', '');
-        $fallback = (string) config_dynamic('bitrix24.webhook_secret', config('services.bitrix24.webhook_secret', ''));
-
-        if ($this->tokenAccepted('bitrix24', $incoming, $fallback)) {
-            return $next($request);
-        }
-
-        Log::channel('webhook')->warning('Firma de webhook inválida', [
-            'source' => 'bitrix24',
-            'ip' => $request->ip(),
-            'user_agent' => (string) $request->userAgent(),
-            'token_source' => 'auth.application_token',
         ]);
 
         return new JsonResponse([
