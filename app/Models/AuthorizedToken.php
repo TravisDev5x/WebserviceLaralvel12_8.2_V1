@@ -117,7 +117,9 @@ class AuthorizedToken extends Model
             return false;
         }
 
-        $rows = self::cachedOutgoingRows($platform);
+        $rows = Cache::remember('authorized_tokens_'.$platform, 60, function () use ($platform) {
+            return self::query()->where('platform', $platform)->where('is_active', true)->get();
+        });
         foreach ($rows as $row) {
             if (hash_equals((string) $row->token, $incomingToken)) {
                 self::query()->whereKey($row->id)->update(['last_used_at' => now()]);
