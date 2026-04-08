@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
@@ -48,10 +47,14 @@ class AuthorizedToken extends Model
     protected static function booted(): void
     {
         static::saved(function (self $model): void {
+            Cache::forget('authorized_tokens_botmaker');
+            Cache::forget('authorized_tokens_bitrix24');
             self::forgetCache($model->platform);
         });
 
         static::deleted(function (self $model): void {
+            Cache::forget('authorized_tokens_botmaker');
+            Cache::forget('authorized_tokens_bitrix24');
             self::forgetCache($model->platform);
         });
     }
@@ -98,6 +101,7 @@ class AuthorizedToken extends Model
         foreach ($platforms as $p) {
             Cache::forget(self::cacheKeyOutgoing($p));
             Cache::forget(self::cacheKeyIncomingUrl($p));
+            Cache::forget('authorized_tokens_'.$p);
         }
         Cache::forget(self::cacheKeyBotmakerApiToken());
     }
@@ -108,7 +112,10 @@ class AuthorizedToken extends Model
             return false;
         }
 
-        return self::cachedOutgoingRows($platform)->isNotEmpty();
+        return self::query()
+            ->where('platform', $platform)
+            ->where('is_active', true)
+            ->exists();
     }
 
     public static function isValid(string $platform, string $incomingToken): bool
@@ -238,30 +245,6 @@ class AuthorizedToken extends Model
         }
 
         return trim((string) config('services.botmaker.api_token', ''));
-    }
-
-    /**
-     * @return Collection<int, AuthorizedToken>
-     */
-    private static function cachedOutgoingRows(string $platform): Collection
-    {
-        if (! Schema::hasTable('authorized_tokens')) {
-            /** @var Collection<int, AuthorizedToken> $empty */
-            $empty = new Collection;
-
-            return $empty;
-        }
-
-        /** @var Collection<int, AuthorizedToken> */
-        return Cache::remember(self::cacheKeyOutgoing($platform), 60, function () use ($platform): Collection {
-            return self::query()
-                ->active()
-                ->platform($platform)
-                ->outgoing()
-                ->where('token', '!=', '')
-                ->orderBy('id')
-                ->get(['id', 'token']);
-        });
     }
 
     private static function cacheKeyOutgoing(string $platform): string
