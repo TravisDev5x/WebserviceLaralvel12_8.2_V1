@@ -47,7 +47,7 @@
                 <tbody>
                     @if ($latestWebhooks->count() > 0)
                     @foreach ($latestWebhooks as $log)
-                        <tr class="clickable-row" title="Clic para ver detalle" style="cursor: pointer;" onclick="window.location='{{ url('/monitor/logs/'.$log['id']) }}'">
+                        <tr class="clickable-row" title="Clic para ver detalle" style="cursor: pointer;" data-href="{{ url('/monitor/logs/'.$log['id']) }}" onclick="window.location=this.dataset.href">
                             <td>
                                 <span style="font-weight:700; color: {{ $log['direction_icon'] === '->' ? '#16a34a' : '#f97316' }};">{{ $log['direction_icon'] }}</span>
                                 {{ $log['direction'] }}

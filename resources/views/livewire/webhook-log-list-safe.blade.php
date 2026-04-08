@@ -44,7 +44,7 @@
                 <tbody>
                 @if ($webhooks->count() > 0)
                 @foreach ($webhooks as $webhook)
-                    <tr class="clickable-row" style="cursor:pointer;" onclick="window.location='{{ url('/monitor/logs/'.$webhook->id) }}'">
+                    <tr class="clickable-row" style="cursor:pointer;" data-href="{{ url('/monitor/logs/'.$webhook->id) }}" onclick="window.location=this.dataset.href">
                         <td>{{ $webhook->id }}</td>
                         <td>{{ $webhook->direction }}</td>
                         <td>{{ $webhook->source_event }}</td>

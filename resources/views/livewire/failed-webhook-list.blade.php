@@ -43,7 +43,7 @@
                         <td>{{ $item->created_at }}</td>
                         <td>
                             @if($canManageFailed)
-                                <button type="button" class="btn btn-sm" wire:click="forceRetry({{ $item->id }})" @if(!$item->can_retry) disabled @endif>Reintentar</button>
+                                <button type="button" class="btn btn-sm" wire:click="forceRetry({{ $item->id }})" @disabled(! $item->can_retry)>Reintentar</button>
                                 <button type="button" class="btn btn-sm" wire:click="markResolved({{ $item->id }})">Resolver</button>
                             @endif
                         </td>
