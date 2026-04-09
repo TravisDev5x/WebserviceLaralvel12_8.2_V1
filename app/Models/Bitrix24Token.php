@@ -44,7 +44,7 @@ class Bitrix24Token extends Model
      */
     public static function getActive(): ?self
     {
-        $domain = config('services.bitrix24.domain');
+        $domain = config_dynamic('bitrix24.domain', config('services.bitrix24.domain'));
 
         if ($domain) {
             return self::query()

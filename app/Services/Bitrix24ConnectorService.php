@@ -120,7 +120,7 @@ class Bitrix24ConnectorService
      */
     public function sendSingleMessage(string $phoneNumber, string $clientName, string $messageText): array
     {
-        $lineId = (string) config('services.bitrix24.line_id', '1');
+        $lineId = (string) config_dynamic('bitrix24.line_id', config('services.bitrix24.line_id', '1'));
 
         $messages = [
             [
@@ -165,7 +165,7 @@ class Bitrix24ConnectorService
     private function callRest(string $method, array $params, string $operation): array
     {
         $accessToken = $this->authService->getValidToken();
-        $domain = (string) config('services.bitrix24.domain', '');
+        $domain = (string) config_dynamic('bitrix24.domain', config('services.bitrix24.domain', ''));
 
         if ($domain === '') {
             throw new RuntimeException('BITRIX24_DOMAIN is not configured.');
@@ -225,6 +225,6 @@ class Bitrix24ConnectorService
 
     private function connectorId(): string
     {
-        return (string) config('services.bitrix24.connector_id', 'botmaker_whatsapp');
+        return (string) config_dynamic('bitrix24.connector_id', config('services.bitrix24.connector_id', 'botmaker_whatsapp'));
     }
 }

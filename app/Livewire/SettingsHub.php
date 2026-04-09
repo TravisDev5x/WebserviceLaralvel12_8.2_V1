@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire;
 
 use App\Models\AuthorizedToken;
+use App\Models\Bitrix24Token;
 use App\Models\FieldMapping;
 use App\Models\Setting;
 use Illuminate\Contracts\View\View;
@@ -20,8 +21,8 @@ class SettingsHub extends Component
         $apiToken = AuthorizedToken::resolvedBotmakerApiToken();
         $botmakerOk = $apiUrl !== '' && $apiToken !== '';
 
-        $bitrixUrl = AuthorizedToken::resolvedBitrix24WebhookUrl();
-        $bitrixOk = trim($bitrixUrl) !== '' && ! str_contains($bitrixUrl, 'dominio.bitrix24');
+        $token = Bitrix24Token::getActive();
+        $bitrixOk = $token instanceof Bitrix24Token && ! $token->isExpired();
 
         $activeTokens = 0;
         if (Schema::hasTable('authorized_tokens')) {
@@ -34,6 +35,7 @@ class SettingsHub extends Component
             'isAdmin' => auth()->check() && (string) (auth()->user()->role ?? '') === 'admin',
             'botmakerConfigured' => $botmakerOk,
             'bitrixConfigured' => $bitrixOk,
+            'bitrixTokenDomain' => $token?->domain,
             'activeTokensCount' => $activeTokens,
             'fieldMappingsCount' => FieldMapping::query()->count(),
             'botmakerUpdatedAt' => $this->humanUpdatedAt($settingsReady ? Setting::query()->where('group', 'botmaker')->max('updated_at') : null),

@@ -4,7 +4,12 @@
             <h2 class="page-title">Mapeo de campos dinámico</h2>
             <p class="page-subtitle">Configura origen y destino sin tocar código.</p>
         </div>
+        <a class="btn" href="{{ url('/monitor/settings') }}">Volver al centro</a>
     </div>
+
+    <section class="card card-pad" style="margin-bottom: 1rem; border-left: 4px solid #eab308; background: #fefce8;">
+        <p style="margin:0; font-size:.92rem;"><strong style="color:#92400e;">Legacy v1</strong> — Este módulo era parte de la arquitectura v1 (<code>crm.lead.add</code>). En v2, Bitrix24 crea leads automáticamente desde el Canal Abierto. Los mapeos aquí definidos no se ejecutan en el flujo v2.</p>
+    </section>
 
     <section class="card card-pad" style="margin-bottom: 1rem;">
         <div class="grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">

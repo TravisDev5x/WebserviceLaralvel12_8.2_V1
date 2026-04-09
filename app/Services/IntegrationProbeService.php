@@ -120,37 +120,27 @@ final class IntegrationProbeService
     }
 
     /**
+     * v2: Probes Bitrix24 via OAuth token validation + imconnector.status.
+     *
      * @return array{ok: bool, message: string}
      */
     public function probeBitrixApi(): array
     {
-        $baseUrl = AuthorizedToken::resolvedBitrix24WebhookUrl();
-        if ($baseUrl === '') {
-            return ['ok' => false, 'message' => 'ERROR (config incompleta)'];
+        try {
+            $authService = app(Bitrix24AuthService::class);
+            $authService->getValidToken();
+        } catch (Throwable $e) {
+            return ['ok' => false, 'message' => 'ERROR OAuth: ' . $e->getMessage()];
         }
 
-        $client = new Client(['timeout' => 10]);
-        $url = "{$baseUrl}/crm.lead.list?start=0&limit=1";
-
         try {
-            $response = $client->request('GET', $url, [
-                'headers' => ['Accept' => 'application/json'],
-            ]);
-            $status = $response->getStatusCode();
+            $connector = app(Bitrix24ConnectorService::class);
+            $lineId = (int) config_dynamic('bitrix24.line_id', config('services.bitrix24.line_id', '1'));
+            $connector->checkStatus($lineId);
 
-            return [
-                'ok' => $status >= 200 && $status < 300,
-                'message' => "OK (HTTP {$status})",
-            ];
-        } catch (RequestException $exception) {
-            $status = $exception->getResponse()?->getStatusCode();
-
-            return [
-                'ok' => false,
-                'message' => $status !== null ? "ERROR (HTTP {$status})" : 'ERROR (sin respuesta)',
-            ];
-        } catch (Throwable $exception) {
-            return ['ok' => false, 'message' => 'ERROR ('.$exception->getMessage().')'];
+            return ['ok' => true, 'message' => 'OK (OAuth + imconnector.status)'];
+        } catch (Throwable $e) {
+            return ['ok' => false, 'message' => 'ERROR imconnector: ' . $e->getMessage()];
         }
     }
 

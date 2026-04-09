@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace App\Livewire;
 
 use App\Models\AuthorizedToken;
-use App\Services\Bitrix24Service;
+use App\Services\Bitrix24ConnectorService;
+use App\Services\BotmakerService;
 use App\Services\IntegrationProbeService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Http;
@@ -17,24 +18,33 @@ use Throwable;
 class IntegrationTestPanel extends Component
 {
     /** @var array<string, mixed>|null */
-    public ?array $bitrixResult = null;
-
-    /** @var array<string, mixed>|null */
     public ?array $connectivityResult = null;
 
     /** @var array<string, mixed>|null */
     public ?array $summary = null;
 
-    public string $bitrixLeadFirstName = 'Prueba';
+    // v2 Channel message test
+    public string $testPhone = '+5255512345678';
 
-    public string $bitrixLeadPhone = '+5255512345678';
+    public string $testName = 'Prueba Panel';
 
-    public string $bitrixLeadTitle = '';
+    public string $testMessageText = '';
 
-    public ?string $createLeadResult = null;
+    public ?string $channelResult = null;
+
+    public bool $channelOk = false;
+
+    // v2 Botmaker send test
+    public string $botmakerTestPhone = '+5255512345678';
+
+    public string $botmakerTestText = '';
+
+    public ?string $botmakerSendResult = null;
+
+    public bool $botmakerSendOk = false;
 
     /** @var list<array{at:string,ok:bool,text:string}> */
-    public array $bitrixHistory = [];
+    public array $testHistory = [];
 
     /** @var list<string> */
     public array $flowSteps = [];
@@ -42,38 +52,15 @@ class IntegrationTestPanel extends Component
     public function mount(IntegrationProbeService $probe): void
     {
         $this->summary = $probe->webhookSummaryToday();
-        $this->bitrixHistory = session()->get('integration_test_bitrix_history', []);
+        $this->testHistory = session()->get('integration_test_history', []);
         $suffix = (string) now()->format('His');
-        $this->bitrixLeadTitle = "Lead prueba panel {$suffix}";
+        $this->testMessageText = "Mensaje de prueba desde panel ({$suffix})";
+        $this->botmakerTestText = "Mensaje de prueba panel → Botmaker ({$suffix})";
     }
 
     public function refreshSummary(IntegrationProbeService $probe): void
     {
         $this->summary = $probe->webhookSummaryToday();
-    }
-
-    public function runBitrixSampleLead(IntegrationProbeService $probe): void
-    {
-        try {
-            $this->bitrixResult = $probe->runBitrixSampleLead('panel_web');
-            $this->pushBitrixHistory($this->bitrixResult['success'] ?? false, 'Lead de prueba: '.($this->bitrixResult['body'] ?? ''));
-        } catch (Throwable $e) {
-            $this->bitrixResult = [
-                'success' => false,
-                'http_status' => 0,
-                'lead_id' => null,
-                'body' => $e->getMessage(),
-                'fields' => [],
-                'base_url' => '',
-                'config_warning' => 'Excepción al llamar a Bitrix24.',
-            ];
-            $this->pushBitrixHistory(false, $e->getMessage());
-        }
-
-        try {
-            $this->summary = $probe->webhookSummaryToday();
-        } catch (Throwable) {
-        }
     }
 
     public function runConnectivity(IntegrationProbeService $probe): void
@@ -98,34 +85,66 @@ class IntegrationTestPanel extends Component
         }
     }
 
-    public function createTestLead(Bitrix24Service $bitrix): void
+    /**
+     * v2: Sends a test message to the Bitrix24 Open Channel via imconnector.send.messages.
+     */
+    public function sendTestChannelMessage(): void
     {
-        $this->createLeadResult = null;
+        $this->channelResult = null;
+        $this->channelOk = false;
+
         $this->validate([
-            'bitrixLeadFirstName' => ['required', 'string', 'max:120'],
-            'bitrixLeadPhone' => ['required', 'string', 'max:40'],
-            'bitrixLeadTitle' => ['required', 'string', 'max:200'],
+            'testPhone' => ['required', 'string', 'max:40'],
+            'testName' => ['required', 'string', 'max:120'],
+            'testMessageText' => ['required', 'string', 'max:500'],
         ], [], [
-            'bitrixLeadFirstName' => 'Nombre',
-            'bitrixLeadPhone' => 'Teléfono',
-            'bitrixLeadTitle' => 'Título',
+            'testPhone' => 'Teléfono',
+            'testName' => 'Nombre',
+            'testMessageText' => 'Mensaje',
         ]);
 
-        $fields = [
-            'TITLE' => $this->bitrixLeadTitle,
-            'NAME' => $this->bitrixLeadFirstName,
-            'PHONE' => [['VALUE' => $this->bitrixLeadPhone, 'VALUE_TYPE' => 'WORK']],
-        ];
+        try {
+            $connector = app(Bitrix24ConnectorService::class);
+            $result = $connector->sendSingleMessage($this->testPhone, $this->testName, $this->testMessageText);
 
-        $response = $bitrix->createLead($fields);
-        $ok = $response['success'];
-        $id = null;
-        $decoded = json_decode((string) $response['body'], true);
-        if (is_array($decoded) && isset($decoded['result']) && is_numeric($decoded['result'])) {
-            $id = (int) $decoded['result'];
+            $this->channelOk = (bool) ($result['success'] ?? false);
+            $this->channelResult = $this->channelOk
+                ? 'Mensaje enviado al Canal Abierto — HTTP ' . ($result['http_status'] ?? '?')
+                : 'Error — HTTP ' . ($result['http_status'] ?? '?');
+        } catch (Throwable $e) {
+            $this->channelResult = 'Error: ' . $e->getMessage();
         }
-        $this->createLeadResult = ($ok ? 'Lead creado' : 'Error').($id ? " — ID {$id}" : '')." — HTTP {$response['http_status']}";
-        $this->pushBitrixHistory($ok, $this->createLeadResult);
+
+        $this->pushHistory($this->channelOk, 'Canal Abierto: ' . ($this->channelResult ?? ''));
+    }
+
+    /**
+     * v2: Tests sending a message via BotmakerService::sendMessage() (Flow B direction).
+     */
+    public function sendTestBotmakerMessage(): void
+    {
+        $this->botmakerSendResult = null;
+        $this->botmakerSendOk = false;
+
+        $this->validate([
+            'botmakerTestPhone' => ['required', 'string', 'max:40'],
+            'botmakerTestText' => ['required', 'string', 'max:500'],
+        ], [], [
+            'botmakerTestPhone' => 'Teléfono',
+            'botmakerTestText' => 'Mensaje',
+        ]);
+
+        try {
+            $botmaker = app(BotmakerService::class);
+            $result = $botmaker->sendMessage($this->botmakerTestPhone, $this->botmakerTestText);
+
+            $this->botmakerSendOk = true;
+            $this->botmakerSendResult = 'Mensaje enviado a Botmaker — HTTP ' . ($result['http_status'] ?? '?');
+        } catch (Throwable $e) {
+            $this->botmakerSendResult = 'Error: ' . $e->getMessage();
+        }
+
+        $this->pushHistory($this->botmakerSendOk, 'Botmaker send: ' . ($this->botmakerSendResult ?? ''));
     }
 
     public function simulateFlowBotmakerToBitrix(): void
@@ -144,15 +163,15 @@ class IntegrationTestPanel extends Component
             'message' => ['text' => 'Mensaje de simulación desde el panel'],
         ];
 
-        $this->flowSteps[] = '1. Enviando POST a /api/webhook/botmaker…';
+        $this->flowSteps[] = '1. Enviando POST a /api/webhook/botmaker...';
         try {
             $response = Http::asJson()
                 ->withHeaders(['X-Botmaker-Signature' => $secret])
                 ->timeout(30)
                 ->post(url('/api/webhook/botmaker'), $payload);
-            $this->flowSteps[] = '2. Respuesta HTTP '.$response->status().': '.substr($response->body(), 0, 200);
+            $this->flowSteps[] = '2. Respuesta HTTP ' . $response->status() . ': ' . substr($response->body(), 0, 200);
         } catch (Throwable $e) {
-            $this->flowSteps[] = '2. Error: '.$e->getMessage();
+            $this->flowSteps[] = '2. Error: ' . $e->getMessage();
         }
     }
 
@@ -168,28 +187,29 @@ class IntegrationTestPanel extends Component
         return trim((string) config_dynamic('botmaker.webhook_secret', config('services.botmaker.webhook_secret', '')));
     }
 
-    private function pushBitrixHistory(bool $ok, string $text): void
+    private function pushHistory(bool $ok, string $text): void
     {
-        $list = session()->get('integration_test_bitrix_history', []);
+        $list = session()->get('integration_test_history', []);
         $list[] = ['at' => now()->format('Y-m-d H:i:s'), 'ok' => $ok, 'text' => $text];
-        $list = array_slice($list, -5);
-        session()->put('integration_test_bitrix_history', $list);
-        $this->bitrixHistory = $list;
+        $list = array_slice($list, -10);
+        session()->put('integration_test_history', $list);
+        $this->testHistory = $list;
     }
 
     public function render(): View
     {
-        $bitrixHistoryView = collect($this->bitrixHistory)
+        $historyView = collect($this->testHistory)
             ->reverse()
             ->values()
             ->map(function (array $item): array {
-                $item['text_short'] = Str::limit((string) ($item['text'] ?? ''), 80);
+                $item['text_short'] = Str::limit((string) ($item['text'] ?? ''), 100);
+
                 return $item;
             })
             ->all();
 
         return view('livewire.integration-test-panel', [
-            'bitrixHistoryView' => $bitrixHistoryView,
+            'historyView' => $historyView,
         ])
             ->layout('layouts.app', [
                 'title' => 'Pruebas de integración',

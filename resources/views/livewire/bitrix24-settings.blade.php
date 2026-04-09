@@ -2,7 +2,7 @@
     <div class="page-header">
         <div>
             <h2 class="page-title">Conexión Bitrix24</h2>
-            <p class="page-subtitle">URL REST para crear leads y valores por defecto del CRM. Los tokens de eventos salientes de Bitrix se configuran en <a href="{{ url('/monitor/settings/tokens') }}">Webhooks autorizados</a>.</p>
+            <p class="page-subtitle">Configuración OAuth v2 (imconnector / Canal Abierto) y ajustes del conector.</p>
         </div>
         <a class="btn" href="{{ url('/monitor/settings') }}">Volver al centro</a>
     </div>
@@ -14,84 +14,173 @@
         <section class="card card-pad" style="margin-bottom: 1rem; border-left: 4px solid #dc2626;"><p style="margin:0;">{{ $errorMessage }}</p></section>
     @endif
 
+    {{-- Section 1: OAuth Configuration --}}
     <section class="card card-pad" style="margin-bottom: 1rem;">
-        <h3 class="bx-sec-title">Webhook entrante (crear / actualizar leads)</h3>
-        <label for="bx-url">URL del webhook entrante de Bitrix24</label>
-        <div style="display:flex; gap:.5rem; flex-wrap:wrap; align-items:center;">
-            <input id="bx-url" class="input" type="url" wire:model.live="bitrix24WebhookUrl" placeholder="https://b24-xxxxx.bitrix24.mx/rest/123/abc456xyz/" style="flex:1; min-width:240px;">
-            <button type="button" class="btn" wire:click="testConnection" wire:loading.attr="disabled" wire:target="testConnection">Probar conexión</button>
-        </div>
-        <small class="bx-help muted">URL para crear leads en Bitrix24. Se obtiene en Bitrix24 &gt; Aplicaciones &gt; Webhooks &gt; Webhook entrante. Ejemplo: <code>https://b24-g5r49m.bitrix24.mx/rest/139/yrz3ac4x784xgfr5/</code>. ⚠️ Esta URL contiene token, no la compartas en público.</small>
-        @error('bitrix24WebhookUrl') <small style="color:#dc2626;">{{ $message }}</small> @enderror
-    </section>
+        <h3 class="bx-sec-title">Credenciales OAuth v2</h3>
+        <small class="bx-help muted">Estos valores provienen de la App Local creada en Bitrix24 (Aplicaciones > Developer resources > Otra > App Local). Se guardan en base de datos y sobreescriben los del .env.</small>
 
-    <section class="card card-pad" style="margin-bottom: 1rem;">
-        <h3 class="bx-sec-title">Configuración del CRM</h3>
-        <div class="grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
+        <div class="grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); margin-top:.75rem;">
             <div>
-                <label for="bx-source">Fuente del lead (SOURCE_ID)</label>
-                <input id="bx-source" class="input" type="text" wire:model.live="defaultSourceId" placeholder="WEB, WHATSAPP, UC_XXXXXX o 5">
-                <small class="bx-help muted">ID de fuente del lead. Se obtiene en CRM &gt; Configuración &gt; Fuentes. Ejemplo: <code>UC_XXXXXX</code>.</small>
-                @error('defaultSourceId') <small style="color:#dc2626;">{{ $message }}</small> @enderror
+                <label for="bx-domain">Dominio Bitrix24</label>
+                <input id="bx-domain" class="input" type="text" wire:model.live="domain" placeholder="miempresa.bitrix24.mx">
+                <small class="bx-help muted">Sin https://. Ejemplo: <code>b24-g5r49m.bitrix24.mx</code></small>
+                @error('domain') <small style="color:#dc2626;">{{ $message }}</small> @enderror
             </div>
             <div>
-                <label for="bx-assign">Responsable (ASSIGNED_BY_ID)</label>
-                <input id="bx-assign" class="input" type="text" wire:model.live="defaultAssignedById" placeholder="139">
-                <small class="bx-help muted">ID del responsable por defecto. Se obtiene del perfil de usuario en Bitrix24 (URL <code>/user/139/</code>). Ejemplo: <code>139</code>.</small>
-                @error('defaultAssignedById') <small style="color:#dc2626;">{{ $message }}</small> @enderror
+                <label for="bx-client-id">Client ID (App Local)</label>
+                <input id="bx-client-id" class="input" type="text" wire:model.live="clientId" placeholder="local.xxxxxxx.xxxxxx">
+                @error('clientId') <small style="color:#dc2626;">{{ $message }}</small> @enderror
             </div>
             <div>
-                <label for="bx-status">Estatus inicial (STATUS_ID)</label>
-                <input id="bx-status" class="input" type="text" wire:model.live="defaultStatusId" placeholder="NEW">
-                <small class="bx-help muted">Estatus inicial del lead. Se obtiene en CRM &gt; Configuración &gt; Estatus del lead. Ejemplo: <code>NEW</code>.</small>
-                @error('defaultStatusId') <small style="color:#dc2626;">{{ $message }}</small> @enderror
+                <label for="bx-client-secret">Client Secret</label>
+                <input id="bx-client-secret" class="input" type="password" wire:model.live="clientSecret" placeholder="*****">
+                @error('clientSecret') <small style="color:#dc2626;">{{ $message }}</small> @enderror
             </div>
         </div>
-    </section>
 
-    <section class="card card-pad" style="margin-bottom: 1rem;">
-        <h3 class="bx-sec-title">Estado de la conexión</h3>
-        <div style="display:flex; align-items:center; gap:.75rem; flex-wrap:wrap;">
-            @if($testMessage === null && !$lastTestAt)
-                <span class="bx-dot bx-dot--n"></span><span class="muted">No probado aún</span>
-            @elseif($testOk)
-                <span class="bx-dot bx-dot--ok"></span><span style="color:#166534;">Última prueba exitosa @if($lastTestAt) ({{ $lastTestAt }}) @endif</span>
-            @else
-                <span class="bx-dot bx-dot--bad"></span><span style="color:#b91c1c;">{{ $testMessage }}</span>
-            @endif
+        <div class="grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); margin-top:.75rem;">
+            <div>
+                <label for="bx-connector-id">Connector ID</label>
+                <input id="bx-connector-id" class="input" type="text" wire:model.live="connectorId" placeholder="botmaker_whatsapp">
+                <small class="bx-help muted">Identificador del conector registrado en Bitrix24.</small>
+                @error('connectorId') <small style="color:#dc2626;">{{ $message }}</small> @enderror
+            </div>
+            <div>
+                <label for="bx-line-id">Line ID (Canal Abierto)</label>
+                <input id="bx-line-id" class="input" type="text" wire:model.live="lineId" placeholder="1">
+                <small class="bx-help muted">ID de la línea de Canal Abierto en Bitrix24.</small>
+                @error('lineId') <small style="color:#dc2626;">{{ $message }}</small> @enderror
+            </div>
         </div>
-        <button type="button" class="btn" style="margin-top:.5rem;" wire:click="testConnection" wire:loading.attr="disabled">Probar ahora</button>
-        <span class="muted" wire:loading wire:target="testConnection">Probando…</span>
+
+        <div style="margin-top:1rem; display:flex; gap:.5rem; flex-wrap:wrap;">
+            <button type="button" class="btn btn-primary" wire:click="saveOAuth" wire:loading.attr="disabled" wire:target="saveOAuth">Guardar configuración OAuth</button>
+            <span class="muted" wire:loading wire:target="saveOAuth">Guardando...</span>
+        </div>
     </section>
 
-    <div id="unsaved-banner-bx" class="card card-pad" style="display:none; margin-bottom:.75rem; border-left:4px solid #eab308;">
-        Tienes cambios sin guardar
-    </div>
-    <div class="sticky-save-bar" style="display:flex; gap:.5rem; flex-wrap:wrap;">
-        <button type="button" class="btn btn-primary" wire:click="save">Guardar configuración</button>
-        <a class="btn" href="{{ url('/monitor/settings') }}">Cancelar</a>
-    </div>
-    @if ($successMessage)
-        <div class="toast-ok">Configuración guardada correctamente</div>
-    @endif
+    {{-- Section 2: OAuth Token Status --}}
+    <section class="card card-pad" style="margin-bottom: 1rem;">
+        <h3 class="bx-sec-title">Estado del Token OAuth</h3>
+
+        @if($this->tokenStatus)
+            <div class="grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-top:.5rem;">
+                <div class="stat-box">
+                    <div class="muted">Dominio</div>
+                    <strong>{{ $this->tokenStatus['domain'] }}</strong>
+                </div>
+                <div class="stat-box">
+                    <div class="muted">Estado</div>
+                    @if($this->tokenStatus['expired'])
+                        <span class="badge badge-bad">Expirado</span>
+                    @else
+                        <span class="badge badge-ok">Válido</span>
+                    @endif
+                </div>
+                <div class="stat-box">
+                    <div class="muted">Expira</div>
+                    <strong>{{ $this->tokenStatus['expires_at'] ?? 'N/A' }}</strong>
+                </div>
+                <div class="stat-box">
+                    <div class="muted">Último refresh</div>
+                    <strong>{{ $this->tokenStatus['updated_at'] ?? 'N/A' }}</strong>
+                </div>
+            </div>
+        @else
+            <p class="text-warn">No hay token OAuth almacenado. Instala la App Local en Bitrix24 apuntando a <code>{{ url('/api/bitrix24/install') }}</code>.</p>
+        @endif
+    </section>
+
+    {{-- Section 3: Connector Setup --}}
+    <section class="card card-pad" style="margin-bottom: 1rem;">
+        <h3 class="bx-sec-title">Configurar Conector en Bitrix24</h3>
+        <small class="bx-help muted">Ejecuta el registro, activación y configuración del conector Botmaker WhatsApp en el Canal Abierto. Equivale al comando <code>php artisan bitrix24:setup-connector</code>.</small>
+
+        <div style="margin-top:.75rem; display:flex; align-items:center; gap:.5rem; flex-wrap:wrap;">
+            <button type="button" class="btn btn-primary" wire:click="setupConnector" wire:loading.attr="disabled" wire:target="setupConnector">Registrar / Activar conector</button>
+            <span class="muted" wire:loading wire:target="setupConnector">Ejecutando setup...</span>
+        </div>
+
+        @if($setupMessage)
+            <div style="margin-top:.75rem; padding:.6rem; border-radius:.4rem; font-size:.88rem; {{ $setupOk ? 'background:#dcfce7; color:#166534;' : 'background:#fee2e2; color:#b91c1c;' }}">
+                {{ $setupMessage }}
+            </div>
+        @endif
+    </section>
+
+    {{-- Section 4: Connection Tests --}}
+    <section class="card card-pad" style="margin-bottom: 1rem;">
+        <h3 class="bx-sec-title">Probar conexión</h3>
+        <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
+            <button type="button" class="btn" wire:click="testOAuthConnection" wire:loading.attr="disabled" wire:target="testOAuthConnection">Test OAuth Token</button>
+            <button type="button" class="btn" wire:click="testConnectorStatus" wire:loading.attr="disabled" wire:target="testConnectorStatus">Test imconnector.status</button>
+            <span class="muted" wire:loading wire:target="testOAuthConnection,testConnectorStatus">Probando...</span>
+        </div>
+
+        @if($testMessage)
+            <div style="margin-top:.75rem; display:flex; align-items:center; gap:.5rem;">
+                <span class="bx-dot {{ $testOk ? 'bx-dot--ok' : 'bx-dot--bad' }}"></span>
+                <span style="color: {{ $testOk ? '#166534' : '#b91c1c' }};">{{ $testMessage }}</span>
+            </div>
+        @endif
+    </section>
+
+    {{-- Section 5: Legacy v1 (Collapsed) --}}
+    <section class="card card-pad" style="margin-bottom: 1rem;">
+        <div style="display:flex; align-items:center; justify-content:space-between; cursor:pointer;" wire:click="toggleLegacy">
+            <h3 class="bx-sec-title" style="margin:0;">
+                <span class="badge badge-legacy">Legacy v1</span>
+                Webhook CRM (crm.lead.add)
+            </h3>
+            <span style="font-size:1.2rem; color:var(--app-muted);">{{ $showLegacy ? '▲' : '▼' }}</span>
+        </div>
+        <small class="bx-help muted">Configuración del webhook REST para crear leads (v1). En v2, Bitrix24 crea leads automáticamente desde el Canal Abierto.</small>
+
+        @if($showLegacy)
+            <div style="margin-top:1rem; padding-top:.75rem; border-top:1px solid var(--app-border);">
+                <div style="margin-bottom:.75rem;">
+                    <label for="bx-url-legacy">URL del webhook entrante</label>
+                    <input id="bx-url-legacy" class="input" type="url" wire:model.live="bitrix24WebhookUrl" placeholder="https://b24-xxxxx.bitrix24.mx/rest/123/abc456xyz/" style="width:100%;">
+                    @error('bitrix24WebhookUrl') <small style="color:#dc2626;">{{ $message }}</small> @enderror
+                </div>
+
+                <div class="grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                    <div>
+                        <label for="bx-source-legacy">Fuente del lead (SOURCE_ID)</label>
+                        <input id="bx-source-legacy" class="input" type="text" wire:model.live="defaultSourceId" placeholder="WEB, WHATSAPP">
+                        @error('defaultSourceId') <small style="color:#dc2626;">{{ $message }}</small> @enderror
+                    </div>
+                    <div>
+                        <label for="bx-assign-legacy">Responsable (ASSIGNED_BY_ID)</label>
+                        <input id="bx-assign-legacy" class="input" type="text" wire:model.live="defaultAssignedById" placeholder="139">
+                        @error('defaultAssignedById') <small style="color:#dc2626;">{{ $message }}</small> @enderror
+                    </div>
+                    <div>
+                        <label for="bx-status-legacy">Estatus inicial (STATUS_ID)</label>
+                        <input id="bx-status-legacy" class="input" type="text" wire:model.live="defaultStatusId" placeholder="NEW">
+                        @error('defaultStatusId') <small style="color:#dc2626;">{{ $message }}</small> @enderror
+                    </div>
+                </div>
+
+                <div style="margin-top:.75rem;">
+                    <button type="button" class="btn" wire:click="saveLegacy" wire:loading.attr="disabled" wire:target="saveLegacy">Guardar Legacy</button>
+                    <span class="muted" wire:loading wire:target="saveLegacy">Guardando...</span>
+                </div>
+            </div>
+        @endif
+    </section>
 </div>
 
 <style>
     .bx-sec-title { margin: 0 0 .65rem; font-size: 1.05rem; }
-    .bx-hint { margin: .35rem 0 0; font-size: .82rem; line-height: 1.4; }
     .bx-help { display:block; margin:.35rem 0 0; font-size:.8rem; line-height:1.4; color:var(--app-muted); }
     .bx-dot { width: .75rem; height: .75rem; border-radius: 999px; display: inline-block; }
     .bx-dot--ok { background: #16a34a; }
     .bx-dot--bad { background: #dc2626; }
-    .bx-dot--n { background: #94a3b8; }
-    .sticky-save-bar { position: sticky; bottom: .5rem; background: var(--app-surface); padding: .6rem; border: 1px solid var(--app-border); border-radius: .6rem; }
-    .toast-ok { position: fixed; right: 1rem; bottom: 1rem; background:#16a34a; color:#fff; padding:.55rem .8rem; border-radius:.5rem; z-index:50; }
+    .badge { padding: .2rem .45rem; border-radius: .45rem; font-size: .78rem; }
+    .badge-ok { background: #dcfce7; color: #166534; }
+    .badge-bad { background: #fee2e2; color: #b91c1c; }
+    .badge-legacy { background: #fef3c7; color: #92400e; margin-right: .4rem; }
+    .stat-box { border: 1px solid var(--app-border); border-radius: .6rem; padding: .65rem; }
+    .text-warn { color: #92400e; margin-top: .75rem; }
 </style>
-<script>
-    (function () {
-        const banner = document.getElementById('unsaved-banner-bx');
-        document.querySelectorAll('input,textarea,select').forEach((el) => {
-            el.addEventListener('input', () => { if (banner) banner.style.display = 'block'; });
-        });
-    })();
-</script>

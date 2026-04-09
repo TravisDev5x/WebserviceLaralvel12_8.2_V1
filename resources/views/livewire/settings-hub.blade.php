@@ -27,9 +27,10 @@
                 <div style="min-width: 0; flex: 1;">
                     <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
                         <h3 style="margin: 0; font-size: 1.05rem;">Conexión Bitrix24</h3>
-                        @if($bitrixConfigured)<span class="badge-soft" style="border-color: #16a34a; color: #16a34a;">Configurado</span>@else<span class="badge-soft" style="border-color: #eab308; color: #a16207;">Verificar</span>@endif
+                        @if($bitrixConfigured)<span class="badge-soft" style="border-color: #16a34a; color: #16a34a;">OAuth OK</span>@else<span class="badge-soft" style="border-color: #dc2626; color: #dc2626;">Sin token OAuth</span>@endif
                     </div>
-                    <p class="muted" style="margin: 0; font-size: 0.88rem; line-height: 1.45;">Configura el webhook entrante del CRM para crear leads.</p>
+                    <p class="muted" style="margin: 0; font-size: 0.88rem; line-height: 1.45;">OAuth v2, conector imconnector y Canal Abierto.</p>
+                    @if($bitrixTokenDomain)<p class="muted" style="margin:.2rem 0 0; font-size:.78rem;">Dominio: {{ $bitrixTokenDomain }}</p>@endif
                     <p class="muted" style="margin:.35rem 0 0; font-size:.78rem;">Actualizado {{ $bitrixUpdatedAt }}</p>
                 </div>
             </div>
@@ -73,9 +74,10 @@
                 <div style="min-width: 0; flex: 1;">
                     <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
                         <h3 style="margin: 0; font-size: 1.05rem;">Mapeo de campos</h3>
+                        <span class="badge-soft" style="border-color: #eab308; color: #92400e;">Legacy v1</span>
                         <span class="badge-soft">{{ $fieldMappingsCount }} campos mapeados</span>
                     </div>
-                    <p class="muted" style="margin: 0; font-size: 0.88rem; line-height: 1.45;">Define qué campos de Botmaker se mapean a campos de Bitrix24.</p>
+                    <p class="muted" style="margin: 0; font-size: 0.88rem; line-height: 1.45;">Mapeos de campos para crm.lead.add (v1). En v2, Bitrix24 gestiona leads desde el Canal Abierto.</p>
                 </div>
             </div>
         </a>

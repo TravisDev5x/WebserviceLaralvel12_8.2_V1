@@ -74,8 +74,10 @@ class Bitrix24AuthService
             throw new RuntimeException('No Bitrix24 token record to refresh.');
         }
 
-        $clientId = $token->client_id ?: config('services.bitrix24.client_id');
-        $clientSecret = $token->client_secret ?: config('services.bitrix24.client_secret');
+        $clientId = $token->client_id
+            ?: config_dynamic('bitrix24.client_id', config('services.bitrix24.client_id'));
+        $clientSecret = $token->client_secret
+            ?: config_dynamic('bitrix24.client_secret', config('services.bitrix24.client_secret'));
 
         if (! $clientId || ! $clientSecret) {
             throw new RuntimeException('BITRIX24_CLIENT_ID and BITRIX24_CLIENT_SECRET are required for token refresh.');
@@ -136,7 +138,7 @@ class Bitrix24AuthService
      */
     public function storeTokensFromInstall(array $authData): Bitrix24Token
     {
-        $domain = (string) ($authData['domain'] ?? config('services.bitrix24.domain', ''));
+        $domain = (string) ($authData['domain'] ?? config_dynamic('bitrix24.domain', config('services.bitrix24.domain', '')));
 
         $token = Bitrix24Token::updateOrCreate(
             ['domain' => $domain],
@@ -145,8 +147,8 @@ class Bitrix24AuthService
                 'refresh_token' => (string) ($authData['refresh_token'] ?? ''),
                 'expires_at' => now()->addSeconds((int) ($authData['expires_in'] ?? 3600)),
                 'application_token' => (string) ($authData['application_token'] ?? ''),
-                'client_id' => (string) config('services.bitrix24.client_id', ''),
-                'client_secret' => (string) config('services.bitrix24.client_secret', ''),
+                'client_id' => (string) config_dynamic('bitrix24.client_id', config('services.bitrix24.client_id', '')),
+                'client_secret' => (string) config_dynamic('bitrix24.client_secret', config('services.bitrix24.client_secret', '')),
             ],
         );
 
