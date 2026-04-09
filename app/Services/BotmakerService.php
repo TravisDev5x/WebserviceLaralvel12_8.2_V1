@@ -59,8 +59,8 @@ final class BotmakerService
      */
     public function sendMessage(string $phone, string $text): array
     {
-        $baseUrl = rtrim(AuthorizedToken::resolvedBotmakerApiUrl() ?: 'https://go.botmaker.com/api/v1.0', '/');
-        $sendEndpoint = (string) config_dynamic('botmaker.send_endpoint', config('services.botmaker.send_endpoint', '/message/v2'));
+        $baseUrl = rtrim(AuthorizedToken::resolvedBotmakerApiUrl() ?: 'https://api.botmaker.com/v2.0', '/');
+        $sendEndpoint = (string) config_dynamic('botmaker.send_endpoint', config('services.botmaker.send_endpoint', '/chats-actions/send-messages'));
         $url = $baseUrl . $sendEndpoint;
 
         $apiToken = AuthorizedToken::resolvedBotmakerApiToken();
@@ -72,19 +72,22 @@ final class BotmakerService
             );
         }
 
-        $businessNumber = trim((string) config_dynamic('botmaker.whatsapp_number', ''));
-        if ($businessNumber === '') {
+        $channelId = trim((string) config_dynamic('botmaker.channel_id', ''));
+        if ($channelId === '') {
             throw new BotmakerApiException(
-                'Número de WhatsApp del negocio no configurado. Configúralo en el panel > Conexión Botmaker > Número WhatsApp Business.',
+                'Channel ID de Botmaker no configurado. Configúralo en el panel > Conexión Botmaker > Channel ID.',
                 context: ['phone' => $phone],
             );
         }
 
         $payload = [
-            'chatPlatform' => 'whatsapp',
-            'chatChannelNumber' => $businessNumber,
-            'platformContactId' => $phone,
-            'messageText' => self::stripBbCode($text),
+            'chat' => [
+                'channelId' => $channelId,
+                'contactId' => $phone,
+            ],
+            'messages' => [
+                ['text' => self::stripBbCode($text)],
+            ],
         ];
 
         try {

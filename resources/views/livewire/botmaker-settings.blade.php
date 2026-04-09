@@ -15,8 +15,8 @@
         <div class="grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); margin-top:.75rem;">
             <div>
                 <label for="bm-api-url">URL base de API</label>
-                <input id="bm-api-url" class="input" type="url" wire:model.live="apiUrl" placeholder="https://go.botmaker.com/api/v1.0">
-                <small class="field-help muted">URL base de la API REST de Botmaker. Default: <code>https://go.botmaker.com/api/v1.0</code></small>
+                <input id="bm-api-url" class="input" type="url" wire:model.live="apiUrl" placeholder="https://api.botmaker.com/v2.0">
+                <small class="field-help muted">URL base de la API REST de Botmaker. Default: <code>https://api.botmaker.com/v2.0</code></small>
                 @error('apiUrl') <small style="color:#dc2626;">{{ $message }}</small> @enderror
             </div>
             <div>
@@ -29,15 +29,18 @@
                 @error('apiToken') <small style="color:#dc2626;">{{ $message }}</small> @enderror
             </div>
             <div>
-                <label for="bm-whatsapp-number">Número WhatsApp Business</label>
-                <input id="bm-whatsapp-number" class="input" type="text" wire:model.live="whatsappNumber" placeholder="5215591234567">
-                <small class="field-help muted">Número de WhatsApp de tu empresa en Botmaker (con código de país, sin +). Se envía como <code>chatChannelNumber</code>.</small>
-                @error('whatsappNumber') <small style="color:#dc2626;">{{ $message }}</small> @enderror
+                <label for="bm-channel-id">Channel ID (WhatsApp)</label>
+                <div style="display:flex; gap:.35rem;">
+                    <input id="bm-channel-id" class="input" type="text" wire:model.live="channelId" placeholder="botproject-whatsapp-521559..." style="flex:1;">
+                    <button type="button" class="btn btn-sm" wire:click="detectChannelId" wire:loading.attr="disabled" wire:target="detectChannelId" title="Detectar automáticamente">Detectar</button>
+                </div>
+                <small class="field-help muted">ID del canal WhatsApp en Botmaker. Formato: <code>botproject-whatsapp-TUNUMERO</code>. Haz clic en "Detectar" para obtenerlo automáticamente.</small>
+                @error('channelId') <small style="color:#dc2626;">{{ $message }}</small> @enderror
             </div>
             <div>
                 <label for="bm-send-endpoint">Endpoint de envío</label>
-                <input id="bm-send-endpoint" class="input" type="text" wire:model.live="sendEndpoint" placeholder="/message/v2">
-                <small class="field-help muted">Ruta del endpoint para enviar mensajes. Default: <code>/message/v2</code></small>
+                <input id="bm-send-endpoint" class="input" type="text" wire:model.live="sendEndpoint" placeholder="/chats-actions/send-messages">
+                <small class="field-help muted">Ruta del endpoint para enviar mensajes. Default: <code>/chats-actions/send-messages</code></small>
                 @error('sendEndpoint') <small style="color:#dc2626;">{{ $message }}</small> @enderror
             </div>
         </div>

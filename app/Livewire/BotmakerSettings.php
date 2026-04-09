@@ -27,7 +27,7 @@ class BotmakerSettings extends Component
 
     public string $sendEndpoint = '';
 
-    public string $whatsappNumber = '';
+    public string $channelId = '';
 
     public bool $apiTokenVisible = false;
 
@@ -64,10 +64,10 @@ class BotmakerSettings extends Component
         $this->webhookUrl = $baseUrl !== '' ? $baseUrl . '/api/webhook/botmaker' : '/api/webhook/botmaker';
         $this->appUrlIsHttp = str_starts_with(strtolower($baseUrl), 'http://');
 
-        $this->apiUrl = (string) config_dynamic('botmaker.api_url', config('services.botmaker.api_url', 'https://go.botmaker.com/api/v1.0'));
+        $this->apiUrl = (string) config_dynamic('botmaker.api_url', config('services.botmaker.api_url', 'https://api.botmaker.com/v2.0'));
         $this->apiToken = AuthorizedToken::resolvedBotmakerApiToken();
-        $this->sendEndpoint = (string) config_dynamic('botmaker.send_endpoint', config('services.botmaker.send_endpoint', '/message/v2'));
-        $this->whatsappNumber = (string) config_dynamic('botmaker.whatsapp_number', '');
+        $this->sendEndpoint = (string) config_dynamic('botmaker.send_endpoint', config('services.botmaker.send_endpoint', '/chats-actions/send-messages'));
+        $this->channelId = (string) config_dynamic('botmaker.channel_id', '');
 
         $this->refreshStats();
     }
@@ -81,19 +81,19 @@ class BotmakerSettings extends Component
             'apiUrl' => ['required', 'url', 'max:500'],
             'apiToken' => ['required', 'string', 'min:10', 'max:1000'],
             'sendEndpoint' => ['required', 'string', 'max:100'],
-            'whatsappNumber' => ['required', 'string', 'regex:/^\d{10,15}$/', 'max:20'],
+            'channelId' => ['required', 'string', 'min:3', 'max:200'],
         ], [], [
             'apiUrl' => 'URL de API Botmaker',
             'apiToken' => 'Token de API Botmaker',
             'sendEndpoint' => 'Endpoint de envío',
-            'whatsappNumber' => 'Número WhatsApp Business',
+            'channelId' => 'Channel ID',
         ]);
 
         try {
             Setting::set('botmaker.api_url', (string) $validated['apiUrl']);
             Setting::set('botmaker.api_token', (string) $validated['apiToken']);
             Setting::set('botmaker.send_endpoint', (string) $validated['sendEndpoint']);
-            Setting::set('botmaker.whatsapp_number', (string) $validated['whatsappNumber']);
+            Setting::set('botmaker.channel_id', (string) $validated['channelId']);
 
             $this->apiSaveOk = true;
             $this->apiSaveMessage = 'Configuración de API Botmaker guardada correctamente.';
@@ -145,6 +145,48 @@ class BotmakerSettings extends Component
             }
         } catch (Throwable $e) {
             $this->apiTestMessage = 'Error de conexión: ' . $e->getMessage();
+        }
+    }
+
+    public function detectChannelId(): void
+    {
+        $this->apiTestMessage = null;
+        $this->apiTestOk = false;
+
+        $resolvedToken = AuthorizedToken::resolvedBotmakerApiToken();
+        $resolvedUrl = AuthorizedToken::resolvedBotmakerApiUrl();
+
+        if ($resolvedToken === '' || $resolvedUrl === '') {
+            $this->apiTestMessage = 'Guarda primero la URL y el Token de API.';
+
+            return;
+        }
+
+        try {
+            $response = Http::timeout(10)
+                ->withHeaders([
+                    'Accept' => 'application/json',
+                    'access-token' => $resolvedToken,
+                ])
+                ->get(rtrim($resolvedUrl, '/') . '/channels');
+
+            if ($response->status() === 200) {
+                $items = $response->json('items', []);
+                $whatsappChannels = array_filter($items, fn ($ch) => str_contains($ch['id'] ?? '', 'whatsapp'));
+
+                if (count($whatsappChannels) > 0) {
+                    $first = reset($whatsappChannels);
+                    $this->channelId = $first['id'] ?? '';
+                    $this->apiTestOk = true;
+                    $this->apiTestMessage = 'Channel detectado: ' . $this->channelId;
+                } else {
+                    $this->apiTestMessage = 'No se encontraron canales de WhatsApp. Canales disponibles: ' . collect($items)->pluck('id')->implode(', ');
+                }
+            } else {
+                $this->apiTestMessage = "Error HTTP {$response->status()} al obtener canales.";
+            }
+        } catch (Throwable $e) {
+            $this->apiTestMessage = 'Error: ' . $e->getMessage();
         }
     }
 
