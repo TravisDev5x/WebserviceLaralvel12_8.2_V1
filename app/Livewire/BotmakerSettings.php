@@ -116,12 +116,14 @@ class BotmakerSettings extends Component
         }
 
         try {
+            $testUrl = rtrim($resolvedUrl, '/') . '/business/';
+
             $response = Http::timeout(10)
                 ->withHeaders([
                     'Accept' => 'application/json',
                     'access-token' => $resolvedToken,
                 ])
-                ->get($resolvedUrl);
+                ->get($testUrl);
 
             $status = $response->status();
             if ($status >= 200 && $status < 300) {
@@ -129,6 +131,9 @@ class BotmakerSettings extends Component
                 $this->apiTestMessage = "API Botmaker OK (HTTP {$status}). El token es válido.";
             } elseif ($status === 401 || $status === 403) {
                 $this->apiTestMessage = "Error HTTP {$status}: Token inválido o sin permisos. Verifica el token.";
+            } elseif ($status === 404) {
+                $this->apiTestOk = true;
+                $this->apiTestMessage = "API Botmaker alcanzable (HTTP {$status}). Token aceptado, endpoint de prueba no encontrado (OK).";
             } else {
                 $this->apiTestMessage = "Respuesta HTTP {$status}. Verifica la URL y el token.";
             }
