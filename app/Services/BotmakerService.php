@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Exceptions\BotmakerApiException;
+use App\Models\AuthorizedToken;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use Illuminate\Support\Facades\Log;
@@ -58,15 +59,15 @@ final class BotmakerService
      */
     public function sendMessage(string $phone, string $text): array
     {
-        $baseUrl = rtrim((string) config('services.botmaker.api_url', 'https://go.botmaker.com/api/v1.0'), '/');
-        $sendEndpoint = (string) config('services.botmaker.send_endpoint', '/message/v2');
+        $baseUrl = rtrim(AuthorizedToken::resolvedBotmakerApiUrl() ?: 'https://go.botmaker.com/api/v1.0', '/');
+        $sendEndpoint = (string) config_dynamic('botmaker.send_endpoint', config('services.botmaker.send_endpoint', '/message/v2'));
         $url = $baseUrl . $sendEndpoint;
 
-        $apiToken = (string) config('services.botmaker.api_token', '');
+        $apiToken = AuthorizedToken::resolvedBotmakerApiToken();
 
         if ($apiToken === '') {
             throw new BotmakerApiException(
-                'BOTMAKER_API_TOKEN is not configured',
+                'Botmaker API Token no configurado. Configúralo desde el panel en Conexión Botmaker > Token de API.',
                 context: ['phone' => $phone],
             );
         }
