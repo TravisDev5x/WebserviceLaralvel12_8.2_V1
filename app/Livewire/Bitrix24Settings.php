@@ -206,6 +206,18 @@ class Bitrix24Settings extends Component
             $connector->setConnectorData($lineId);
             $steps[] = 'Datos del conector: OK';
 
+            // Step 4: Bind events
+            try {
+                $connector->bindRequiredEvents();
+                $steps[] = 'Eventos vinculados: OK';
+            } catch (Throwable $e) {
+                if (str_contains($e->getMessage(), 'ALREADY')) {
+                    $steps[] = 'Eventos: ya vinculados (OK)';
+                } else {
+                    $steps[] = 'Eventos: ' . $e->getMessage();
+                }
+            }
+
             // Verify
             $status = $connector->checkStatus($lineId);
             $active = $status['data']['result']['active_connector'] ?? $status['data']['result'] ?? 'unknown';

@@ -67,6 +67,18 @@ class SetupBitrix24Connector extends Command
             return self::FAILURE;
         }
 
+        // Step 4: Bind events
+        $this->info('Paso 4 — Vinculando eventos (event.bind)...');
+        try {
+            $results = $connector->bindRequiredEvents();
+            foreach ($results as $event => $result) {
+                $note = $result['note'] ?? '';
+                $this->line("  {$event}: OK" . ($note !== '' ? " ({$note})" : ''));
+            }
+        } catch (Throwable $e) {
+            $this->warn("  Error vinculando eventos: {$e->getMessage()}");
+        }
+
         // Verify status
         $this->newLine();
         $this->info('Verificando estado final (imconnector.status)...');

@@ -157,6 +157,47 @@ class Bitrix24ConnectorService
     }
 
     /**
+     * event.bind — Subscribes to Bitrix24 events so our handler receives them.
+     *
+     * @return array<string, mixed>
+     */
+    public function bindEvent(string $event, string $handlerUrl): array
+    {
+        return $this->callRest('event.bind', [
+            'event' => $event,
+            'handler' => $handlerUrl,
+        ], 'bind_event_' . $event);
+    }
+
+    /**
+     * Binds all required events for the connector to work (Flow B).
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    public function bindRequiredEvents(): array
+    {
+        $appUrl = rtrim((string) config('app.url', ''), '/');
+        $handlerUrl = $appUrl . '/api/bitrix24/handler';
+
+        $events = ['OnImConnectorMessageAdd', 'OnImConnectorMessageUpdate', 'OnImConnectorMessageDelete'];
+        $results = [];
+
+        foreach ($events as $event) {
+            try {
+                $results[$event] = $this->bindEvent($event, $handlerUrl);
+            } catch (\RuntimeException $e) {
+                if (str_contains($e->getMessage(), 'EVENT_ALREADY_INSTALLED')) {
+                    $results[$event] = ['success' => true, 'note' => 'already bound'];
+                } else {
+                    throw $e;
+                }
+            }
+        }
+
+        return $results;
+    }
+
+    /**
      * Executes a REST API call to Bitrix24 using OAuth token.
      *
      * @param  array<string, mixed>  $params
