@@ -12,6 +12,8 @@ Route::prefix('webhook')
         Route::post('/botmaker', [BotmakerWebhookController::class, 'handle']);
     });
 
+Route::get('webhook/botmaker', fn () => response()->json(['status' => 'ok', 'service' => 'botmaker_webhook']));
+
 Route::prefix('bitrix24')->group(function (): void {
     Route::match(['get', 'post'], '/install', [Bitrix24OAuthController::class, 'install']);
     Route::post('/handler', [Bitrix24OAuthController::class, 'handler']);
