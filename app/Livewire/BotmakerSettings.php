@@ -27,6 +27,8 @@ class BotmakerSettings extends Component
 
     public string $sendEndpoint = '';
 
+    public string $whatsappNumber = '';
+
     public bool $apiTokenVisible = false;
 
     public ?string $apiSaveMessage = null;
@@ -65,6 +67,7 @@ class BotmakerSettings extends Component
         $this->apiUrl = (string) config_dynamic('botmaker.api_url', config('services.botmaker.api_url', 'https://go.botmaker.com/api/v1.0'));
         $this->apiToken = AuthorizedToken::resolvedBotmakerApiToken();
         $this->sendEndpoint = (string) config_dynamic('botmaker.send_endpoint', config('services.botmaker.send_endpoint', '/message/v2'));
+        $this->whatsappNumber = (string) config_dynamic('botmaker.whatsapp_number', '');
 
         $this->refreshStats();
     }
@@ -78,16 +81,19 @@ class BotmakerSettings extends Component
             'apiUrl' => ['required', 'url', 'max:500'],
             'apiToken' => ['required', 'string', 'min:10', 'max:1000'],
             'sendEndpoint' => ['required', 'string', 'max:100'],
+            'whatsappNumber' => ['required', 'string', 'regex:/^\d{10,15}$/', 'max:20'],
         ], [], [
             'apiUrl' => 'URL de API Botmaker',
             'apiToken' => 'Token de API Botmaker',
             'sendEndpoint' => 'Endpoint de envío',
+            'whatsappNumber' => 'Número WhatsApp Business',
         ]);
 
         try {
             Setting::set('botmaker.api_url', (string) $validated['apiUrl']);
             Setting::set('botmaker.api_token', (string) $validated['apiToken']);
             Setting::set('botmaker.send_endpoint', (string) $validated['sendEndpoint']);
+            Setting::set('botmaker.whatsapp_number', (string) $validated['whatsappNumber']);
 
             $this->apiSaveOk = true;
             $this->apiSaveMessage = 'Configuración de API Botmaker guardada correctamente.';

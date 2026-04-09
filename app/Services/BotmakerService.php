@@ -72,10 +72,19 @@ final class BotmakerService
             );
         }
 
+        $businessNumber = trim((string) config_dynamic('botmaker.whatsapp_number', ''));
+        if ($businessNumber === '') {
+            throw new BotmakerApiException(
+                'Número de WhatsApp del negocio no configurado. Configúralo en el panel > Conexión Botmaker > Número WhatsApp Business.',
+                context: ['phone' => $phone],
+            );
+        }
+
         $payload = [
             'chatPlatform' => 'whatsapp',
-            'chatChannelNumber' => $phone,
-            'messageText' => $text,
+            'chatChannelNumber' => $businessNumber,
+            'platformContactId' => $phone,
+            'messageText' => self::stripBbCode($text),
         ];
 
         try {
@@ -133,5 +142,13 @@ final class BotmakerService
                 previous: $e,
             );
         }
+    }
+
+    private static function stripBbCode(string $text): string
+    {
+        $text = preg_replace('/\[br\]/i', "\n", $text);
+        $text = preg_replace('/\[\/?[a-zA-Z][a-zA-Z0-9]*(?:=[^\]]*?)?\]/u', '', $text);
+
+        return trim($text);
     }
 }

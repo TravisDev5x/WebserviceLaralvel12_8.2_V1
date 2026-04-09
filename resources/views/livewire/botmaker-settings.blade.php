@@ -29,6 +29,12 @@
                 @error('apiToken') <small style="color:#dc2626;">{{ $message }}</small> @enderror
             </div>
             <div>
+                <label for="bm-whatsapp-number">Número WhatsApp Business</label>
+                <input id="bm-whatsapp-number" class="input" type="text" wire:model.live="whatsappNumber" placeholder="5215591234567">
+                <small class="field-help muted">Número de WhatsApp de tu empresa en Botmaker (con código de país, sin +). Se envía como <code>chatChannelNumber</code>.</small>
+                @error('whatsappNumber') <small style="color:#dc2626;">{{ $message }}</small> @enderror
+            </div>
+            <div>
                 <label for="bm-send-endpoint">Endpoint de envío</label>
                 <input id="bm-send-endpoint" class="input" type="text" wire:model.live="sendEndpoint" placeholder="/message/v2">
                 <small class="field-help muted">Ruta del endpoint para enviar mensajes. Default: <code>/message/v2</code></small>
