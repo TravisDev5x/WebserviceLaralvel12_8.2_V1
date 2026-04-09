@@ -37,7 +37,7 @@ class Bitrix24ConnectorService
             'ID' => $connectorId,
             'NAME' => 'Botmaker WhatsApp',
             'ICON' => [
-                'DATA_IMAGE' => '',
+                'DATA_IMAGE' => $this->whatsappIconBase64(),
                 'COLOR' => '#25D366',
                 'SIZE' => '60',
             ],
@@ -75,7 +75,7 @@ class Bitrix24ConnectorService
                 'id' => $this->connectorId(),
                 'name' => 'Botmaker WhatsApp',
                 'icon' => [
-                    'data_image' => '',
+                    'data_image' => $this->whatsappIconBase64(),
                     'color' => '#25D366',
                     'size' => '60',
                 ],
@@ -226,5 +226,15 @@ class Bitrix24ConnectorService
     private function connectorId(): string
     {
         return (string) config_dynamic('bitrix24.connector_id', config('services.bitrix24.connector_id', 'botmaker_whatsapp'));
+    }
+
+    private function whatsappIconBase64(): string
+    {
+        $svg = '<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60">'
+            . '<circle cx="30" cy="30" r="30" fill="#25D366"/>'
+            . '<path d="M40.4 35.5c-.7-.4-4-2-4.7-2.2-.6-.2-1-.3-1.5.3-.4.6-1.7 2.2-2.1 2.6-.4.5-.8.5-1.4.2-.7-.4-3-1.1-5.6-3.5-2.1-1.9-3.5-4.2-3.9-4.9-.4-.7 0-.9.3-1.3.3-.3.7-.8 1-1.2.3-.4.4-.7.6-1.1.2-.4.1-.8 0-1.1-.2-.4-1.5-3.6-2-4.9-.5-1.3-1.1-1.1-1.5-1.1h-1.3c-.4 0-1.1.2-1.7.8-.6.7-2.3 2.2-2.3 5.4s2.3 6.3 2.7 6.7c.3.4 4.6 7 11.1 9.8 1.6.7 2.8 1.1 3.7 1.4 1.6.5 3 .4 4.1.3 1.3-.2 4-1.6 4.5-3.2.6-1.6.6-2.9.4-3.2-.2-.3-.6-.5-1.3-.8z" fill="#fff"/>'
+            . '</svg>';
+
+        return 'data:image/svg+xml;base64,' . base64_encode($svg);
     }
 }
