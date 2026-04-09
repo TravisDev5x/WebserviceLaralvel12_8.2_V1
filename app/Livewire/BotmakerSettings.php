@@ -162,29 +162,42 @@ class BotmakerSettings extends Component
             return;
         }
 
+        $base = rtrim($resolvedUrl, '/');
+        $headers = ['Accept' => 'application/json', 'access-token' => $resolvedToken];
+
         try {
-            $response = Http::timeout(10)
-                ->withHeaders([
-                    'Accept' => 'application/json',
-                    'access-token' => $resolvedToken,
-                ])
-                ->get(rtrim($resolvedUrl, '/') . '/channels');
+            $response = Http::timeout(10)->withHeaders($headers)->get($base . '/channels');
 
             if ($response->status() === 200) {
                 $items = $response->json('items', []);
-                $whatsappChannels = array_filter($items, fn ($ch) => str_contains($ch['id'] ?? '', 'whatsapp'));
+                $wa = array_filter($items, fn ($ch) => str_contains($ch['id'] ?? '', 'whatsapp'));
 
-                if (count($whatsappChannels) > 0) {
-                    $first = reset($whatsappChannels);
-                    $this->channelId = $first['id'] ?? '';
+                if (count($wa) > 0) {
+                    $this->channelId = reset($wa)['id'] ?? '';
                     $this->apiTestOk = true;
                     $this->apiTestMessage = 'Channel detectado: ' . $this->channelId;
-                } else {
-                    $this->apiTestMessage = 'No se encontraron canales de WhatsApp. Canales disponibles: ' . collect($items)->pluck('id')->implode(', ');
+
+                    return;
                 }
-            } else {
-                $this->apiTestMessage = "Error HTTP {$response->status()} al obtener canales.";
             }
+
+            $chatResp = Http::timeout(10)->withHeaders($headers)->get($base . '/chats', ['limit' => 1]);
+
+            if ($chatResp->status() === 200) {
+                $chats = $chatResp->json('items', []);
+                if (count($chats) > 0) {
+                    $chatChannelId = data_get($chats[0], 'chat.channelId', '');
+                    if ($chatChannelId !== '') {
+                        $this->channelId = $chatChannelId;
+                        $this->apiTestOk = true;
+                        $this->apiTestMessage = 'Channel detectado desde chats: ' . $this->channelId;
+
+                        return;
+                    }
+                }
+            }
+
+            $this->apiTestMessage = 'No se pudo detectar el Channel ID. Ingrésalo manualmente con formato: botproject-whatsapp-TUNUMERO';
         } catch (Throwable $e) {
             $this->apiTestMessage = 'Error: ' . $e->getMessage();
         }
