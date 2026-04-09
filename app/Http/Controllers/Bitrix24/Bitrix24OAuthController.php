@@ -157,7 +157,7 @@ class Bitrix24OAuthController extends Controller
         $data = $payload['data'] ?? $payload;
 
         $connector = (string) ($data['CONNECTOR'] ?? $data['connector'] ?? '');
-        $configuredConnector = (string) config('services.bitrix24.connector_id', 'botmaker_whatsapp');
+        $configuredConnector = (string) config_dynamic('bitrix24.connector_id', config('services.bitrix24.connector_id', 'botmaker_whatsapp'));
 
         // T4.4: Ignore events that are NOT from our connector
         if ($connector !== '' && $connector !== $configuredConnector) {

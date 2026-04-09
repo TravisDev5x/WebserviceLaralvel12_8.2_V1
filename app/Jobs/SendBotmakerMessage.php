@@ -113,7 +113,7 @@ class SendBotmakerMessage implements ShouldQueue
     private function confirmDeliveryToBitrix24(Bitrix24ConnectorService $connectorService): void
     {
         try {
-            $lineId = (string) config('services.bitrix24.line_id', '1');
+            $lineId = (string) config_dynamic('bitrix24.line_id', config('services.bitrix24.line_id', '1'));
 
             $connectorService->sendDeliveryStatus($lineId, [
                 'MESSAGES' => [
