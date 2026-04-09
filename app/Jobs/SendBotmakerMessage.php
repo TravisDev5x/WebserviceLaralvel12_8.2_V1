@@ -26,7 +26,7 @@ class SendBotmakerMessage implements ShouldQueue
     /** @var array<int, int> */
     public array $backoff = [30, 60, 300, 900, 3600];
 
-    public int $timeout = 15;
+    public int $timeout = 30;
 
     public function __construct(
         public readonly string $phone,
@@ -77,7 +77,7 @@ class SendBotmakerMessage implements ShouldQueue
                 $webhookLog->update([
                     'status' => WebhookLog::STATUS_FAILED,
                     'error_message' => $exception->getMessage(),
-                    'error_type' => $exception::class,
+                    'error_type' => WebhookLog::ERROR_UNKNOWN,
                     'processing_ms' => $processingMs,
                 ]);
             }
@@ -99,11 +99,9 @@ class SendBotmakerMessage implements ShouldQueue
             return;
         }
 
-        $payload = $this->normalizePayload($webhookLog->payload_in);
-
         FailedWebhook::createFromLog(
             $webhookLog,
-            $payload,
+            ['phone' => $this->phone, 'message' => $this->message, 'correlation_id' => $this->correlationId],
             'botmaker_send_message',
             $exception->getMessage(),
             (int) ($webhookLog->http_status ?? 0),
@@ -141,21 +139,4 @@ class SendBotmakerMessage implements ShouldQueue
         }
     }
 
-    /**
-     * @return array<string, mixed>
-     */
-    private function normalizePayload(mixed $payload): array
-    {
-        if (is_array($payload)) {
-            return $payload;
-        }
-
-        if (is_string($payload)) {
-            $decoded = json_decode($payload, true);
-
-            return is_array($decoded) ? $decoded : [];
-        }
-
-        return [];
-    }
 }

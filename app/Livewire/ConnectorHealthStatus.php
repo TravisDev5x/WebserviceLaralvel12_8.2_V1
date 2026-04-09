@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire;
 
+use App\Models\AuthorizedToken;
 use App\Models\Bitrix24Token;
 use App\Services\Bitrix24AuthService;
 use App\Services\Bitrix24ConnectorService;
@@ -42,7 +43,7 @@ class ConnectorHealthStatus extends Component
         try {
             if ($oauthOk) {
                 $connector = app(Bitrix24ConnectorService::class);
-                $lineId = (int) config('services.bitrix24.line_id', 1);
+                $lineId = (int) config_dynamic('bitrix24.line_id', config('services.bitrix24.line_id', 1));
                 $status = $connector->checkStatus($lineId);
 
                 if ($status['success']) {
@@ -57,8 +58,8 @@ class ConnectorHealthStatus extends Component
         }
 
         try {
-            $bmToken = (string) config('services.botmaker.api_token', '');
-            $bmUrl = (string) config('services.botmaker.api_url', '');
+            $bmToken = AuthorizedToken::resolvedBotmakerApiToken();
+            $bmUrl = AuthorizedToken::resolvedBotmakerApiUrl();
 
             if ($bmToken !== '' && $bmToken !== '__PENDIENTE__' && $bmUrl !== '') {
                 $botmakerSendOk = true;

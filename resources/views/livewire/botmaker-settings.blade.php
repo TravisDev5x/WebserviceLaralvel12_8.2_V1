@@ -111,7 +111,7 @@
                                     <span class="badge badge-muted">Inactivo</span>
                                 @endif
                             </td>
-                            <td>{{ optional($token->last_used_at)->timezone(config('app.timezone'))->format('Y-m-d H:i:s') ?? 'Nunca' }}</td>
+                            <td>{{ $token->last_used_at ? $token->last_used_at->timezone(config('app.timezone'))->format('Y-m-d H:i:s') : 'Nunca' }}</td>
                             <td>
                                 <button type="button" class="btn btn-sm" wire:click="toggleTokenVisibility({{ $token->id }})">
                                     @if(!empty($visibleTokens[$token->id])) Ocultar @else Ver @endif

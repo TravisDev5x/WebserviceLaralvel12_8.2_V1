@@ -174,7 +174,7 @@ class AuthorizedToken extends Model
             $row = self::query()
                 ->active()
                 ->platform('botmaker')
-                ->incoming()
+                ->outgoing()
                 ->where('token', '!=', '')
                 ->orderBy('id')
                 ->first(['token']);

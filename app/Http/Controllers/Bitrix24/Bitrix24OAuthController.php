@@ -231,7 +231,8 @@ class Bitrix24OAuthController extends Controller
                 Cache::put($idempotencyKey, true, 300);
             }
 
-            $messageText = (string) ($msg['message']['text'] ?? $msg['MESSAGE'] ?? $msg['message'] ?? '');
+            $rawMessage = $msg['message'] ?? null;
+            $messageText = (string) ($msg['message']['text'] ?? $msg['MESSAGE'] ?? (is_string($rawMessage) ? $rawMessage : ''));
             $chatId = (string) ($msg['chat']['id'] ?? $msg['CHAT_ID'] ?? $msg['chat_id'] ?? '');
             $userId = (string) ($msg['user']['id'] ?? $msg['USER_ID'] ?? $msg['user_id'] ?? '');
 

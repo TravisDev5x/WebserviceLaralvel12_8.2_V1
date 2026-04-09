@@ -41,14 +41,16 @@ class RetryFailedWebhooks implements ShouldQueue
             }
 
             $direction = (string) $failedWebhook->direction;
+            $dispatched = false;
 
             if ($direction === 'botmaker_to_bitrix') {
                 ProcessBotmakerPayload::dispatch($failedWebhook->webhookLog->id)->onQueue('webhooks');
+                $dispatched = true;
             } elseif ($direction === 'bitrix_to_botmaker') {
                 $payload = is_array($failedWebhook->payload) ? $failedWebhook->payload : [];
                 $phone = (string) ($payload['phone'] ?? '');
                 $message = (string) ($payload['message'] ?? '');
-                $correlationId = (string) ($failedWebhook->webhookLog->correlation_id ?? '');
+                $correlationId = (string) ($payload['correlation_id'] ?? $failedWebhook->webhookLog->correlation_id ?? '');
 
                 if ($phone !== '' && $message !== '') {
                     SendBotmakerMessage::dispatch(
@@ -57,15 +59,24 @@ class RetryFailedWebhooks implements ShouldQueue
                         $correlationId,
                         $failedWebhook->webhookLog->id,
                     )->onQueue('webhooks');
+                    $dispatched = true;
                 } else {
                     Log::channel('webhook')->warning('Retry bitrix_to_botmaker: missing phone or message', [
                         'failed_webhook_id' => $failedWebhook->id,
+                        'payload_keys' => array_keys($payload),
                     ]);
                 }
             } else {
                 Log::channel('webhook')->warning('Dirección de webhook desconocida al reintentar', [
                     'failed_webhook_id' => $failedWebhook->id,
                     'direction' => $direction,
+                ]);
+            }
+
+            if ($dispatched) {
+                $failedWebhook->update([
+                    'status' => FailedWebhook::STATUS_RETRYING,
+                    'next_retry_at' => null,
                 ]);
             }
         }

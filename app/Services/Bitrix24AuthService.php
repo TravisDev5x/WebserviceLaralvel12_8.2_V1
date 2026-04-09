@@ -60,7 +60,7 @@ class Bitrix24AuthService
             return true;
         }
 
-        return $token->expires_at->subSeconds(self::TOKEN_EXPIRY_BUFFER_SECONDS)->isPast();
+        return $token->expires_at->copy()->subSeconds(self::TOKEN_EXPIRY_BUFFER_SECONDS)->isPast();
     }
 
     /**

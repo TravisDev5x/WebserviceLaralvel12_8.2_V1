@@ -26,7 +26,7 @@ class ProcessBotmakerPayload implements ShouldQueue
     /** @var array<int, int> */
     public array $backoff = [30, 60, 300, 900, 3600];
 
-    public int $timeout = 15;
+    public int $timeout = 30;
 
     public function __construct(public int $webhookLogId)
     {
@@ -34,7 +34,7 @@ class ProcessBotmakerPayload implements ShouldQueue
         $this->tries = (int) config_dynamic('retry.max_attempts', 5);
         $backoff = config_dynamic('retry.backoff_schedule', [30, 60, 300, 900, 3600]);
         $this->backoff = is_array($backoff) && $backoff !== [] ? array_values(array_map('intval', $backoff)) : [30, 60, 300, 900, 3600];
-        $this->timeout = (int) config_dynamic('retry.http_timeout', 15);
+        $this->timeout = (int) config_dynamic('retry.http_timeout', 30);
     }
 
     // =========================================================================
@@ -174,7 +174,7 @@ class ProcessBotmakerPayload implements ShouldQueue
 
             $webhookLog->status = 'failed';
             $webhookLog->error_message = (string) $response['body'];
-            $webhookLog->error_type = 'remote_error';
+            $webhookLog->error_type = WebhookLog::ERROR_SERVER;
         }
 
         $webhookLog->payload_out = $response;
@@ -198,7 +198,7 @@ class ProcessBotmakerPayload implements ShouldQueue
 
         $webhookLog->status = 'failed';
         $webhookLog->error_message = $exception->getMessage();
-        $webhookLog->error_type = $exception::class;
+        $webhookLog->error_type = WebhookLog::ERROR_UNKNOWN;
         $webhookLog->processing_ms = $processingMs;
         $webhookLog->save();
     }

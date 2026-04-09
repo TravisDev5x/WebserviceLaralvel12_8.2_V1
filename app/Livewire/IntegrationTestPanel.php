@@ -166,7 +166,7 @@ class IntegrationTestPanel extends Component
         $this->flowSteps[] = '1. Enviando POST a /api/webhook/botmaker...';
         try {
             $response = Http::asJson()
-                ->withHeaders(['X-Botmaker-Signature' => $secret])
+                ->withHeaders(['auth-bm-token' => $secret])
                 ->timeout(30)
                 ->post(url('/api/webhook/botmaker'), $payload);
             $this->flowSteps[] = '2. Respuesta HTTP ' . $response->status() . ': ' . substr($response->body(), 0, 200);
