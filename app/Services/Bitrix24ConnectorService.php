@@ -33,6 +33,8 @@ class Bitrix24ConnectorService
     {
         $connectorId = $this->connectorId();
 
+        $appUrl = rtrim((string) config('app.url', ''), '/');
+
         return $this->callRest('imconnector.register', [
             'ID' => $connectorId,
             'NAME' => 'Botmaker WhatsApp',
@@ -41,7 +43,7 @@ class Bitrix24ConnectorService
                 'COLOR' => '#25D366',
                 'SIZE' => '60',
             ],
-            'PLACEMENT_HANDLER' => '',
+            'PLACEMENT_HANDLER' => $appUrl . '/api/bitrix24/handler',
         ], 'register_connector');
     }
 
