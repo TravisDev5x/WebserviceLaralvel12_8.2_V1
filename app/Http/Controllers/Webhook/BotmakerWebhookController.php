@@ -87,7 +87,7 @@ class BotmakerWebhookController extends Controller
     private function extractSummaryFields(array $payload): array
     {
         $name = trim((string) ($payload['firstName'] ?? $payload['contact']['firstName'] ?? $payload['name'] ?? ''));
-        $phone = trim((string) ($payload['whatsappNumber'] ?? $payload['contact']['phone'] ?? $payload['phone'] ?? ''));
+        $phone = trim((string) ($payload['contactId'] ?? $payload['whatsappNumber'] ?? $payload['contact']['phone'] ?? $payload['phone'] ?? ''));
         $email = trim((string) ($payload['email'] ?? $payload['contact']['email'] ?? ''));
         $status = trim((string) ($payload['status'] ?? $payload['contact']['status'] ?? ''));
 
