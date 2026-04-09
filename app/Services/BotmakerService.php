@@ -4,8 +4,23 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Exceptions\BotmakerApiException;
+use GuzzleHttp\Client;
+use GuzzleHttp\ClientInterface;
+use Illuminate\Support\Facades\Log;
+use Throwable;
+
 final class BotmakerService
 {
+    private readonly ClientInterface $httpClient;
+
+    public function __construct(?ClientInterface $httpClient = null)
+    {
+        $this->httpClient = $httpClient ?? new Client([
+            'timeout' => 15,
+        ]);
+    }
+
     /**
      * Normaliza payload entrante de Botmaker a un formato estable para el job.
      *
@@ -32,5 +47,90 @@ final class BotmakerService
             'event' => $event,
             'raw' => $payload,
         ];
+    }
+
+    /**
+     * Sends a text message to a WhatsApp number via Botmaker's API.
+     *
+     * @return array{success: bool, http_status: int, body: string, data: array<string, mixed>}
+     *
+     * @throws BotmakerApiException
+     */
+    public function sendMessage(string $phone, string $text): array
+    {
+        $baseUrl = rtrim((string) config('services.botmaker.api_url', 'https://go.botmaker.com/api/v1.0'), '/');
+        $sendEndpoint = (string) config('services.botmaker.send_endpoint', '/message/v2');
+        $url = $baseUrl . $sendEndpoint;
+
+        $apiToken = (string) config('services.botmaker.api_token', '');
+
+        if ($apiToken === '') {
+            throw new BotmakerApiException(
+                'BOTMAKER_API_TOKEN is not configured',
+                context: ['phone' => $phone],
+            );
+        }
+
+        $payload = [
+            'chatPlatform' => 'whatsapp',
+            'chatChannelNumber' => $phone,
+            'messageText' => $text,
+        ];
+
+        try {
+            $response = $this->httpClient->request('POST', $url, [
+                'headers' => [
+                    'Accept' => 'application/json',
+                    'Content-Type' => 'application/json',
+                    'access-token' => $apiToken,
+                ],
+                'json' => $payload,
+            ]);
+
+            $httpStatus = $response->getStatusCode();
+            $body = (string) $response->getBody();
+
+            /** @var array<string, mixed> $decoded */
+            $decoded = json_decode($body, true) ?? [];
+            $success = $httpStatus >= 200 && $httpStatus < 300;
+
+            Log::channel('webhook')->debug('Botmaker sendMessage response', [
+                'url' => $url,
+                'phone' => $phone,
+                'http_status' => $httpStatus,
+                'response_body' => $body,
+            ]);
+
+            if (! $success) {
+                throw new BotmakerApiException(
+                    "Botmaker API returned HTTP {$httpStatus}",
+                    httpStatus: $httpStatus,
+                    responseBody: $body,
+                    context: ['phone' => $phone, 'payload' => $payload],
+                );
+            }
+
+            return [
+                'success' => true,
+                'http_status' => $httpStatus,
+                'body' => $body,
+                'data' => $decoded,
+            ];
+        } catch (BotmakerApiException $e) {
+            throw $e;
+        } catch (Throwable $e) {
+            Log::channel('webhook')->error('Botmaker sendMessage failed', [
+                'url' => $url,
+                'phone' => $phone,
+                'error' => $e->getMessage(),
+            ]);
+
+            throw new BotmakerApiException(
+                "Botmaker API request failed: {$e->getMessage()}",
+                responseBody: $e->getMessage(),
+                context: ['phone' => $phone, 'payload' => $payload],
+                previous: $e,
+            );
+        }
     }
 }

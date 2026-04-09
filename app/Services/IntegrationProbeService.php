@@ -7,7 +7,7 @@ namespace App\Services;
 use App\Models\AuthorizedToken;
 use App\Models\FailedWebhook;
 use App\Models\WebhookLog;
-use App\Support\MapBotmakerCanonicalToBitrixLead;
+use App\Legacy\MapBotmakerCanonicalToBitrixLead;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use Throwable;

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Bitrix24\Bitrix24OAuthController;
 use App\Http\Controllers\Webhook\BotmakerWebhookController;
 use Illuminate\Support\Facades\Route;
 
@@ -10,3 +11,8 @@ Route::prefix('webhook')
     ->group(function (): void {
         Route::post('/botmaker', [BotmakerWebhookController::class, 'handle']);
     });
+
+Route::prefix('bitrix24')->group(function (): void {
+    Route::match(['get', 'post'], '/install', [Bitrix24OAuthController::class, 'install']);
+    Route::post('/handler', [Bitrix24OAuthController::class, 'handler']);
+});

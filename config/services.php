@@ -39,11 +39,17 @@ return [
         'api_url' => env('BOTMAKER_API_URL', 'https://go.botmaker.com/api/v1.0'),
         'api_token' => env('BOTMAKER_API_TOKEN'),
         'webhook_secret' => env('BOTMAKER_WEBHOOK_SECRET'),
+        'send_endpoint' => env('BOTMAKER_SEND_ENDPOINT', '/message/v2'),
     ],
 
     'bitrix24' => [
         'webhook_url' => env('BITRIX24_WEBHOOK_URL'),
         'webhook_secret' => env('BITRIX24_WEBHOOK_SECRET'),
+        'domain' => env('BITRIX24_DOMAIN'),
+        'client_id' => env('BITRIX24_CLIENT_ID'),
+        'client_secret' => env('BITRIX24_CLIENT_SECRET'),
+        'connector_id' => env('BITRIX24_CONNECTOR_ID', 'botmaker_whatsapp'),
+        'line_id' => env('BITRIX24_LINE_ID', '1'),
     ],
 
 ];

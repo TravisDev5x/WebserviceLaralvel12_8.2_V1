@@ -44,6 +44,24 @@ class RetryFailedWebhooks implements ShouldQueue
 
             if ($direction === 'botmaker_to_bitrix') {
                 ProcessBotmakerPayload::dispatch($failedWebhook->webhookLog->id)->onQueue('webhooks');
+            } elseif ($direction === 'bitrix_to_botmaker') {
+                $payload = is_array($failedWebhook->payload) ? $failedWebhook->payload : [];
+                $phone = (string) ($payload['phone'] ?? '');
+                $message = (string) ($payload['message'] ?? '');
+                $correlationId = (string) ($failedWebhook->webhookLog->correlation_id ?? '');
+
+                if ($phone !== '' && $message !== '') {
+                    SendBotmakerMessage::dispatch(
+                        $phone,
+                        $message,
+                        $correlationId,
+                        $failedWebhook->webhookLog->id,
+                    )->onQueue('webhooks');
+                } else {
+                    Log::channel('webhook')->warning('Retry bitrix_to_botmaker: missing phone or message', [
+                        'failed_webhook_id' => $failedWebhook->id,
+                    ]);
+                }
             } else {
                 Log::channel('webhook')->warning('Dirección de webhook desconocida al reintentar', [
                     'failed_webhook_id' => $failedWebhook->id,

@@ -27,6 +27,7 @@
     </div>
 
     <livewire:health-status />
+    <livewire:connector-health-status />
 
     <section class="card card-pad" style="margin-top: 0.25rem;">
         <div class="page-header" style="margin-bottom: 0.75rem;">

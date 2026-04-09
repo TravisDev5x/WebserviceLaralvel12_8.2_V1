@@ -48,7 +48,14 @@ class Bitrix24Service
         ];
     }
 
+    // =========================================================================
+    //  LEGACY v1: CRM methods — kept for IntegrationProbeService (test panel)
+    //  In v2 (imconnector), leads are created automatically by Bitrix24.
+    // =========================================================================
+
     /**
+     * LEGACY v1: replaced by imconnector.send.messages (Bitrix24 creates leads automatically).
+     *
      * @param  array<string, mixed>  $data
      * @return array{success: bool, http_status: int, body: string}
      */
@@ -58,6 +65,8 @@ class Bitrix24Service
     }
 
     /**
+     * LEGACY v1: replaced by imconnector architecture.
+     *
      * @param  array<string, mixed>  $data
      * @return array{success: bool, http_status: int, body: string}
      */
@@ -71,6 +80,8 @@ class Bitrix24Service
     }
 
     /**
+     * LEGACY v1: replaced by imconnector architecture.
+     *
      * @return array<string, mixed>|null
      */
     public function findContactByPhone(string $phone): ?array

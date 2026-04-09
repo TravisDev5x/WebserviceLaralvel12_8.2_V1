@@ -4,16 +4,15 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
-use App\Models\AuthorizedToken;
 use App\Models\FailedWebhook;
-use App\Models\FieldMapping;
 use App\Models\WebhookLog;
-use App\Services\Bitrix24Service;
-use App\Support\BitrixLeadDefaults;
+use App\Services\Bitrix24ConnectorService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Throwable;
 
 class ProcessBotmakerPayload implements ShouldQueue
@@ -38,8 +37,12 @@ class ProcessBotmakerPayload implements ShouldQueue
         $this->timeout = (int) config_dynamic('retry.http_timeout', 15);
     }
 
+    // =========================================================================
+    //  v2 — imconnector: Inject message into Bitrix24 Open Channel
+    // =========================================================================
+
     public function handle(
-        Bitrix24Service $bitrix24Service,
+        Bitrix24ConnectorService $connectorService,
     ): void {
         $webhookLog = WebhookLog::query()->findOrFail($this->webhookLogId);
         $startedAt = microtime(true);
@@ -48,17 +51,40 @@ class ProcessBotmakerPayload implements ShouldQueue
 
         $payload = $this->normalizePayload($webhookLog->payload_in);
 
-        try {
-            $phone = (string) ($payload['contactId'] ?? '');
-            $contact = $phone !== '' ? $bitrix24Service->findContactByPhone($phone) : null;
+        // T5.1: Deduplication via cache lock using Botmaker message ID
+        $messageId = (string) ($payload['_id'] ?? $payload['messageId'] ?? $payload['id'] ?? '');
+        if ($messageId !== '') {
+            $lockKey = "botmaker_msg_{$messageId}";
+            $lock = Cache::lock($lockKey, 60);
 
-            $leadData = $this->mapLeadData($payload);
+            if (! $lock->get()) {
+                Log::channel('webhook')->info('Duplicate Botmaker message discarded', [
+                    'message_id' => $messageId,
+                    'webhook_log_id' => $this->webhookLogId,
+                ]);
 
-            if (is_array($contact) && isset($contact['LEAD_ID'])) {
-                $response = $bitrix24Service->updateLead((int) $contact['LEAD_ID'], $leadData);
-            } else {
-                $response = $bitrix24Service->createLead($leadData);
+                $webhookLog->update([
+                    'status' => WebhookLog::STATUS_SENT,
+                    'response_body' => 'Duplicate message — skipped',
+                    'processing_ms' => (int) round((microtime(true) - $startedAt) * 1000),
+                ]);
+
+                return;
             }
+        }
+
+        try {
+            $phone = (string) ($payload['contactId'] ?? $payload['whatsappNumber'] ?? $payload['phone'] ?? '');
+            $firstName = (string) ($payload['firstName'] ?? '');
+            $lastName = (string) ($payload['lastName'] ?? '');
+            $clientName = trim("{$firstName} {$lastName}");
+            if ($clientName === '') {
+                $clientName = $phone;
+            }
+
+            $messageText = (string) data_get($payload, 'messages.0.message', data_get($payload, 'message', ''));
+
+            $response = $connectorService->sendSingleMessage($phone, $clientName, $messageText);
 
             $this->finalizeFromResponse($webhookLog, $response, $startedAt);
 
@@ -79,7 +105,7 @@ class ProcessBotmakerPayload implements ShouldQueue
         }
 
         $payload = $this->normalizePayload($webhookLog->payload_in);
-        $targetUrl = AuthorizedToken::resolvedBitrix24WebhookUrl();
+        $targetUrl = 'imconnector.send.messages';
 
         FailedWebhook::createFromLog(
             $webhookLog,
@@ -106,59 +132,6 @@ class ProcessBotmakerPayload implements ShouldQueue
         }
 
         return [];
-    }
-
-    /**
-     * @param  array<string, mixed>  $payload
-     * @return array<string, mixed>
-     */
-    private function mapLeadData(array $payload): array
-    {
-        $firstName = (string) ($payload['firstName'] ?? '');
-        $lastName = (string) ($payload['lastName'] ?? '');
-        $phone = (string) ($payload['contactId'] ?? '');
-        $comments = (string) data_get($payload, 'messages.0.message', '');
-        $fullName = trim($firstName.' '.$lastName);
-
-        $base = [
-            'NAME' => $firstName,
-            'LAST_NAME' => $lastName,
-            'PHONE' => [[
-                'VALUE' => $phone,
-                'VALUE_TYPE' => 'MOBILE',
-            ]],
-            'COMMENTS' => $comments,
-            'TITLE' => trim('Consulta WhatsApp - '.$fullName),
-        ];
-
-        $dynamicMappings = FieldMapping::getMappings('botmaker');
-        if ($dynamicMappings->isNotEmpty()) {
-            $mapped = $this->applyDynamicMappings($payload, $dynamicMappings->all());
-            $base = array_merge($base, $mapped);
-        }
-
-        return BitrixLeadDefaults::merge($base);
-    }
-
-    /**
-     * @param  array<string,mixed>  $source
-     * @param  array<int, FieldMapping>  $mappings
-     * @return array<string,mixed>
-     */
-    private function applyDynamicMappings(array $source, array $mappings): array
-    {
-        $result = [];
-
-        foreach ($mappings as $mapping) {
-            $value = data_get($source, (string) $mapping->source_path);
-            $transformed = $mapping->applyTransform($value);
-            if ($transformed === null || $transformed === '') {
-                continue;
-            }
-            $result[(string) $mapping->target_field] = $transformed;
-        }
-
-        return $result;
     }
 
     private function markAsProcessing(WebhookLog $webhookLog): void

@@ -5,31 +5,11 @@ declare(strict_types=1);
 namespace App\Support;
 
 /**
- * Aplica valores por defecto de Bitrix24 al payload de crm.lead.add/update (configuración en BD / .env).
+ * LEGACY v1: Moved to App\Legacy\BitrixLeadDefaults.
+ * This wrapper exists for backward compatibility.
+ *
+ * @deprecated Use App\Legacy\BitrixLeadDefaults instead.
  */
-final class BitrixLeadDefaults
+final class BitrixLeadDefaults extends \App\Legacy\BitrixLeadDefaults
 {
-    /**
-     * @param  array<string, mixed>  $fields
-     * @return array<string, mixed>
-     */
-    public static function merge(array $fields): array
-    {
-        $sourceId = trim((string) config_dynamic('bitrix24.default_source_id', ''));
-        if ($sourceId !== '' && ! array_key_exists('SOURCE_ID', $fields)) {
-            $fields['SOURCE_ID'] = $sourceId;
-        }
-
-        $assigned = trim((string) config_dynamic('bitrix24.default_assigned_by_id', ''));
-        if ($assigned !== '' && ! array_key_exists('ASSIGNED_BY_ID', $fields)) {
-            $fields['ASSIGNED_BY_ID'] = $assigned;
-        }
-
-        $status = trim((string) config_dynamic('bitrix24.default_status_id', ''));
-        if ($status !== '' && ! array_key_exists('STATUS_ID', $fields)) {
-            $fields['STATUS_ID'] = $status;
-        }
-
-        return $fields;
-    }
 }
