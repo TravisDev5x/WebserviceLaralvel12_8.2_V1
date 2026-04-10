@@ -205,6 +205,11 @@ class Bitrix24OAuthController extends Controller
                 continue;
             }
 
+            $messageUserId = (string) ($msg['message']['user_id'] ?? '');
+            if ($messageUserId === '0' || $messageUserId === '') {
+                continue;
+            }
+
             // T4.4: Ignore messages injected by this WebService (anti-loop)
             $externalSource = (string) ($msg['extra']['source'] ?? '');
             if ($externalSource === 'webservice_connector') {
@@ -257,11 +262,17 @@ class Bitrix24OAuthController extends Controller
                 'correlation_id' => $log->correlation_id,
             ]);
 
+            $imBlock = is_array($msg['im'] ?? null) ? $msg['im'] : [];
+            $bitrixImChatId = (string) ($imBlock['chat_id'] ?? '');
+            $bitrixImMessageId = (string) ($imBlock['message_id'] ?? '');
+
             SendBotmakerMessage::dispatch(
                 $phone,
                 $messageText,
                 $log->correlation_id,
                 $log->id,
+                $bitrixImChatId !== '' ? $bitrixImChatId : null,
+                $bitrixImMessageId !== '' ? $bitrixImMessageId : null,
             )->onQueue('webhooks');
 
             $dispatched++;

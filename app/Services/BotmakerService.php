@@ -151,7 +151,21 @@ final class BotmakerService
     {
         $text = preg_replace('/\[br\]/i', "\n", $text);
         $text = preg_replace('/\[\/?[a-zA-Z][a-zA-Z0-9]*(?:=[^\]]*?)?\]/u', '', $text);
+        $text = trim($text);
 
-        return trim($text);
+        if ($text !== '') {
+            $firstNewline = strpos($text, "\n");
+            if ($firstNewline !== false) {
+                $firstLine = trim(substr($text, 0, $firstNewline));
+                if ($firstLine !== '' && str_ends_with($firstLine, ':')) {
+                    $text = trim(substr($text, $firstNewline + 1));
+                }
+            }
+
+            $text = preg_replace('/^[A-ZÁ-Ú\s]+:\s*\n/u', '', $text);
+            $text = trim($text);
+        }
+
+        return $text;
     }
 }

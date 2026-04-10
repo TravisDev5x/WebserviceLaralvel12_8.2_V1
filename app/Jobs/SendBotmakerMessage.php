@@ -33,6 +33,8 @@ class SendBotmakerMessage implements ShouldQueue
         public readonly string $message,
         public readonly string $correlationId,
         public readonly int $webhookLogId,
+        public readonly ?string $bitrixImChatId = null,
+        public readonly ?string $bitrixMessageId = null,
     ) {
         $this->onQueue('webhooks');
     }
@@ -101,7 +103,13 @@ class SendBotmakerMessage implements ShouldQueue
 
         FailedWebhook::createFromLog(
             $webhookLog,
-            ['phone' => $this->phone, 'message' => $this->message, 'correlation_id' => $this->correlationId],
+            [
+                'phone' => $this->phone,
+                'message' => $this->message,
+                'correlation_id' => $this->correlationId,
+                'bitrix_im_chat_id' => $this->bitrixImChatId,
+                'bitrix_message_id' => $this->bitrixMessageId,
+            ],
             'botmaker_send_message',
             $exception->getMessage(),
             (int) ($webhookLog->http_status ?? 0),
@@ -110,6 +118,16 @@ class SendBotmakerMessage implements ShouldQueue
 
     private function confirmDeliveryToBitrix24(Bitrix24ConnectorService $connectorService): void
     {
+        if ($this->bitrixImChatId === null || $this->bitrixImChatId === ''
+            || $this->bitrixMessageId === null || $this->bitrixMessageId === '') {
+            Log::channel('webhook')->debug('Skipping Bitrix24 delivery status (no im chat/message id)', [
+                'phone' => $this->phone,
+                'correlation_id' => $this->correlationId,
+            ]);
+
+            return;
+        }
+
         try {
             $lineId = (string) config_dynamic('bitrix24.line_id', config('services.bitrix24.line_id', '1'));
 
@@ -117,12 +135,16 @@ class SendBotmakerMessage implements ShouldQueue
                 'MESSAGES' => [
                     [
                         'im' => [
-                            'chat_id' => $this->phone,
+                            'chat_id' => (int) $this->bitrixImChatId,
+                            'message_id' => (int) $this->bitrixMessageId,
                         ],
                         'message' => [
                             'id' => [$this->correlationId],
+                            'date' => now()->timestamp,
                         ],
-                        'date' => now()->timestamp,
+                        'chat' => [
+                            'id' => $this->phone,
+                        ],
                     ],
                 ],
             ]);
@@ -130,6 +152,8 @@ class SendBotmakerMessage implements ShouldQueue
             Log::channel('webhook')->debug('Delivery status confirmed to Bitrix24', [
                 'phone' => $this->phone,
                 'correlation_id' => $this->correlationId,
+                'bitrix_im_chat_id' => $this->bitrixImChatId,
+                'bitrix_message_id' => $this->bitrixMessageId,
             ]);
         } catch (Throwable $e) {
             Log::channel('webhook')->warning('Failed to confirm delivery to Bitrix24 (non-fatal)', [

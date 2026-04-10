@@ -53,11 +53,18 @@ class RetryFailedWebhooks implements ShouldQueue
                 $correlationId = (string) ($payload['correlation_id'] ?? $failedWebhook->webhookLog->correlation_id ?? '');
 
                 if ($phone !== '' && $message !== '') {
+                    $bitrixImChatId = isset($payload['bitrix_im_chat_id'])
+                        ? (string) $payload['bitrix_im_chat_id'] : null;
+                    $bitrixMessageId = isset($payload['bitrix_message_id'])
+                        ? (string) $payload['bitrix_message_id'] : null;
+
                     SendBotmakerMessage::dispatch(
                         $phone,
                         $message,
                         $correlationId,
                         $failedWebhook->webhookLog->id,
+                        $bitrixImChatId !== '' ? $bitrixImChatId : null,
+                        $bitrixMessageId !== '' ? $bitrixMessageId : null,
                     )->onQueue('webhooks');
                     $dispatched = true;
                 } else {
