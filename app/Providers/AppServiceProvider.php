@@ -4,9 +4,11 @@ namespace App\Providers;
 
 use App\Models\AuthorizedToken;
 use App\Models\FailedWebhook;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -27,6 +29,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        RateLimiter::for('webhooks', fn () => Limit::perMinute(120));
+
         Paginator::defaultView('vendor.pagination.basecoat');
         Paginator::defaultSimpleView('vendor.pagination.simple-basecoat');
 
