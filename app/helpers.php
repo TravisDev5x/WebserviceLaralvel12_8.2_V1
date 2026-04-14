@@ -5,7 +5,6 @@ declare(strict_types=1);
 use App\Models\Role;
 use App\Models\Setting;
 use Illuminate\Support\Str;
-use Throwable;
 
 if (! function_exists('config_dynamic')) {
     function config_dynamic(string $dotKey, mixed $default = null): mixed
@@ -55,7 +54,7 @@ if (! function_exists('user_can')) {
             if ($role instanceof Role) {
                 return $role->hasPermission($permission);
             }
-        } catch (Throwable) {
+        } catch (\Throwable) {
             // Sin tabla roles o fallo de BD: usar reglas por slug como respaldo.
         }
 

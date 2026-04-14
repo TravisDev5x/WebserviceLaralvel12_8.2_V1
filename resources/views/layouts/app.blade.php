@@ -411,6 +411,21 @@
     @livewireStyles
 </head>
 <body>
+    @php
+        // Definir siempre en ámbito global del layout: con Livewire + <x-lucide> dentro del footer,
+        // @php() anidado en @if puede dejar $accountUser indefinido en vistas compiladas (500 en servidor).
+        $accountUser = auth()->check() ? auth()->user() : null;
+        $accountName = 'Cuenta';
+        $accountSubtitle = 'usuario';
+        if ($accountUser !== null) {
+            $accountName = (string) ($accountUser->name ?? 'Cuenta');
+            $accountLocal = $accountUser->email
+                ? (string) \Illuminate\Support\Str::before((string) $accountUser->email, '@')
+                : '';
+            $accountRole = \Illuminate\Support\Str::lower((string) ($accountUser->role ?? 'usuario'));
+            $accountSubtitle = $accountLocal !== '' ? '@'.$accountLocal : $accountRole;
+        }
+    @endphp
     <a href="#main-content" class="skip-link">Saltar al contenido principal</a>
     <aside id="main-navigation" class="sidebar" data-side="left" aria-hidden="false" data-collapsed="false">
         <nav aria-label="Sidebar navigation">
@@ -506,12 +521,7 @@
                 @endif
             </section>
             <footer>
-                @if(auth()->check())
-                @php($accountUser = auth()->user())
-                @php($accountName = $accountUser?->name ?? 'Cuenta')
-                @php($accountLocal = $accountUser?->email ? \Illuminate\Support\Str::before($accountUser->email, '@') : '')
-                @php($accountRole = \Illuminate\Support\Str::lower((string) ($accountUser?->role ?? 'usuario')))
-                @php($accountSubtitle = $accountLocal !== '' ? '@' . $accountLocal : $accountRole)
+                @if($accountUser !== null)
                 <div id="sidebar-account-dropdown" class="dropdown-menu w-full min-w-0 px-2 pb-2">
                     <button
                         type="button"
