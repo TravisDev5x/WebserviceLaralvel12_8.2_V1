@@ -1,15 +1,20 @@
 /**
  * Tema «doom64» — alineado al aspecto del preset en basecoatui.com (kitchen sink):
  * gris industrial, bordes marcados, esquinas cuadradas, aviso destructivo anaranjado.
- * Los tokens --radius-* fijan 0 (evita radios negativos con el calc de Basecoat).
+ * Todos los tokens --radius-* a 0 (Tailwind v4 añade --radius-xs / --radius-2xl…
+ * en @layer theme; si no se pisan, quedan redondeados pese a --radius: 0).
  */
 
 html[data-theme='doom64'] {
     --radius: 0;
+    --radius-xs: 0;
     --radius-sm: 0;
     --radius-md: 0;
     --radius-lg: 0;
     --radius-xl: 0;
+    --radius-2xl: 0;
+    --radius-3xl: 0;
+    --radius-4xl: 0;
     --background: oklch(0.78 0.004 280);
     --foreground: oklch(0.18 0.02 280);
     --card: oklch(0.72 0.006 280);
@@ -45,10 +50,14 @@ html[data-theme='doom64'] {
 
 html[data-theme='doom64'].dark {
     --radius: 0;
+    --radius-xs: 0;
     --radius-sm: 0;
     --radius-md: 0;
     --radius-lg: 0;
     --radius-xl: 0;
+    --radius-2xl: 0;
+    --radius-3xl: 0;
+    --radius-4xl: 0;
     /* Fondo casi negro; tarjetas/alerts un escalón más claras (kitchen sink). */
     --background: oklch(0.11 0.008 260);
     --foreground: oklch(0.98 0.004 260);

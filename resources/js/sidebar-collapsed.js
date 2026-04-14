@@ -10,12 +10,33 @@ function getSidebar() {
     return document.querySelector('.sidebar');
 }
 
+/**
+ * Menú de cuenta (dropdown Basecoat): con barra icon-only el ancho del `nav` es ~3.5rem.
+ * `data-side="top"` deja el popover anclado a esa columna y se recorta; en colapsado desktop
+ * abrimos a la derecha (`data-side="right"`) para que el panel quede sobre el contenido.
+ */
+function syncAccountPopoverPlacement(collapsed) {
+    const popover = document.getElementById('sidebar-account-popover');
+    if (!popover) return;
+
+    const desktop = window.matchMedia(BP).matches;
+    if (collapsed && desktop) {
+        popover.dataset.side = 'right';
+        popover.dataset.align = 'end';
+    } else {
+        popover.dataset.side = 'top';
+        popover.dataset.align = 'end';
+    }
+}
+
 function applyCollapsed(sidebar, collapsed) {
     if (!sidebar) return;
     sidebar.dataset.collapsed = collapsed ? 'true' : 'false';
     try {
         localStorage.setItem(STORAGE_KEY, collapsed ? 'true' : 'false');
     } catch (_) {}
+
+    syncAccountPopoverPlacement(collapsed);
 
     const btn = document.getElementById('sidebar-collapse-toggle');
     if (btn) {
