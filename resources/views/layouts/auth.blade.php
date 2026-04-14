@@ -22,7 +22,7 @@
         })();
     </script>
     @include('partials.theme-color-head')
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @include('partials.vite-assets')
     <style>
         body {
             margin: 0;
