@@ -506,13 +506,12 @@
                 @endif
             </section>
             <footer>
-                <?php
-                    $accountUser = auth()->user();
-                    $accountLocal = $accountUser->email ? \Illuminate\Support\Str::before($accountUser->email, '@') : '';
-                    $accountSubtitle = $accountLocal !== ''
-                        ? '@' . $accountLocal
-                        : \Illuminate\Support\Str::lower((string) $accountUser->role);
-                ?>
+                @if(auth()->check())
+                @php($accountUser = auth()->user())
+                @php($accountName = $accountUser?->name ?? 'Cuenta')
+                @php($accountLocal = $accountUser?->email ? \Illuminate\Support\Str::before($accountUser->email, '@') : '')
+                @php($accountRole = \Illuminate\Support\Str::lower((string) ($accountUser?->role ?? 'usuario')))
+                @php($accountSubtitle = $accountLocal !== '' ? '@' . $accountLocal : $accountRole)
                 <div id="sidebar-account-dropdown" class="dropdown-menu w-full min-w-0 px-2 pb-2">
                     <button
                         type="button"
@@ -522,14 +521,14 @@
                         aria-expanded="false"
                         aria-label="Menú de cuenta"
                         class="sidebar-account-trigger ring-sidebar-ring flex w-full min-w-0 items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-hidden transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2"
-                        data-tooltip="{{ $accountUser->name }} — {{ $accountSubtitle }}"
+                        data-tooltip="{{ $accountName }} — {{ $accountSubtitle }}"
                         data-side="right"
                     >
                         <span class="sidebar-account-collapsed-only shrink-0" aria-hidden="true">
                             <x-lucide-circle-user class="size-4" />
                         </span>
                         <span class="sidebar-account-summary flex min-w-0 flex-1 flex-col items-start gap-0.5 leading-tight">
-                            <span class="truncate font-medium text-sidebar-foreground">{{ $accountUser->name }}</span>
+                            <span class="truncate font-medium text-sidebar-foreground">{{ $accountName }}</span>
                             <span class="text-sidebar-foreground/70 truncate text-xs font-normal">{{ $accountSubtitle }}</span>
                         </span>
                         <x-lucide-chevrons-up-down class="sidebar-account-chevron size-4 shrink-0 text-sidebar-foreground/70" aria-hidden="true" />
@@ -548,6 +547,7 @@
                         </div>
                     </div>
                 </div>
+                @endif
             </footer>
         </nav>
     </aside>

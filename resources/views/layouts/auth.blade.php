@@ -7,8 +7,17 @@
     <script>
         (function () {
             try {
-                var h = document.documentElement;
-                h.classList.remove('dark');
+                const m = localStorage.getItem('themeMode');
+                const legacy = localStorage.getItem('ui-theme');
+                if (!m && legacy) {
+                    localStorage.setItem('themeMode', legacy === 'dark' ? 'dark' : 'light');
+                }
+            } catch (_) {}
+
+            try {
+                const stored = localStorage.getItem('themeMode');
+                const dark = stored ? stored === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+                document.documentElement.classList.toggle('dark', dark);
             } catch (e) {}
         })();
     </script>

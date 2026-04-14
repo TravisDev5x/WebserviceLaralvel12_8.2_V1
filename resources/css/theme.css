@@ -21,7 +21,7 @@ html {
     --sidebar-active: color-mix(in oklch, var(--sidebar-primary) 22%, var(--sidebar));
 }
 
-/* Login / registro: siempre modo claro del tema activo (sin clase dark en <html>). */
+/* Login / registro: respeta modo claro/oscuro según `themeMode` (clase `.dark`). */
 html.auth-layout {
-    color-scheme: light;
+    color-scheme: light dark;
 }

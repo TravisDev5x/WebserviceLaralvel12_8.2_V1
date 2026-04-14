@@ -11,6 +11,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -40,6 +41,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->render(function (\Throwable $e, Request $request) {
             // Keep Laravel's default auth handling (redirect/401) intact.
             if ($e instanceof AuthenticationException) {
+                return null;
+            }
+            // Keep Laravel's default validation flow (redirect back + errors) intact.
+            if ($e instanceof ValidationException) {
                 return null;
             }
 

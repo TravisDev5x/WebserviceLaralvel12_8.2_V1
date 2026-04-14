@@ -48,6 +48,15 @@ Route::middleware('guest')->group(function (): void {
             'login' => ['required', 'string', 'max:255'],
             'password' => ['required', 'string'],
             'remember' => ['nullable', 'boolean'],
+        ], [
+            'required' => 'El campo :attribute es obligatorio.',
+            'string' => 'El campo :attribute debe ser un texto válido.',
+            'max' => 'El campo :attribute no puede superar :max caracteres.',
+            'boolean' => 'El campo :attribute debe ser verdadero o falso.',
+        ], [
+            'login' => 'correo o número de empleado',
+            'password' => 'contraseña',
+            'remember' => 'recordarme',
         ]);
 
         $login = trim((string) $validated['login']);
