@@ -7,11 +7,13 @@
         <a class="btn" href="{{ url('/monitor/settings') }}">Volver al centro</a>
     </div>
 
-    <section class="card card-pad" style="margin-bottom: 1rem; border-left: 4px solid #eab308; background: #fefce8;">
-        <p style="margin:0; font-size:.92rem;"><strong style="color:#92400e;">Legacy v1</strong> — Este módulo era parte de la arquitectura v1 (<code>crm.lead.add</code>). En v2, Bitrix24 crea leads automáticamente desde el Canal Abierto. Los mapeos aquí definidos no se ejecutan en el flujo v2.</p>
-    </section>
+    <div class="alert mb-4 border-l-4 border-amber-500/80 bg-amber-50 text-amber-950 dark:border-amber-400 dark:bg-amber-950/40 dark:text-amber-50" role="status">
+        <section>
+            <p class="m-0 text-sm"><strong>Legacy v1</strong> — Este módulo era parte de la arquitectura v1 (<code>crm.lead.add</code>). En v2, Bitrix24 crea leads automáticamente desde el Canal Abierto. Los mapeos aquí definidos no se ejecutan en el flujo v2.</p>
+        </section>
+    </div>
 
-    <section class="card card-pad" style="margin-bottom: 1rem;">
+    <div class="card card-pad" style="margin-bottom: 1rem;">
         <div class="grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
             <div><label>Plataforma origen</label><input class="input" wire:model.live="source_platform" type="text" placeholder="botmaker"><small class="muted">Sistema origen del dato. Ejemplo: <code>botmaker</code>.</small></div>
             <div><label>Campo origen</label><input class="input" wire:model.live="source_field" type="text" placeholder="firstName"><small class="muted">Campo que llega desde Botmaker. Ejemplo: <code>firstName</code>, <code>messages.0.message</code>.</small></div>
@@ -39,9 +41,9 @@
             <small class="muted">Si está activo, este mapeo se aplica en producción.</small>
             <button class="btn btn-primary" wire:click="save" type="button">Guardar</button>
         </div>
-    </section>
+    </div>
 
-    <section class="card card-pad">
+    <div class="card card-pad">
         <div class="grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom: .75rem;">
             <div><input class="input" type="text" wire:model.live.debounce.300ms="search" placeholder="Buscar campo o path"></div>
             <div>
@@ -73,7 +75,7 @@
                         <td>{{ $row->is_active ? 'Sí' : 'No' }}</td>
                         <td style="display:flex; gap:.35rem;">
                             <button class="btn" wire:click="edit({{ $row->id }})" type="button">Editar</button>
-                            <button class="btn btn-danger" wire:click="confirmDelete({{ $row->id }})" type="button">Eliminar</button>
+                            <button class="btn btn-destructive" wire:click="confirmDelete({{ $row->id }})" type="button">Eliminar</button>
                         </td>
                     </tr>
                 @endforeach
@@ -84,7 +86,7 @@
             </table>
         </div>
         <div style="margin-top:.75rem;">{{ $rows->links() }}</div>
-    </section>
+    </div>
 
     @if($deleteId)
         <div style="position: fixed; inset: 0; background: rgba(0,0,0,.45); display:flex; align-items:center; justify-content:center; z-index:50;">
@@ -93,7 +95,7 @@
                 <p>¿Seguro que deseas eliminar este registro?</p>
                 <div style="display:flex; justify-content:flex-end; gap:.5rem;">
                     <button class="btn" wire:click="cancelDelete" type="button">Cancelar</button>
-                    <button class="btn btn-danger" wire:click="deleteConfirmed" type="button">Eliminar</button>
+                    <button class="btn btn-destructive" wire:click="deleteConfirmed" type="button">Eliminar</button>
                 </div>
             </div>
         </div>

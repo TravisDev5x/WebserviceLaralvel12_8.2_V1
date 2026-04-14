@@ -9,7 +9,7 @@
         @endif
     </div>
 
-    <section class="card card-pad" style="margin-bottom: 1rem;">
+    <div class="card card-pad" style="margin-bottom: 1rem;">
         <label for="failed-status-filter">Filtrar por estado</label>
         <select id="failed-status-filter" wire:model.live="statusFilter" class="select">
             @if(count($statuses) > 0)
@@ -18,9 +18,9 @@
                 @endforeach
             @endif
         </select>
-    </section>
+    </div>
 
-    <section class="card card-pad">
+    <div class="card card-pad">
         <div class="table-wrap">
             <table class="table-clean">
                 <thead>
@@ -67,5 +67,5 @@
         <div style="margin-top:.75rem;">
             {{ $failedWebhooks->links() }}
         </div>
-    </section>
+    </div>
 </div>

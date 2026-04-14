@@ -1,4 +1,4 @@
-<section class="card card-pad" wire:poll.30s>
+<div class="card card-pad" wire:poll.30s>
     <h3 style="margin-top:0;">Estado de salud del middleware</h3>
     <div class="grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));">
         <div style="display:flex; gap:.6rem; align-items:center;">
@@ -21,7 +21,7 @@
         </div>
     </div>
     <p class="muted" style="margin:.75rem 0 0;">Último webhook: {{ $lastWebhookAt ?: '-' }}</p>
-</section>
+</div>
 <style>
     .health-big{width:1rem;height:1rem;border-radius:999px;display:inline-block}
     .health-big.ok{background:#16a34a}

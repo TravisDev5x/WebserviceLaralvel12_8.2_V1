@@ -6,15 +6,15 @@
         </div>
         <div style="display:flex; gap:.5rem;">
             <button class="btn" wire:click="exportCsv" type="button" data-tooltip="Descargar resultados en CSV">
-                <span style="display:inline-flex; align-items:center; gap:.35rem;"><i data-lucide="file-down"></i>Exportar CSV</span>
+                <span style="display:inline-flex; align-items:center; gap:.35rem;"><x-lucide-file-down class="size-4 shrink-0" aria-hidden="true" />Exportar CSV</span>
             </button>
             <button class="btn" wire:click="exportExcel" type="button" data-tooltip="Descargar resultados en Excel">
-                <span style="display:inline-flex; align-items:center; gap:.35rem;"><i data-lucide="sheet"></i>Exportar Excel</span>
+                <span style="display:inline-flex; align-items:center; gap:.35rem;"><x-lucide-sheet class="size-4 shrink-0" aria-hidden="true" />Exportar Excel</span>
             </button>
         </div>
     </div>
 
-    <section class="card card-pad" style="margin-bottom: 1rem;">
+    <div class="card card-pad" style="margin-bottom: 1rem;">
         <div style="display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:.75rem;">
             <button type="button" class="btn btn-sm {{ $directionFilter === 'all' ? 'btn-primary' : '' }}" wire:click="$set('directionFilter','all')">Todas</button>
             <button type="button" class="btn btn-sm {{ $directionFilter === 'botmaker_to_bitrix' ? 'btn-primary' : '' }}" wire:click="$set('directionFilter','botmaker_to_bitrix')">Botmaker -> Bitrix24</button>
@@ -41,9 +41,9 @@
                 <small class="muted">Fecha final del rango de consulta.</small>
             </div>
         </div>
-    </section>
+    </div>
 
-    <section class="card card-pad">
+    <div class="card card-pad">
         <div class="table-wrap">
             <table class="table-clean">
                 <thead>
@@ -84,5 +84,5 @@
         <div class="mt-3">
             {{ $webhooks->links() }}
         </div>
-    </section>
+    </div>
 </div>

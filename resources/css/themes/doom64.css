@@ -1,0 +1,92 @@
+/**
+ * Tema «doom64» — alineado al aspecto del preset en basecoatui.com (kitchen sink):
+ * gris industrial, bordes marcados, esquinas cuadradas, aviso destructivo anaranjado.
+ * Los tokens --radius-* fijan 0 (evita radios negativos con el calc de Basecoat).
+ */
+
+html[data-theme='doom64'] {
+    --radius: 0;
+    --radius-sm: 0;
+    --radius-md: 0;
+    --radius-lg: 0;
+    --radius-xl: 0;
+    --background: oklch(0.78 0.004 280);
+    --foreground: oklch(0.18 0.02 280);
+    --card: oklch(0.72 0.006 280);
+    --card-foreground: oklch(0.16 0.02 280);
+    --popover: oklch(0.74 0.006 280);
+    --popover-foreground: oklch(0.16 0.02 280);
+    --primary: oklch(0.42 0.22 25);
+    --primary-foreground: oklch(0.98 0.01 95);
+    --secondary: oklch(0.7 0.008 280);
+    --secondary-foreground: oklch(0.2 0.02 280);
+    --muted: oklch(0.7 0.01 280);
+    --muted-foreground: oklch(0.38 0.02 280);
+    --accent: oklch(0.68 0.04 135);
+    --accent-foreground: oklch(0.18 0.05 135);
+    --destructive: oklch(0.62 0.2 48);
+    --border: oklch(0.32 0.02 280);
+    --input: oklch(0.32 0.02 280);
+    --ring: oklch(0.42 0.22 25);
+    --chart-1: oklch(0.48 0.22 25);
+    --chart-2: oklch(0.62 0.2 48);
+    --chart-3: oklch(0.55 0.12 280);
+    --chart-4: oklch(0.72 0.16 95);
+    --chart-5: oklch(0.58 0.18 305);
+    --sidebar: oklch(0.74 0.006 280);
+    --sidebar-foreground: oklch(0.16 0.02 280);
+    --sidebar-primary: oklch(0.42 0.22 25);
+    --sidebar-primary-foreground: oklch(0.98 0.01 95);
+    --sidebar-accent: oklch(0.68 0.02 280);
+    --sidebar-accent-foreground: oklch(0.2 0.02 280);
+    --sidebar-border: oklch(0.32 0.02 280);
+    --sidebar-ring: oklch(0.42 0.22 25);
+}
+
+html[data-theme='doom64'].dark {
+    --radius: 0;
+    --radius-sm: 0;
+    --radius-md: 0;
+    --radius-lg: 0;
+    --radius-xl: 0;
+    /* Fondo casi negro; tarjetas/alerts un escalón más claras (kitchen sink). */
+    --background: oklch(0.11 0.008 260);
+    --foreground: oklch(0.98 0.004 260);
+    --card: oklch(0.17 0.012 260);
+    --card-foreground: oklch(0.98 0.004 260);
+    --popover: oklch(0.19 0.014 260);
+    --popover-foreground: oklch(0.98 0.004 260);
+    --primary: oklch(0.58 0.22 25);
+    --primary-foreground: oklch(0.99 0.01 95);
+    --secondary: oklch(0.22 0.015 260);
+    --secondary-foreground: oklch(0.94 0.02 260);
+    --muted: oklch(0.22 0.015 260);
+    --muted-foreground: oklch(0.62 0.03 260);
+    --accent: oklch(0.26 0.02 260);
+    --accent-foreground: oklch(0.96 0.02 260);
+    /* alert-destructive: texto e icono naranja intenso (doc Basecoat). */
+    --destructive: oklch(0.78 0.17 58);
+    --border: oklch(0.28 0.02 260);
+    --input: oklch(0.2 0.015 260);
+    --ring: oklch(0.72 0.14 238);
+    --chart-1: oklch(0.58 0.22 25);
+    --chart-2: oklch(0.78 0.17 58);
+    --chart-3: oklch(0.55 0.12 195);
+    --chart-4: oklch(0.72 0.12 95);
+    --chart-5: oklch(0.62 0.18 305);
+    /* Sidebar ligeramente distinta del canvas. */
+    --sidebar: oklch(0.13 0.01 260);
+    --sidebar-foreground: oklch(0.82 0.02 260);
+    /* Badges «New» / acento rojo en doc. */
+    --sidebar-primary: oklch(0.58 0.22 25);
+    --sidebar-primary-foreground: oklch(0.99 0.01 95);
+    /*
+     * Basecoat: ítem activo y hover usan bg-sidebar-accent (ver .sidebar … aria-current).
+     * Azul cielo brillante + texto oscuro, como en el kitchen sink Doom 64.
+     */
+    --sidebar-accent: oklch(0.74 0.14 238);
+    --sidebar-accent-foreground: oklch(0.18 0.04 260);
+    --sidebar-border: oklch(0.26 0.02 260);
+    --sidebar-ring: oklch(0.72 0.14 238);
+    color-scheme: dark;
+}

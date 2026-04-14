@@ -5,32 +5,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $title ?? 'Manual de integración' }}</title>
     <script>
-        (function () {
+        (() => {
             try {
-                var t = localStorage.getItem('ui-theme') || 'dark';
-                var h = document.documentElement;
-                h.setAttribute('data-theme', t);
-                h.style.colorScheme = t === 'light' ? 'light' : 'dark';
-            } catch (e) {}
+                const m = localStorage.getItem('themeMode');
+                const legacy = localStorage.getItem('ui-theme');
+                if (!m && legacy) {
+                    localStorage.setItem('themeMode', legacy === 'dark' ? 'dark' : 'light');
+                }
+            } catch (_) {}
+            try {
+                const stored = localStorage.getItem('themeMode');
+                if (stored ? stored === 'dark'
+                    : matchMedia('(prefers-color-scheme: dark)').matches) {
+                    document.documentElement.classList.add('dark');
+                }
+            } catch (_) {}
+
+            const apply = dark => {
+                document.documentElement.classList.toggle('dark', dark);
+                try { localStorage.setItem('themeMode', dark ? 'dark' : 'light'); } catch (_) {}
+            };
+
+            document.addEventListener('basecoat:theme', (event) => {
+                const mode = event.detail?.mode;
+                apply(mode === 'dark' ? true
+                    : mode === 'light' ? false
+                    : !document.documentElement.classList.contains('dark'));
+            });
         })();
     </script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/basecoat-css@0.3.11/dist/basecoat.cdn.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/basecoat-css@0.3.11/dist/js/basecoat.min.js" defer></script>
+    @include('partials.theme-color-head')
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
-        :root {
-            --app-bg: #05070b;
-            --app-surface: #090d14;
-            --app-text: #f3f4f6;
-            --app-muted: #94a3b8;
-            --app-border: #1f2937;
-        }
-        html[data-theme="light"] {
-            --app-bg: #f5f7fb;
-            --app-surface: #ffffff;
-            --app-text: #111827;
-            --app-muted: #6b7280;
-            --app-border: #e5e7eb;
-        }
         body {
             margin: 0;
             min-height: 100vh;
@@ -59,7 +65,7 @@
             font-size: 0.88em; padding: 0.12rem 0.35rem; border-radius: 0.25rem;
             background: var(--app-border); color: var(--app-text);
         }
-        html[data-theme="light"] .manual-doc code { background: #e5e7eb; }
+        .manual-doc code { background: var(--muted); }
         .manual-doc .table-wrap { overflow-x: auto; margin: 0.75rem 0; }
         .manual-doc .doc-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
         .manual-doc .doc-table th, .manual-doc .doc-table td {
@@ -80,6 +86,7 @@
     </style>
 </head>
 <body>
+    <a href="#main-content" class="skip-link">Saltar al contenido principal</a>
     <header class="docs-header">
         <div class="docs-header-inner">
             <div>
@@ -94,25 +101,25 @@
                 @if(Route::has('login'))
                     <a class="btn" href="{{ route('login') }}">Iniciar sesión</a>
                 @endif
-                <button class="btn" type="button" id="docs-theme-toggle" aria-label="Cambiar tema">Tema</button>
+                @include('partials.theme-color-picker')
+                <button
+                    type="button"
+                    id="docs-theme-toggle"
+                    aria-label="Cambiar tema"
+                    data-tooltip="Cambiar tema"
+                    data-side="bottom"
+                    onclick="document.dispatchEvent(new CustomEvent('basecoat:theme'))"
+                    class="btn-icon-outline size-8"
+                >
+                    <span class="hidden dark:block"><x-lucide-sun class="size-4" /></span>
+                    <span class="block dark:hidden"><x-lucide-moon class="size-4" /></span>
+                </button>
             </div>
         </div>
     </header>
-    <main class="docs-main manual-doc">
+    <main id="main-content" class="docs-main manual-doc" tabindex="-1">
         @yield('content')
     </main>
     @include('partials.global-footer')
-    <script>
-        (function () {
-            var root = document.documentElement;
-            var btn = document.getElementById('docs-theme-toggle');
-            if (btn) btn.addEventListener('click', function () {
-                var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-                root.setAttribute('data-theme', next);
-                root.style.colorScheme = next === 'light' ? 'light' : 'dark';
-                try { localStorage.setItem('ui-theme', next); } catch (e) {}
-            });
-        })();
-    </script>
 </body>
 </html>

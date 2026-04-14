@@ -1,4 +1,4 @@
-<section class="card card-pad" wire:poll.60s>
+<div class="card card-pad" wire:poll.60s>
     <h3 style="margin-top:0;">Estado del conector imconnector (v2)</h3>
     <div class="grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));">
         <div style="display:flex; gap:.6rem; align-items:center;">
@@ -20,4 +20,4 @@
             </div>
         </div>
     </div>
-</section>
+</div>

@@ -1,0 +1,111 @@
+/**
+ * EXTENSIÓN CUSTOM — Sidebar colapsado (solo iconos)
+ * Compatible con Basecoat v0.3.11; NO es funcionalidad nativa (ver issue #119 upstream).
+ * No modifica basecoat-css: solo amplía `.sidebar` con `data-collapsed` y ajusta el `main` hermano.
+ * Tooltips: patrón [data-tooltip] de Basecoat (CSS); se suprime el ::before salvo en modo colapsado (desktop).
+ */
+
+:root {
+    --sidebar-collapsed-width: 3.5rem;
+}
+
+/* Icono solo en barra colapsada (desktop); en expandido o móvil no ocupa hueco. */
+.sidebar-account-collapsed-only {
+    display: none;
+}
+
+@media (min-width: 768px) {
+    .sidebar:not([data-collapsed='true']) nav > header {
+        align-items: flex-end;
+    }
+
+    .sidebar[data-collapsed='true'] nav > header {
+        align-items: center;
+        padding-inline: 0.35rem;
+    }
+
+    .sidebar[data-collapsed='true'] #sidebar-collapse-toggle {
+        align-self: center;
+    }
+
+    /* Ancho del panel: Basecoat aplica width en `nav`, no en `aside`. */
+    .sidebar[data-collapsed='true'] nav {
+        width: var(--sidebar-collapsed-width);
+        max-width: var(--sidebar-collapsed-width);
+        transition:
+            width 200ms ease,
+            max-width 200ms ease;
+    }
+
+    .sidebar[data-side='left'][data-collapsed='true'] + main.app-main {
+        margin-left: var(--sidebar-collapsed-width) !important;
+        transition: margin-left 200ms ease;
+    }
+
+    .sidebar[data-collapsed='true'] nav section [role='group'] > h3,
+    .sidebar[data-collapsed='true'] nav section ul li > a > .sidebar-link-label {
+        display: none !important;
+    }
+
+    .sidebar[data-collapsed='true'] nav section ul li > a {
+        position: relative;
+        justify-content: center;
+        gap: 0;
+        padding-inline: 0.25rem;
+    }
+
+    .sidebar[data-collapsed='true'] nav .sidebar-health {
+        display: none !important;
+    }
+
+    .sidebar[data-collapsed='true'] nav section ul li > a > .sidebar-nav-badge {
+        position: absolute;
+        top: 0.15rem;
+        right: 0.15rem;
+        margin-left: 0;
+        min-width: 1rem;
+        height: 1rem;
+        font-size: 0.55rem;
+        padding: 0 0.2rem;
+    }
+
+    .sidebar[data-collapsed='true'] nav footer .sidebar-account-summary,
+    .sidebar[data-collapsed='true'] nav footer .sidebar-account-chevron {
+        display: none !important;
+    }
+
+    .sidebar[data-collapsed='true'] nav footer .sidebar-account-collapsed-only {
+        display: inline-flex !important;
+    }
+
+    .sidebar[data-collapsed='true'] #sidebar-account-trigger {
+        justify-content: center;
+        gap: 0;
+        padding-inline: 0.25rem;
+    }
+
+    .sidebar[data-collapsed='true'] #sidebar-collapse-toggle .sidebar-collapse-icon-expanded {
+        display: none !important;
+    }
+
+    .sidebar[data-collapsed='true'] #sidebar-collapse-toggle .sidebar-collapse-icon-collapsed {
+        display: inline-flex !important;
+    }
+
+    .sidebar:not([data-collapsed='true']) #sidebar-collapse-toggle .sidebar-collapse-icon-collapsed {
+        display: none !important;
+    }
+
+    /* Tooltips Basecoat solo en colapsado (evita ruido al expandido). */
+    .sidebar:not([data-collapsed='true']) nav [data-tooltip]::before {
+        content: none !important;
+        display: none !important;
+    }
+}
+
+@media (max-width: 767px) {
+    /* Móvil: solo el comportamiento nativo basecoat:sidebar; no forzar ancho colapsado. */
+    .sidebar[data-collapsed] + main.app-main {
+        margin-left: 0 !important;
+    }
+}

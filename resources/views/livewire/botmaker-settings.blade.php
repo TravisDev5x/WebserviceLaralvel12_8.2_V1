@@ -8,7 +8,7 @@
     </div>
 
     {{-- Section 1: API Config for sending messages (Flujo B) --}}
-    <section class="card card-pad" style="margin-bottom: 1rem;">
+    <div class="card card-pad" style="margin-bottom: 1rem;">
         <h3 class="settings-section-title">Token de API Botmaker (envío de mensajes)</h3>
         <small class="field-help muted">Credenciales para enviar mensajes a WhatsApp vía Botmaker (Flujo B: agente → cliente). Se obtienen en el panel de Botmaker > Configuración > API/Integraciones.</small>
 
@@ -66,10 +66,10 @@
             <strong>Fuente actual del token:</strong> <code>{{ $this->resolvedTokenSource }}</code>
             <br><small class="muted">Prioridad de resolución: Panel (settings) → AuthorizedTokens (DB) → .env</small>
         </div>
-    </section>
+    </div>
 
     {{-- Section 2: Webhook URL --}}
-    <section class="card card-pad" style="margin-bottom: 1rem;">
+    <div class="card card-pad" style="margin-bottom: 1rem;">
         <h3 class="settings-section-title" title="Copia esta URL en el panel de Botmaker">URL del webhook (recepción de mensajes)</h3>
         <div style="display:flex; gap:.5rem; align-items:center; flex-wrap:wrap;">
             <input id="botmaker-webhook-url" class="input" type="text" value="{{ $webhookUrl }}" readonly style="min-width: 320px;">
@@ -79,10 +79,10 @@
         @if($appUrlIsHttp)
             <p class="text-warn">Botmaker requiere HTTPS. Contacta a Infraestructura para configurar el certificado SSL.</p>
         @endif
-    </section>
+    </div>
 
     {{-- Section 3: Webhook validation tokens --}}
-    <section class="card card-pad" style="margin-bottom: 1rem;">
+    <div class="card card-pad" style="margin-bottom: 1rem;">
         <h3 class="settings-section-title" title="Tokens para validar webhooks entrantes">Token de seguridad (validación de webhooks)</h3>
         <small class="field-help muted">El token de seguridad se envía en el header <code>auth-bm-token</code>. Debe coincidir exactamente con el configurado en Botmaker.</small>
 
@@ -115,9 +115,9 @@
                             </td>
                             <td>
                                 @if($token->is_active)
-                                    <span class="badge badge-ok">Activo</span>
+                                    <span class="badge-secondary bg-emerald-600 text-white dark:bg-emerald-700">Activo</span>
                                 @else
-                                    <span class="badge badge-muted">Inactivo</span>
+                                    <span class="badge-outline">Inactivo</span>
                                 @endif
                             </td>
                             <td>{{ $token->last_used_at ? $token->last_used_at->timezone(config('app.timezone'))->format('Y-m-d H:i:s') : 'Nunca' }}</td>
@@ -134,10 +134,10 @@
         <div style="margin-top:.75rem;">
             <a class="btn" href="{{ url('/monitor/settings/tokens') }}">Gestionar tokens</a>
         </div>
-    </section>
+    </div>
 
     {{-- Section 4: Stats --}}
-    <section class="card card-pad" style="margin-bottom: 1rem;">
+    <div class="card card-pad" style="margin-bottom: 1rem;">
         <h3 class="settings-section-title" title="Resumen de actividad reciente">Estado de la recepción</h3>
         <small class="field-help muted">Monitorea la llegada de webhooks Botmaker hacia este webservice.</small>
 
@@ -165,10 +165,10 @@
         @elseif(\Carbon\Carbon::parse($lastWebhookAt)->lt(now()->subHours(24)))
             <p class="text-warn">No se han recibido webhooks en las últimas 24 horas. Verifica que el webhook en Botmaker esté activo.</p>
         @endif
-    </section>
+    </div>
 
     {{-- Section 5: Test webhook --}}
-    <section class="card card-pad" style="margin-bottom: 1rem;">
+    <div class="card card-pad" style="margin-bottom: 1rem;">
         <h3 class="settings-section-title" title="Prueba controlada del endpoint local">Probar recepción de webhook</h3>
         <small class="field-help muted">Esto simula un mensaje de Botmaker para verificar que el endpoint funciona.</small>
         <div style="display:flex; align-items:center; gap:.5rem; margin-top:.75rem;">
@@ -178,7 +178,7 @@
         @if($testMessage)
             <p style="margin-top:.75rem;" @class(['text-ok' => $testOk, 'text-error' => ! $testOk])>{{ $testMessage }}</p>
         @endif
-    </section>
+    </div>
 
     <style>
         .settings-section-title { margin: 0 0 .65rem; font-size: 1.05rem; }
@@ -186,9 +186,6 @@
         .text-error { color: #b91c1c; }
         .text-ok { color: #166534; }
         .text-warn { color: #92400e; margin-top: .75rem; }
-        .badge { padding: .2rem .45rem; border-radius: .45rem; font-size: .78rem; }
-        .badge-ok { background: #dcfce7; color: #166534; }
-        .badge-muted { background: #e2e8f0; color: #334155; }
         .stat-box { border: 1px solid var(--app-border); border-radius: .6rem; padding: .65rem; }
         .bx-dot { width: .75rem; height: .75rem; border-radius: 999px; display: inline-block; }
         .bx-dot--ok { background: #16a34a; }

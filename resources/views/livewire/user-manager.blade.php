@@ -7,21 +7,21 @@
         <button class="btn btn-primary" wire:click="openCreateUser" type="button">Nuevo usuario</button>
     </div>
     @if(session('user_success'))
-        <div class="card card-pad" style="margin-bottom:.75rem; border-left:3px solid #22c55e; background:var(--app-row);" role="status">
-            <p style="margin:0;">{{ session('user_success') }}</p>
+        <div class="alert mb-3" role="status">
+            <h2 class="text-sm font-semibold m-0">{{ session('user_success') }}</h2>
         </div>
     @endif
     @if(session('user_error'))
-        <div class="card card-pad" style="margin-bottom:.75rem; border-left:3px solid #dc2626; background:var(--app-row);" role="alert">
-            <p style="margin:0;">{{ session('user_error') }}</p>
+        <div class="alert-destructive mb-3" role="alert">
+            <h2 class="text-sm font-semibold m-0">{{ session('user_error') }}</h2>
         </div>
     @endif
     @if(session('user_created'))
-        <div class="card card-pad" style="margin-bottom:.75rem; border-left:3px solid #22c55e; background:var(--app-row);">
-            <p style="margin:0;">{{ session('user_created') }}</p>
+        <div class="alert mb-3" role="status">
+            <h2 class="text-sm font-semibold m-0">{{ session('user_created') }}</h2>
         </div>
     @endif
-    <section class="card card-pad">
+    <div class="card card-pad">
         <div class="grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom:.75rem;">
             <div><input class="input" type="text" wire:model.live.debounce.300ms="search" placeholder="Buscar por nombre, correo o número"><small class="muted">Filtro rápido de usuarios. Ejemplo: <code>18680</code>.</small></div>
             <div>
@@ -107,7 +107,7 @@
             </table>
         </div>
         <div style="margin-top:.75rem;">{{ $users->links() }}</div>
-    </section>
+    </div>
 
     @if($showRoleConfirmModal)
         <div style="position: fixed; inset: 0; background: rgba(0,0,0,.45); display:flex; align-items:center; justify-content:center; z-index:60;">

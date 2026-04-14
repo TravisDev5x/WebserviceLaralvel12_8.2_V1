@@ -1,18 +1,27 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="auth-layout">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $title ?? 'Acceso' }}</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/basecoat-css@0.3.11/dist/basecoat.cdn.min.css">
+    <script>
+        (function () {
+            try {
+                var h = document.documentElement;
+                h.classList.remove('dark');
+            } catch (e) {}
+        })();
+    </script>
+    @include('partials.theme-color-head')
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         body {
             margin: 0;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            background: #f5f7fb;
-            color: #0f172a;
+            background: var(--app-bg);
+            color: var(--app-text);
         }
 
         .auth-shell {
@@ -30,18 +39,18 @@
 
         .global-app-footer {
             padding: 0.75rem 1rem;
-            border-top: 1px solid #e5e7eb;
+            border-top: 1px solid var(--app-border);
             text-align: center;
             font-size: 0.7rem;
             font-weight: 600;
             letter-spacing: 0.06em;
-            color: #64748b;
-            background: #fff;
+            color: var(--app-muted);
+            background: var(--app-surface);
         }
 
         .auth-card {
-            background: #fff;
-            border: 1px solid #e5e7eb;
+            background: var(--app-surface);
+            border: 1px solid var(--app-border);
             border-radius: 0.8rem;
             padding: 1rem;
         }
@@ -49,7 +58,8 @@
     @livewireStyles
 </head>
 <body>
-    <main class="auth-shell">
+    <a href="#main-content" class="skip-link">Saltar al contenido principal</a>
+    <main id="main-content" class="auth-shell" tabindex="-1">
         <div class="auth-shell-inner">
             {{ $slot }}
         </div>

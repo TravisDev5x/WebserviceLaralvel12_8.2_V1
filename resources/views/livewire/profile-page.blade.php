@@ -1,7 +1,7 @@
 <div class="profile-page">
     <style>
         .profile-page { --profile-accent: #2563eb; }
-        html[data-theme="light"] .profile-page { --profile-accent: #1d4ed8; }
+        html:not(.dark) .profile-page { --profile-accent: #1d4ed8; }
         .profile-section {
             margin-bottom: 1.1rem;
             overflow: hidden;
@@ -25,7 +25,7 @@
             border: 1px solid var(--app-border);
             flex-shrink: 0;
         }
-        .profile-section-icon i {
+        .profile-section-icon svg {
             width: 1.1rem;
             height: 1.1rem;
             color: var(--profile-accent);
@@ -54,7 +54,7 @@
             background: color-mix(in srgb, #16a34a 12%, transparent);
             border-color: color-mix(in srgb, #16a34a 35%, var(--app-border));
         }
-        .profile-alert--ok i { width: 1rem; height: 1rem; color: #16a34a; flex-shrink: 0; margin-top: 0.12rem; }
+        .profile-alert--ok svg { width: 1rem; height: 1rem; color: #16a34a; flex-shrink: 0; margin-top: 0.12rem; }
         .profile-layout {
             display: grid;
             gap: 1.15rem;
@@ -142,20 +142,20 @@
 
     @if(session('profile_ok'))
         <div class="profile-alert profile-alert--ok" role="status">
-            <i data-lucide="check-circle"></i>
+            <x-lucide-check-circle class="shrink-0" aria-hidden="true" />
             <span>{{ session('profile_ok') }}</span>
         </div>
     @endif
     @if(session('password_ok'))
         <div class="profile-alert profile-alert--ok" role="status">
-            <i data-lucide="check-circle"></i>
+            <x-lucide-check-circle class="shrink-0" aria-hidden="true" />
             <span>{{ session('password_ok') }}</span>
         </div>
     @endif
 
-    <section class="card card-pad profile-section">
+    <div class="card card-pad profile-section">
         <header class="profile-section-head">
-            <span class="profile-section-icon" aria-hidden="true"><i data-lucide="user"></i></span>
+            <span class="profile-section-icon" aria-hidden="true"><x-lucide-user /></span>
             <div>
                 <h3>Datos personales</h3>
                 <p class="muted profile-section-desc">Tu nombre es el único dato editable en esta pantalla. Correo, número de empleado y rol los gestiona un administrador.</p>
@@ -187,11 +187,11 @@
                 </div>
             </div>
         </div>
-    </section>
+    </div>
 
-    <section class="card card-pad profile-section">
+    <div class="card card-pad profile-section">
         <header class="profile-section-head">
-            <span class="profile-section-icon" aria-hidden="true"><i data-lucide="key-round"></i></span>
+            <span class="profile-section-icon" aria-hidden="true"><x-lucide-key-round /></span>
             <div>
                 <h3>Seguridad</h3>
                 <p class="muted profile-section-desc">Usa una contraseña larga y distinta de otros sitios. Tras cambiarla, sigue usando tu correo o número de empleado para entrar.</p>
@@ -232,7 +232,7 @@
                 </div>
             </div>
         </form>
-    </section>
+    </div>
 </div>
 <script>
     (function () {

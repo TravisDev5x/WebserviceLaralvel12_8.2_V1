@@ -7,10 +7,10 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/basecoat-css@0.3.11/dist/basecoat.cdn.min.css">
 </head>
 <body style="min-height:100vh;display:grid;place-items:center;background:#f8fafc;padding:1rem;">
-    <section class="card card-pad" style="max-width:680px;width:100%;">
+    <div class="card card-pad" style="max-width:680px;width:100%;">
         <h1 style="margin-top:0;">Algo salió mal</h1>
         <p>El equipo técnico ha sido notificado. Intenta de nuevo en unos minutos.</p>
         <a class="btn btn-primary" href="{{ url('/monitor') }}">Volver al monitor</a>
-    </section>
+    </div>
 </body>
 </html>

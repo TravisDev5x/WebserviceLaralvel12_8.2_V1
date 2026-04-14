@@ -8,13 +8,17 @@
     </div>
 
     @if ($successMessage)
-        <section class="card card-pad" style="margin-bottom: 1rem; border-left: 4px solid #16a34a;"><p style="margin:0;">{{ $successMessage }}</p></section>
+        <div class="alert mb-4" role="status">
+            <h2 class="text-base font-semibold m-0">{{ $successMessage }}</h2>
+        </div>
     @endif
     @if ($errorMessage)
-        <section class="card card-pad" style="margin-bottom: 1rem; border-left: 4px solid #dc2626;"><p style="margin:0;">{{ $errorMessage }}</p></section>
+        <div class="alert-destructive mb-4" role="alert">
+            <h2 class="text-base font-semibold m-0">{{ $errorMessage }}</h2>
+        </div>
     @endif
 
-    <section class="card card-pad">
+    <div class="card card-pad">
         <div class="grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
             <div>
                 <label for="retry-max">Máximo de intentos</label>
@@ -36,7 +40,7 @@
             </div>
         </div>
         <button type="button" class="btn btn-primary" style="margin-top:1rem;" wire:click="save">Guardar</button>
-    </section>
+    </div>
 </div>
 
 <style>

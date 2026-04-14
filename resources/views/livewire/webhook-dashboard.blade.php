@@ -29,7 +29,7 @@
     <livewire:health-status />
     <livewire:connector-health-status />
 
-    <section class="card card-pad" style="margin-top: 0.25rem;">
+    <div class="card card-pad" style="margin-top: 0.25rem;">
         <div class="page-header" style="margin-bottom: 0.75rem;">
             <h3 class="page-title">Webhooks recientes</h3>
             <a class="btn btn-sm" href="{{ url('/monitor/logs') }}">Ver todos</a>
@@ -72,5 +72,5 @@
         <div style="margin-top:.75rem;">
             {{ $latestWebhooks->links() }}
         </div>
-    </section>
+    </div>
 </div>

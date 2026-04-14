@@ -114,12 +114,12 @@
     </div>
 
     @if(session('user_created'))
-        <div class="card card-pad" style="margin-bottom:.75rem; border-left:3px solid #22c55e; background:#f0fdf4;">
-            <p style="margin:0;">{{ session('user_created') }}</p>
+        <div class="alert mb-3" role="status">
+            <h2 class="text-sm font-semibold m-0">{{ session('user_created') }}</h2>
         </div>
     @endif
 
-    <section class="card card-pad users-list-section" style="margin-bottom:1rem;">
+    <div class="card card-pad users-list-section" style="margin-bottom:1rem;">
         <div class="acm-users-head">
             <div class="acm-users-head-main">
                 <h3>Listado de usuarios</h3>
@@ -132,7 +132,7 @@
                 </div>
             </div>
             <button class="btn btn-primary" wire:click="openCreateUser" type="button" data-tooltip="Registrar un nuevo usuario">
-                <span style="display:inline-flex; align-items:center; gap:.35rem;"><i data-lucide="user-plus"></i>Nuevo usuario</span>
+                <span style="display:inline-flex; align-items:center; gap:.35rem;"><x-lucide-user-plus class="size-4 shrink-0" aria-hidden="true" />Nuevo usuario</span>
             </button>
         </div>
         <div class="acm-filters-grid">
@@ -173,7 +173,7 @@
             </div>
             <div class="acm-clear-wrap">
                 <button class="btn" wire:click="clearUserFilters" type="button" data-tooltip="Limpiar todos los filtros">
-                    <span style="display:inline-flex; align-items:center; gap:.35rem;"><i data-lucide="eraser"></i>Limpiar filtros</span>
+                    <span style="display:inline-flex; align-items:center; gap:.35rem;"><x-lucide-eraser class="size-4 shrink-0" aria-hidden="true" />Limpiar filtros</span>
                 </button>
             </div>
         </div>
@@ -246,21 +246,21 @@
                         <td>
                             <div class="acm-table-actions">
                                 <button class="btn btn-sm" wire:click="editUser({{ $user->id }})" type="button" data-tooltip="Editar datos del usuario" aria-label="Editar usuario">
-                                    <span style="display:inline-flex; align-items:center;"><i data-lucide="pencil"></i></span>
+                                    <span style="display:inline-flex; align-items:center;"><x-lucide-pencil class="size-4 shrink-0" aria-hidden="true" /></span>
                                 </button>
                                 <button class="btn btn-sm" wire:click="openPasswordEditor({{ $user->id }})" type="button" data-tooltip="Cambiar contraseña" aria-label="Cambiar contraseña">
-                                    <span style="display:inline-flex; align-items:center;"><i data-lucide="key-round"></i></span>
+                                    <span style="display:inline-flex; align-items:center;"><x-lucide-key-round class="size-4 shrink-0" aria-hidden="true" /></span>
                                 </button>
                                 @if(! $user->trashed())
                                     <button class="btn btn-sm" wire:click="toggleUserStatus({{ $user->id }})" type="button" data-tooltip="{{ $user->is_active ? 'Desactivar temporalmente' : 'Activar temporalmente' }}" aria-label="{{ $user->is_active ? 'Desactivar temporalmente' : 'Activar temporalmente' }}">
-                                        <span style="display:inline-flex; align-items:center;"><i data-lucide="{{ $user->is_active ? 'pause-circle' : 'play-circle' }}"></i></span>
+                                        <span style="display:inline-flex; align-items:center;">@if($user->is_active)<x-lucide-pause-circle class="size-4 shrink-0" aria-hidden="true" />@else<x-lucide-play-circle class="size-4 shrink-0" aria-hidden="true" />@endif</span>
                                     </button>
-                                    <button class="btn btn-sm btn-danger" wire:click="askDeactivateUser({{ $user->id }})" type="button" data-tooltip="Dar de baja (soft delete)" aria-label="Dar de baja">
-                                        <span style="display:inline-flex; align-items:center;"><i data-lucide="user-x"></i></span>
+                                    <button class="btn btn-sm btn-destructive" wire:click="askDeactivateUser({{ $user->id }})" type="button" data-tooltip="Dar de baja (soft delete)" aria-label="Dar de baja">
+                                        <span style="display:inline-flex; align-items:center;"><x-lucide-user-x class="size-4 shrink-0" aria-hidden="true" /></span>
                                     </button>
                                 @else
                                     <button class="btn btn-sm" wire:click="askRestoreUser({{ $user->id }})" type="button" data-tooltip="Restaurar usuario" aria-label="Restaurar usuario">
-                                        <span style="display:inline-flex; align-items:center;"><i data-lucide="rotate-ccw"></i></span>
+                                        <span style="display:inline-flex; align-items:center;"><x-lucide-rotate-ccw class="size-4 shrink-0" aria-hidden="true" /></span>
                                     </button>
                                 @endif
                             </div>
@@ -281,7 +281,7 @@
             </table>
         </div>
         <div style="margin-top:.75rem;">{{ $users->links() }}</div>
-    </section>
+    </div>
 
     @if($showCreateUserModal)
         <div style="position: fixed; inset: 0; background: rgba(0,0,0,.45); display:flex; align-items:center; justify-content:center; z-index:60;">
@@ -370,7 +370,7 @@
                 </p>
                 <div style="margin-top:1rem; display:flex; justify-content:flex-end; gap:.5rem;">
                     <button class="btn" wire:click="cancelUserAction" type="button">Cancelar</button>
-                    <button class="btn {{ $confirmAction === 'restore' ? '' : 'btn-danger' }}" wire:click="confirmUserAction" type="button">
+                    <button class="btn {{ $confirmAction === 'restore' ? '' : 'btn-destructive' }}" wire:click="confirmUserAction" type="button">
                         {{ $confirmAction === 'restore' ? 'Sí, restaurar' : 'Sí, dar de baja' }}
                     </button>
                 </div>
@@ -378,11 +378,11 @@
         </div>
     @endif
 
-    <section class="card card-pad">
+    <div class="card card-pad">
         <div class="page-header" style="margin-bottom:.75rem;">
             <h3 class="page-title">Catálogo de roles y permisos</h3>
             <button class="btn" wire:click="newRole" type="button" data-tooltip="Crear nuevo rol">
-                <span style="display:inline-flex; align-items:center; gap:.35rem;"><i data-lucide="shield-plus"></i>Nuevo rol</span>
+                <span style="display:inline-flex; align-items:center; gap:.35rem;"><x-lucide-shield-plus class="size-4 shrink-0" aria-hidden="true" />Nuevo rol</span>
             </button>
         </div>
 
@@ -406,7 +406,7 @@
         <div style="margin-top:.75rem; display:flex; gap:.75rem; align-items:center;">
             <label style="display:inline-flex; gap:.35rem; align-items:center;"><input type="checkbox" wire:model.live="roleIsActive"> Rol activo</label>
             <button class="btn btn-primary" wire:click="saveRole" type="button" data-tooltip="Guardar cambios del rol">
-                <span style="display:inline-flex; align-items:center; gap:.35rem;"><i data-lucide="save"></i>Guardar rol</span>
+                <span style="display:inline-flex; align-items:center; gap:.35rem;"><x-lucide-save class="size-4 shrink-0" aria-hidden="true" />Guardar rol</span>
             </button>
         </div>
 
@@ -422,7 +422,7 @@
                         <td>{{ $role->slug }}</td>
                         <td>{{ $role->description }}</td>
                         <td>{{ $role->is_active ? 'Sí' : 'No' }}</td>
-                        <td><button class="btn" wire:click="editRole({{ $role->id }})" type="button" data-tooltip="Editar rol" aria-label="Editar rol"><span style="display:inline-flex; align-items:center;"><i data-lucide="pencil"></i></span></button></td>
+                        <td><button class="btn" wire:click="editRole({{ $role->id }})" type="button" data-tooltip="Editar rol" aria-label="Editar rol"><span style="display:inline-flex; align-items:center;"><x-lucide-pencil class="size-4 shrink-0" aria-hidden="true" /></span></button></td>
                     </tr>
                 @endforeach
                 @else
@@ -431,7 +431,7 @@
                 </tbody>
             </table>
         </div>
-    </section>
+    </div>
 </div>
 <script>
     (function () {

@@ -4,47 +4,40 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $title ?? 'Monitor de Webhooks' }}</title>
-    {{-- Tema antes del primer pintado: evita flash al recargar o cambiar de módulo --}}
+    {{-- Basecoat theme: themeMode + class dark (ver https://basecoatui.com/components/theme-switcher ) --}}
     <script>
-        (function () {
+        (() => {
             try {
-                var t = localStorage.getItem('ui-theme') || 'dark';
-                var h = document.documentElement;
-                h.setAttribute('data-theme', t);
-                h.style.colorScheme = t === 'light' ? 'light' : 'dark';
-            } catch (e) {}
+                const m = localStorage.getItem('themeMode');
+                const legacy = localStorage.getItem('ui-theme');
+                if (!m && legacy) {
+                    localStorage.setItem('themeMode', legacy === 'dark' ? 'dark' : 'light');
+                }
+            } catch (_) {}
+            try {
+                const stored = localStorage.getItem('themeMode');
+                if (stored ? stored === 'dark'
+                    : matchMedia('(prefers-color-scheme: dark)').matches) {
+                    document.documentElement.classList.add('dark');
+                }
+            } catch (_) {}
+
+            const apply = dark => {
+                document.documentElement.classList.toggle('dark', dark);
+                try { localStorage.setItem('themeMode', dark ? 'dark' : 'light'); } catch (_) {}
+            };
+
+            document.addEventListener('basecoat:theme', (event) => {
+                const mode = event.detail?.mode;
+                apply(mode === 'dark' ? true
+                    : mode === 'light' ? false
+                    : !document.documentElement.classList.contains('dark'));
+            });
         })();
     </script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/basecoat-css@0.3.11/dist/basecoat.cdn.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/basecoat-css@0.3.11/dist/js/basecoat.min.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/basecoat-css@0.3.11/dist/js/sidebar.min.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js" defer></script>
+    @include('partials.theme-color-head')
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
-        :root {
-            --sidebar-width: 15rem;
-            --app-bg: #05070b;
-            --app-surface: #090d14;
-            --app-text: #f3f4f6;
-            --app-muted: #94a3b8;
-            --app-border: #1f2937;
-            --app-row: #151b23;
-            --sidebar-bg: #0b1018;
-            --sidebar-row: #181f2a;
-            --sidebar-active: #202836;
-        }
-
-        html[data-theme="light"] {
-            --app-bg: #f5f7fb;
-            --app-surface: #ffffff;
-            --app-text: #111827;
-            --app-muted: #6b7280;
-            --app-border: #e5e7eb;
-            --app-row: #f3f4f6;
-            --sidebar-bg: #eef2ff;
-            --sidebar-row: #e0e7ff;
-            --sidebar-active: #c7d2fe;
-        }
-
         body {
             margin: 0;
             min-height: 100vh;
@@ -52,10 +45,13 @@
             color: var(--app-text);
         }
 
-        .app-layout {
+        .app-main {
             min-height: 100vh;
-            display: grid;
-            grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            background: var(--app-bg);
+            color: var(--app-text);
         }
 
         .app-header {
@@ -65,14 +61,6 @@
             height: 3.35rem;
             background: var(--app-surface);
             border-bottom: 1px solid var(--app-border);
-        }
-
-        .app-content-wrap {
-            background: var(--app-bg);
-            min-width: 0;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
         }
 
         .app-header-inner {
@@ -86,162 +74,11 @@
             gap: 0.75rem;
         }
 
-        .sidebar-account-menu {
-            position: relative;
-            z-index: 1;
-        }
-
-        .sidebar-account-menu:hover {
-            z-index: 100;
-        }
-
-        .sidebar-account-menu .sidebar-link {
-            width: 100%;
-        }
-
-        .sidebar-account-menu:focus-within {
-            z-index: 100;
-        }
-
-        .sidebar-account-menu:focus-within .sidebar-link {
-            outline: 2px solid var(--app-border);
-            outline-offset: 2px;
-        }
-
-        .sidebar-account-menu-chevron {
-            width: 0.85rem;
-            height: 0.85rem;
-            margin-left: auto;
-            flex-shrink: 0;
-            opacity: 0.65;
-            transition: transform 0.15s ease, opacity 0.15s ease;
-        }
-
-        .sidebar-account-menu:hover .sidebar-account-menu-chevron,
-        .sidebar-account-menu:focus-within .sidebar-account-menu-chevron {
-            opacity: 1;
-            transform: translateX(2px);
-        }
-
-        .sidebar-account-menu-dropdown {
-            position: absolute;
-            left: calc(100% + 0.35rem);
-            bottom: 0;
-            padding-left: 0.35rem;
-            min-width: min(16.5rem, calc(100vw - var(--sidebar-width) - 2.5rem));
-            z-index: 200;
-            opacity: 0;
-            visibility: hidden;
-            transform: translateX(-0.25rem);
-            transition: opacity 0.14s ease, transform 0.14s ease, visibility 0.14s;
-            pointer-events: none;
-        }
-
-        .sidebar-account-menu-dropdown::before {
-            content: '';
-            position: absolute;
-            right: 100%;
-            top: 0;
-            bottom: 0;
-            width: 0.4rem;
-        }
-
-        .sidebar-account-menu:hover .sidebar-account-menu-dropdown,
-        .sidebar-account-menu:focus-within .sidebar-account-menu-dropdown {
-            opacity: 1;
-            visibility: visible;
-            pointer-events: auto;
-        }
-
-        @media (min-width: 1025px) {
-            .sidebar-account-menu:hover .sidebar-account-menu-dropdown,
-            .sidebar-account-menu:focus-within .sidebar-account-menu-dropdown {
-                transform: translateX(0);
-            }
-        }
-
-        .account-flyout-card {
-            background: var(--app-surface);
-            border: 1px solid var(--app-border);
-            border-radius: 0.6rem;
-            box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.22);
-            padding: 0.75rem 0.85rem;
-        }
-
-        html[data-theme="light"] .account-flyout-card {
-            box-shadow: 0 0.4rem 1.25rem rgba(15, 23, 42, 0.14);
-        }
-
-        .account-flyout-head {
-            margin-bottom: 0.65rem;
-            padding-bottom: 0.55rem;
-            border-bottom: 1px solid var(--app-border);
-        }
-
-        .account-flyout-head strong {
-            display: block;
-            font-size: 0.88rem;
-            margin-bottom: 0.2rem;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .account-flyout-head .account-flyout-email {
-            display: block;
-            font-size: 0.72rem;
-            line-height: 1.35;
-            word-break: break-all;
-        }
-
-        .account-flyout-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 0.45rem;
-        }
-
-        .account-flyout-actions .btn {
-            width: 100%;
-            justify-content: center;
-        }
-
-        .account-flyout-actions form {
-            margin: 0;
-        }
-
-        @media (max-width: 1024px) {
-            .sidebar-account-menu-dropdown {
-                left: auto;
-                right: 0;
-                bottom: 100%;
-                top: auto;
-                margin-bottom: 0.25rem;
-                padding-left: 0;
-                padding-bottom: 0.35rem;
-                min-width: min(16.5rem, calc(100vw - 2rem));
-                transform: translateY(0.35rem);
-            }
-
-            .sidebar-account-menu-dropdown::before {
-                right: auto;
-                left: 0;
-                top: 100%;
-                bottom: auto;
-                width: 100%;
-                height: 0.4rem;
-            }
-
-            .sidebar-account-menu:hover .sidebar-account-menu-dropdown,
-            .sidebar-account-menu:focus-within .sidebar-account-menu-dropdown {
-                transform: translateY(0);
-            }
-        }
-
         .content-shell {
             width: 100%;
             box-sizing: border-box;
             padding: 1.25rem 1.4rem 1.6rem;
-            flex: 1 0 auto;
+            flex: 1 1 auto;
         }
 
         .global-app-footer {
@@ -485,78 +322,6 @@
             line-height: 1.1;
         }
 
-        .app-sidebar {
-            position: sticky;
-            top: 0;
-            height: 100vh;
-            background: var(--sidebar-bg);
-            border-right: 1px solid var(--app-border);
-            padding: 0.85rem 0.6rem;
-            z-index: 35;
-            overflow: visible;
-        }
-
-        /* overflow-y:hidden hace que overflow-x pase a auto y recorta el flyout de Mi perfil */
-        .app-sidebar nav {
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            overflow: visible;
-        }
-
-        .sidebar-scroll-area {
-            flex: 1 1 auto;
-            min-height: 0;
-            overflow-y: auto;
-            overflow-x: hidden;
-        }
-
-        .sidebar-account-block {
-            flex-shrink: 0;
-            margin-top: auto;
-            padding-top: 0.65rem;
-            border-top: 1px solid var(--app-border);
-            overflow: visible;
-            position: relative;
-        }
-
-        .sidebar-title {
-            margin: 0.4rem 0.45rem 0.55rem;
-            color: var(--app-muted);
-            font-size: 0.72rem;
-            letter-spacing: .05em;
-            text-transform: uppercase;
-            font-weight: 600;
-        }
-
-        .sidebar-nav {
-            list-style: none;
-            margin: 0;
-            padding: 0;
-            display: grid;
-            gap: 0.3rem;
-        }
-
-        .sidebar-group {
-            border: none;
-            margin: 0 0 0.35rem;
-        }
-
-        .sidebar-group-summary {
-            list-style: none;
-            cursor: pointer;
-            margin: 0.5rem 0.45rem 0.35rem;
-            color: var(--app-muted);
-            font-size: 0.72rem;
-            letter-spacing: .05em;
-            text-transform: uppercase;
-            font-weight: 600;
-        }
-
-        .sidebar-group-summary::-webkit-details-marker {
-            display: none;
-        }
-
         .sidebar-nav-badge {
             margin-left: auto;
             min-width: 1.35rem;
@@ -588,54 +353,9 @@
             background: #dc2626;
         }
 
-        .sidebar-link {
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-            min-height: 2.35rem;
-            padding: 0.5rem 0.72rem;
-            border-radius: 0.55rem;
-            color: var(--app-text);
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.95rem;
-            transition: background-color .12s ease;
-        }
-
-        .sidebar-link:hover {
-            background: var(--sidebar-row);
-        }
-
-        .sidebar-link[aria-current="page"] {
-            background: var(--sidebar-active);
-            color: var(--app-text);
-            border: 1px solid var(--app-border);
-        }
-
-        .sidebar-link i {
-            width: 1rem;
-            height: 1rem;
-            color: var(--app-muted);
-        }
-
-        .sidebar-link[aria-current="page"] i {
-            color: var(--app-text);
-        }
-
         .menu-toggle-btn {
             display: inline-flex;
             align-items: center;
-            gap: 0.4rem;
-        }
-
-        .sidebar-backdrop {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.35);
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity .18s ease;
-            z-index: 30;
         }
 
         .clickable-row {
@@ -647,9 +367,9 @@
         }
 
         .card {
-            background: var(--app-surface);
-            border: 1px solid var(--app-border);
-            color: var(--app-text);
+            background: var(--card);
+            border: 1px solid var(--border);
+            color: var(--card-foreground);
         }
 
         .manual-doc .manual-block { margin-bottom: 1.5rem; }
@@ -663,37 +383,9 @@
             border: 1px solid var(--app-border); padding: 0.45rem 0.5rem; text-align: left; vertical-align: top;
         }
 
-        @media (min-width: 1025px) {
+        @media (min-width: 768px) {
             .menu-toggle-btn {
                 display: none !important;
-            }
-
-            .sidebar-backdrop {
-                display: none;
-            }
-        }
-
-        @media (max-width: 1024px) {
-            .app-layout {
-                display: block;
-            }
-
-            .app-sidebar {
-                position: fixed;
-                left: 0;
-                width: min(88vw, 18rem);
-                transform: translateX(-100%);
-                transition: transform .2s ease;
-                overflow: visible;
-            }
-
-            body.sidebar-open .app-sidebar {
-                transform: translateX(0);
-            }
-
-            body.sidebar-open .sidebar-backdrop {
-                opacity: 1;
-                pointer-events: auto;
             }
         }
 
@@ -719,194 +411,190 @@
     @livewireStyles
 </head>
 <body>
-    <div id="sidebar-backdrop" class="sidebar-backdrop"></div>
-    <div class="app-layout">
-        <aside id="main-navigation" class="app-sidebar" aria-label="Navegacion principal">
-            <nav aria-label="Sidebar navigation">
-                <div class="sidebar-scroll-area">
-                <section>
-                    @php($canMonitor = user_can('monitor.view'))
-                    @php($canLogs = user_can('logs.view'))
-                    @php($canFailed = user_can('failed.view'))
-                    @php($canSettings = user_can('settings.manage'))
-                    @php($canMappings = user_can('mappings.manage'))
-                    @php($canUsers = user_can('users.manage'))
-                    @php($isAdmin = auth()->check() && (string) (auth()->user()->role ?? '') === 'admin')
-                    @php($isOps = in_array((string) (auth()->user()->role ?? ''), ['admin', 'operator'], true))
-                    @php($fp = (int) ($sidebarFailedPendingCount ?? 0))
+    <a href="#main-content" class="skip-link">Saltar al contenido principal</a>
+    <aside id="main-navigation" class="sidebar" data-side="left" aria-hidden="false" data-collapsed="false">
+        <nav aria-label="Sidebar navigation">
+            <header class="flex flex-col gap-2 p-2">
+                <button
+                    type="button"
+                    id="sidebar-collapse-toggle"
+                    class="btn-icon-ghost size-8 max-md:hidden"
+                    aria-label="Contraer barra lateral"
+                    data-tooltip="Contraer barra lateral"
+                    data-side="right"
+                    onclick="document.dispatchEvent(new CustomEvent('basecoat:sidebar-collapse'))"
+                >
+                    <span class="sidebar-collapse-icon-expanded inline-flex"><x-lucide-panel-left-close class="size-5 shrink-0" aria-hidden="true" /></span>
+                    <span class="sidebar-collapse-icon-collapsed hidden inline-flex"><x-lucide-panel-left class="size-5 shrink-0" aria-hidden="true" /></span>
+                </button>
+            </header>
+            <section class="scrollbar">
+                @php($canMonitor = user_can('monitor.view'))
+                @php($canLogs = user_can('logs.view'))
+                @php($canFailed = user_can('failed.view'))
+                @php($canSettings = user_can('settings.manage'))
+                @php($canMappings = user_can('mappings.manage'))
+                @php($canUsers = user_can('users.manage'))
+                @php($isAdmin = auth()->check() && (string) (auth()->user()->role ?? '') === 'admin')
+                @php($fp = (int) ($sidebarFailedPendingCount ?? 0))
 
-                    <details class="sidebar-group" open>
-                        <summary class="sidebar-group-summary">Monitoreo</summary>
-                        <ul class="sidebar-nav">
+                @if($canMonitor || $canLogs || $canFailed)
+                    <div role="group" aria-labelledby="group-label-monitoreo">
+                        <h3 id="group-label-monitoreo">Monitoreo</h3>
+                        <ul>
                             @if($canMonitor)
-                                <li><a class="sidebar-link" href="{{ url('/monitor') }}" data-tooltip="Tablero general" data-side="right" @if(request()->is('monitor')) aria-current="page" @endif><i data-lucide="layout-dashboard"></i><span>Tablero</span></a></li>
-                                <li><a class="sidebar-link" href="{{ url('/monitor/manual') }}" data-tooltip="Manual de integración" data-side="right" @if(request()->is('monitor/manual')) aria-current="page" @endif><i data-lucide="book-open"></i><span>Manual de integración</span></a></li>
+                                <li><a href="{{ url('/monitor') }}" aria-label="Tablero" data-tooltip="Tablero" data-side="right" @if(request()->is('monitor')) aria-current="page" @endif><x-lucide-layout-dashboard class="size-4 shrink-0" aria-hidden="true" /><span class="sidebar-link-label" aria-hidden="true">Tablero</span></a></li>
+                                <li><a href="{{ url('/monitor/manual') }}" aria-label="Manual de integración" data-tooltip="Manual de integración" data-side="right" @if(request()->is('monitor/manual')) aria-current="page" @endif><x-lucide-book-open class="size-4 shrink-0" aria-hidden="true" /><span class="sidebar-link-label" aria-hidden="true">Manual de integración</span></a></li>
                             @endif
                             @if($canLogs)
-                                <li><a class="sidebar-link" href="{{ url('/monitor/logs') }}" data-tooltip="Registros de webhooks" data-side="right" @if(request()->is('monitor/logs*')) aria-current="page" @endif><i data-lucide="list-collapse"></i><span>Registros de Webhooks</span></a></li>
+                                <li><a href="{{ url('/monitor/logs') }}" aria-label="Registros de Webhooks" data-tooltip="Registros de Webhooks" data-side="right" @if(request()->is('monitor/logs*')) aria-current="page" @endif><x-lucide-list-collapse class="size-4 shrink-0" aria-hidden="true" /><span class="sidebar-link-label" aria-hidden="true">Registros de Webhooks</span></a></li>
                             @endif
                             @if($canFailed)
                                 <li>
-                                    <a class="sidebar-link" href="{{ url('/monitor/failed') }}" data-tooltip="Revisar fallos pendientes" data-side="right" @if(request()->is('monitor/failed*')) aria-current="page" @endif>
-                                        <i data-lucide="shield-alert"></i>
-                                        <span>Webhooks Fallidos</span>
+                                    <a href="{{ url('/monitor/failed') }}" aria-label="Webhooks fallidos" data-tooltip="Webhooks fallidos" data-side="right" @if(request()->is('monitor/failed*')) aria-current="page" @endif>
+                                        <x-lucide-shield-alert class="size-4 shrink-0" aria-hidden="true" />
+                                        <span class="sidebar-link-label" aria-hidden="true">Webhooks Fallidos</span>
                                         @if($fp > 0)<span class="sidebar-nav-badge" title="Pendientes">{{ $fp > 99 ? '99+' : $fp }}</span>@endif
                                     </a>
                                 </li>
                             @endif
                         </ul>
-                    </details>
+                    </div>
+                @endif
 
-                    @if($canSettings && $isAdmin)
-                    <details class="sidebar-group" @if(request()->is('monitor/settings*')) open @endif>
-                        <summary class="sidebar-group-summary">Configuración</summary>
-                        <ul class="sidebar-nav">
-                            <li><a class="sidebar-link" href="{{ url('/monitor/settings') }}" data-tooltip="Centro con tarjetas" data-side="right" @if(request()->is('monitor/settings') && ! request()->is('monitor/settings/*')) aria-current="page" @endif><i data-lucide="layout-grid"></i><span>Centro de configuración</span></a></li>
+                @if($canSettings && $isAdmin)
+                    <div role="group" aria-labelledby="group-label-configuracion">
+                        <h3 id="group-label-configuracion">Configuración</h3>
+                        <ul>
+                            <li><a href="{{ url('/monitor/settings') }}" aria-label="Centro de configuración" data-tooltip="Centro de configuración" data-side="right" @if(request()->is('monitor/settings') && ! request()->is('monitor/settings/*')) aria-current="page" @endif><x-lucide-layout-grid class="size-4 shrink-0" aria-hidden="true" /><span class="sidebar-link-label" aria-hidden="true">Centro de configuración</span></a></li>
                             <li>
-                                <a class="sidebar-link" href="{{ url('/monitor/settings/botmaker') }}" data-tooltip="API Botmaker" data-side="right" @if(request()->is('monitor/settings/botmaker')) aria-current="page" @endif>
-                                    <i data-lucide="message-circle"></i>
-                                    <span>Conexión Botmaker</span>
+                                <a href="{{ url('/monitor/settings/botmaker') }}" aria-label="Conexión Botmaker" data-tooltip="Conexión Botmaker" data-side="right" @if(request()->is('monitor/settings/botmaker')) aria-current="page" @endif>
+                                    <x-lucide-message-circle class="size-4 shrink-0" aria-hidden="true" />
+                                    <span class="sidebar-link-label" aria-hidden="true">Conexión Botmaker</span>
                                     <span class="sidebar-health sidebar-health--{{ ($sidebarHealthBotmaker ?? false) ? 'ok' : 'bad' }}" title="Estado configuración"></span>
                                 </a>
                             </li>
                             <li>
-                                <a class="sidebar-link" href="{{ url('/monitor/settings/bitrix24') }}" data-tooltip="CRM Bitrix24" data-side="right" @if(request()->is('monitor/settings/bitrix24')) aria-current="page" @endif>
-                                    <i data-lucide="contact"></i>
-                                    <span>Conexión Bitrix24</span>
+                                <a href="{{ url('/monitor/settings/bitrix24') }}" aria-label="Conexión Bitrix24" data-tooltip="Conexión Bitrix24" data-side="right" @if(request()->is('monitor/settings/bitrix24')) aria-current="page" @endif>
+                                    <x-lucide-contact class="size-4 shrink-0" aria-hidden="true" />
+                                    <span class="sidebar-link-label" aria-hidden="true">Conexión Bitrix24</span>
                                     <span class="sidebar-health sidebar-health--{{ ($sidebarHealthBitrix ?? false) ? 'ok' : 'bad' }}" title="Estado configuración"></span>
                                 </a>
                             </li>
-                            <li><a class="sidebar-link" href="{{ route('monitor.tokens') }}" data-tooltip="Tokens y URLs" data-side="right" @if(request()->is('monitor/settings/tokens')) aria-current="page" @endif><i data-lucide="key"></i><span>Webhooks autorizados</span></a></li>
-                            @if($canMappings)<li><a class="sidebar-link" href="{{ url('/monitor/field-mappings') }}" data-side="right" @if(request()->is('monitor/field-mappings*')) aria-current="page" @endif><i data-lucide="git-compare-arrows"></i><span>Mapeo de campos</span></a></li>@endif
-                            <li><a class="sidebar-link" href="{{ url('/monitor/settings/retry') }}" data-tooltip="Cola y reintentos" data-side="right" @if(request()->is('monitor/settings/retry')) aria-current="page" @endif><i data-lucide="timer"></i><span>Reintentos</span></a></li>
-                            <li><a class="sidebar-link" href="{{ route('integration-tests.panel') }}" data-tooltip="Pruebas y simulación" data-side="right" @if(request()->is('monitor/settings/test') || request()->is('monitor/integration-probes*')) aria-current="page" @endif><i data-lucide="flask-conical"></i><span>Pruebas de integración</span></a></li>
-                        </ul>
-                    </details>
-                    @elseif($canSettings && ! $isAdmin)
-                    <details class="sidebar-group" open>
-                        <summary class="sidebar-group-summary">Configuración</summary>
-                        <ul class="sidebar-nav">
-                            <li><a class="sidebar-link" href="{{ url('/monitor/settings') }}" data-side="right" @if(request()->is('monitor/settings')) aria-current="page" @endif><i data-lucide="layout-grid"></i><span>Centro de configuración</span></a></li>
-                        </ul>
-                    </details>
-                    @endif
-
-                    @if($canUsers)
-                    <details class="sidebar-group" @if(request()->is('monitor/access-control*') || request()->is('monitor/users*')) open @endif>
-                        <summary class="sidebar-group-summary">Sistema</summary>
-                        <ul class="sidebar-nav">
-                            @if($canUsers)
-                                <li><a class="sidebar-link" href="{{ url('/monitor/access-control') }}" data-side="right" @if(request()->is('monitor/access-control*')) aria-current="page" @endif><i data-lucide="users-round"></i><span>Usuarios, roles y permisos</span></a></li>
-                            @endif
-                        </ul>
-                    </details>
-                    @endif
-                </section>
-                </div>
-                <div class="sidebar-account-block">
-                    <p class="muted" style="margin:.15rem .45rem .5rem; font-size:.78rem;">
-                        {{ auth()->user()->name }} · Rol: {{ auth()->user()->role }}
-                    </p>
-                    <div role="group" aria-labelledby="group-label-account">
-                        <h3 id="group-label-account" class="sidebar-title">Cuenta</h3>
-                        <ul class="sidebar-nav">
-                            <li>
-                                <div class="sidebar-account-menu">
-                                    <a class="sidebar-link" href="{{ route('profile.edit') }}" id="sidebar-account-menu-trigger" aria-haspopup="true" aria-controls="sidebar-account-flyout" @if(request()->is('monitor/profile')) aria-current="page" @endif>
-                                        <i data-lucide="circle-user"></i>
-                                        <span>Mi perfil</span>
-                                        <i data-lucide="chevron-right" class="sidebar-account-menu-chevron" aria-hidden="true"></i>
-                                    </a>
-                                    <div class="sidebar-account-menu-dropdown" id="sidebar-account-flyout" role="region" aria-label="Acciones de cuenta">
-                                        <div class="account-flyout-card">
-                                            <div class="account-flyout-head">
-                                                <strong id="sidebar-account-flyout-title">{{ auth()->user()->name }}</strong>
-                                                <span class="muted account-flyout-email">{{ auth()->user()->email }}</span>
-                                            </div>
-                                            <div class="account-flyout-actions" role="group" aria-labelledby="sidebar-account-flyout-title">
-                                                <a class="btn btn-primary" href="{{ route('profile.edit') }}">Ir a mi perfil</a>
-                                                <form method="POST" action="{{ route('logout') }}">
-                                                    @csrf
-                                                    <button class="btn" type="submit">Cerrar sesión</button>
-                                                </form>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </li>
+                            <li><a href="{{ route('monitor.tokens') }}" aria-label="Webhooks autorizados" data-tooltip="Webhooks autorizados" data-side="right" @if(request()->is('monitor/settings/tokens')) aria-current="page" @endif><x-lucide-key class="size-4 shrink-0" aria-hidden="true" /><span class="sidebar-link-label" aria-hidden="true">Webhooks autorizados</span></a></li>
+                            @if($canMappings)<li><a href="{{ url('/monitor/field-mappings') }}" aria-label="Mapeo de campos" data-tooltip="Mapeo de campos" data-side="right" @if(request()->is('monitor/field-mappings*')) aria-current="page" @endif><x-lucide-git-compare-arrows class="size-4 shrink-0" aria-hidden="true" /><span class="sidebar-link-label" aria-hidden="true">Mapeo de campos</span></a></li>@endif
+                            <li><a href="{{ url('/monitor/settings/retry') }}" aria-label="Reintentos" data-tooltip="Reintentos" data-side="right" @if(request()->is('monitor/settings/retry')) aria-current="page" @endif><x-lucide-timer class="size-4 shrink-0" aria-hidden="true" /><span class="sidebar-link-label" aria-hidden="true">Reintentos</span></a></li>
+                            <li><a href="{{ route('integration-tests.panel') }}" aria-label="Pruebas de integración" data-tooltip="Pruebas de integración" data-side="right" @if(request()->is('monitor/settings/test') || request()->is('monitor/integration-probes*')) aria-current="page" @endif><x-lucide-flask-conical class="size-4 shrink-0" aria-hidden="true" /><span class="sidebar-link-label" aria-hidden="true">Pruebas de integración</span></a></li>
                         </ul>
                     </div>
-                </div>
-            </nav>
-        </aside>
-
-        <div class="app-content-wrap">
-            <header class="app-header">
-                <div class="app-header-inner">
-                    <div>
-                        <p class="muted" style="font-size: 0.78rem; margin: 0;">Monitor del Middleware</p>
-                        <h1 style="font-size: 1rem; margin: 0;">{{ $title ?? 'Panel de Webhooks' }}</h1>
-                    </div>
-                    <div style="display: flex; gap: 0.5rem; align-items: center;">
-                        <button id="menu-toggle-btn" class="btn menu-toggle-btn" type="button" aria-label="Abrir menu lateral">
-                            <i data-lucide="menu"></i>
-                        </button>
-                        <button id="theme-toggle" class="btn" type="button" aria-label="Cambiar tema">
-                            <i id="theme-toggle-icon" data-lucide="moon"></i>
-                        </button>
-                    </div>
-                </div>
-            </header>
-
-            <main class="content-shell">
-                @if(session('error'))
-                    <div class="card card-pad" style="margin-bottom:.75rem;border-left:3px solid #dc2626;background:var(--app-row);" role="alert">
-                        <p style="margin:0;">{{ session('error') }}</p>
+                @elseif($canSettings && ! $isAdmin)
+                    <div role="group" aria-labelledby="group-label-configuracion-op">
+                        <h3 id="group-label-configuracion-op">Configuración</h3>
+                        <ul>
+                            <li><a href="{{ url('/monitor/settings') }}" aria-label="Centro de configuración" data-tooltip="Centro de configuración" data-side="right" @if(request()->is('monitor/settings')) aria-current="page" @endif><x-lucide-layout-grid class="size-4 shrink-0" aria-hidden="true" /><span class="sidebar-link-label" aria-hidden="true">Centro de configuración</span></a></li>
+                        </ul>
                     </div>
                 @endif
-                @if(session('success'))
-                    <div class="card card-pad" style="margin-bottom:.75rem;border-left:3px solid #22c55e;background:var(--app-row);" role="status">
-                        <p style="margin:0;">{{ session('success') }}</p>
+
+                @if($canUsers)
+                    <div role="group" aria-labelledby="group-label-sistema">
+                        <h3 id="group-label-sistema">Sistema</h3>
+                        <ul>
+                            <li><a href="{{ url('/monitor/access-control') }}" aria-label="Usuarios, roles y permisos" data-tooltip="Usuarios, roles y permisos" data-side="right" @if(request()->is('monitor/access-control*')) aria-current="page" @endif><x-lucide-users-round class="size-4 shrink-0" aria-hidden="true" /><span class="sidebar-link-label" aria-hidden="true">Usuarios, roles y permisos</span></a></li>
+                        </ul>
                     </div>
                 @endif
-                @if(! empty($breadcrumbs ?? []))
-                    <x-breadcrumb :items="$breadcrumbs" />
-                @endif
-                {{ $slot }}
-            </main>
-            @include('partials.global-footer')
+            </section>
+            <footer>
+                <?php
+                    $accountUser = auth()->user();
+                    $accountLocal = $accountUser->email ? \Illuminate\Support\Str::before($accountUser->email, '@') : '';
+                    $accountSubtitle = $accountLocal !== ''
+                        ? '@' . $accountLocal
+                        : \Illuminate\Support\Str::lower((string) $accountUser->role);
+                ?>
+                <div id="sidebar-account-dropdown" class="dropdown-menu w-full min-w-0 px-2 pb-2">
+                    <button
+                        type="button"
+                        id="sidebar-account-trigger"
+                        aria-haspopup="menu"
+                        aria-controls="sidebar-account-menu"
+                        aria-expanded="false"
+                        aria-label="Menú de cuenta"
+                        class="sidebar-account-trigger ring-sidebar-ring flex w-full min-w-0 items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-hidden transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2"
+                        data-tooltip="{{ $accountUser->name }} — {{ $accountSubtitle }}"
+                        data-side="right"
+                    >
+                        <span class="sidebar-account-collapsed-only shrink-0" aria-hidden="true">
+                            <x-lucide-circle-user class="size-4" />
+                        </span>
+                        <span class="sidebar-account-summary flex min-w-0 flex-1 flex-col items-start gap-0.5 leading-tight">
+                            <span class="truncate font-medium text-sidebar-foreground">{{ $accountUser->name }}</span>
+                            <span class="text-sidebar-foreground/70 truncate text-xs font-normal">{{ $accountSubtitle }}</span>
+                        </span>
+                        <x-lucide-chevrons-up-down class="sidebar-account-chevron size-4 shrink-0 text-sidebar-foreground/70" aria-hidden="true" />
+                    </button>
+                    <div id="sidebar-account-popover" data-popover aria-hidden="true" class="min-w-56" data-side="top" data-align="end">
+                        <div role="menu" id="sidebar-account-menu" aria-labelledby="sidebar-account-trigger">
+                            <a href="{{ route('profile.edit') }}" role="menuitem" id="sidebar-menu-profile" class="inline-flex w-full items-center gap-2">
+                                <x-lucide-circle-user class="size-4 shrink-0" aria-hidden="true" />
+                                Mi perfil
+                            </a>
+                            <form method="POST" action="{{ route('logout') }}" id="sidebar-logout-form" class="m-0 hidden">@csrf</form>
+                            <button type="submit" form="sidebar-logout-form" role="menuitem" id="sidebar-menu-logout" class="inline-flex w-full items-center gap-2">
+                                <x-lucide-log-out class="size-4 shrink-0" aria-hidden="true" />
+                                Cerrar sesión
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </nav>
+    </aside>
+
+    <main id="main-content" class="app-main" tabindex="-1">
+        <header class="app-header">
+            <div class="app-header-inner">
+                <div>
+                    <p class="muted" style="font-size: 0.78rem; margin: 0;">Monitor del Middleware</p>
+                    <h1 style="font-size: 1rem; margin: 0;">{{ $title ?? 'Panel de Webhooks' }}</h1>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" id="sidebar-mobile-toggle" class="btn-icon-ghost menu-toggle-btn size-8" onclick="document.dispatchEvent(new CustomEvent('basecoat:sidebar', { detail: { id: 'main-navigation' } }))" aria-label="Abrir menu lateral">
+                        <x-lucide-menu class="size-5 shrink-0" aria-hidden="true" />
+                    </button>
+                    @include('partials.theme-color-picker')
+                    <button type="button" id="theme-toggle" aria-label="Cambiar tema" data-tooltip="Cambiar tema" data-side="bottom" onclick="document.dispatchEvent(new CustomEvent('basecoat:theme'))" class="btn-icon-outline size-8">
+                        <span class="hidden dark:block"><x-lucide-sun class="size-4" /></span>
+                        <span class="block dark:hidden"><x-lucide-moon class="size-4" /></span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div class="content-shell">
+            @if(session('error'))
+                <div class="alert-destructive mb-3" role="alert">
+                    <h2 class="text-sm font-semibold leading-snug m-0">{{ session('error') }}</h2>
+                </div>
+            @endif
+            @if(session('success'))
+                <div class="alert mb-3" role="status">
+                    <h2 class="text-sm font-semibold leading-snug m-0">{{ session('success') }}</h2>
+                </div>
+            @endif
+            @if(! empty($breadcrumbs ?? []))
+                <x-breadcrumb :items="$breadcrumbs" />
+            @endif
+            {{ $slot }}
         </div>
-    </div>
+        @include('partials.global-footer')
+    </main>
 
     @livewireScripts
     <script>
         (function () {
-            const root = document.documentElement;
-            const btn = document.getElementById('theme-toggle');
-            const btnIcon = document.getElementById('theme-toggle-icon');
-            let lucideDebounceTimer = null;
-
-            const renderIcons = () => {
-                if (window.lucide) window.lucide.createIcons();
-            };
-
-            const scheduleRenderIconsDebounced = () => {
-                if (lucideDebounceTimer) window.clearTimeout(lucideDebounceTimer);
-                lucideDebounceTimer = window.setTimeout(renderIcons, 120);
-            };
-
-            const refreshThemeButton = () => {
-                const isDark = root.getAttribute('data-theme') === 'dark';
-                if (btn) btn.setAttribute('aria-label', isDark ? 'Activar modo claro' : 'Activar modo oscuro');
-                if (btnIcon) btnIcon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
-                renderIcons();
-            };
-
             function bindAppShell() {
-                refreshThemeButton();
-                renderIcons();
-
-                // Password toggle works even after Livewire re-renders.
                 if (!window.__appPasswordToggleBound) {
                     document.addEventListener('click', (event) => {
                         const button = event.target instanceof Element
@@ -923,35 +611,6 @@
                     });
                     window.__appPasswordToggleBound = true;
                 }
-
-                if (btn) {
-                    btn.addEventListener('click', () => {
-                        const nextTheme = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-                        root.setAttribute('data-theme', nextTheme);
-                        root.style.colorScheme = nextTheme === 'light' ? 'light' : 'dark';
-                        try {
-                            localStorage.setItem('ui-theme', nextTheme);
-                        } catch (e) {}
-                        refreshThemeButton();
-                    });
-                }
-
-                const menuButton = document.getElementById('menu-toggle-btn');
-                const sidebarBackdrop = document.getElementById('sidebar-backdrop');
-                const closeSidebar = () => document.body.classList.remove('sidebar-open');
-                const toggleSidebar = () => document.body.classList.toggle('sidebar-open');
-
-                if (menuButton) menuButton.addEventListener('click', toggleSidebar);
-                if (sidebarBackdrop) sidebarBackdrop.addEventListener('click', closeSidebar);
-
-                window.addEventListener('resize', () => {
-                    if (window.innerWidth > 1024) closeSidebar();
-                });
-
-                document.addEventListener('livewire:init', scheduleRenderIconsDebounced);
-                document.addEventListener('livewire:initialized', scheduleRenderIconsDebounced);
-                document.addEventListener('livewire:navigated', scheduleRenderIconsDebounced);
-                document.addEventListener('livewire:update', scheduleRenderIconsDebounced);
             }
 
             if (document.readyState === 'loading') {

@@ -8,14 +8,18 @@
     </div>
 
     @if ($successMessage)
-        <section class="card card-pad" style="margin-bottom: 1rem; border-left: 4px solid #16a34a;"><p style="margin:0;">{{ $successMessage }}</p></section>
+        <div class="alert mb-4" role="status">
+            <h2 class="text-base font-semibold m-0">{{ $successMessage }}</h2>
+        </div>
     @endif
     @if ($errorMessage)
-        <section class="card card-pad" style="margin-bottom: 1rem; border-left: 4px solid #dc2626;"><p style="margin:0;">{{ $errorMessage }}</p></section>
+        <div class="alert-destructive mb-4" role="alert">
+            <h2 class="text-base font-semibold m-0">{{ $errorMessage }}</h2>
+        </div>
     @endif
 
     {{-- Section 1: OAuth Configuration --}}
-    <section class="card card-pad" style="margin-bottom: 1rem;">
+    <div class="card card-pad" style="margin-bottom: 1rem;">
         <h3 class="bx-sec-title">Credenciales OAuth v2</h3>
         <small class="bx-help muted">Estos valores provienen de la App Local creada en Bitrix24 (Aplicaciones > Developer resources > Otra > App Local). Se guardan en base de datos y sobreescriben los del .env.</small>
 
@@ -57,10 +61,10 @@
             <button type="button" class="btn btn-primary" wire:click="saveOAuth" wire:loading.attr="disabled" wire:target="saveOAuth">Guardar configuración OAuth</button>
             <span class="muted" wire:loading wire:target="saveOAuth">Guardando...</span>
         </div>
-    </section>
+    </div>
 
     {{-- Section 2: OAuth Token Status --}}
-    <section class="card card-pad" style="margin-bottom: 1rem;">
+    <div class="card card-pad" style="margin-bottom: 1rem;">
         <h3 class="bx-sec-title">Estado del Token OAuth</h3>
 
         @if($this->tokenStatus)
@@ -72,9 +76,9 @@
                 <div class="stat-box">
                     <div class="muted">Estado</div>
                     @if($this->tokenStatus['expired'])
-                        <span class="badge badge-bad">Expirado</span>
+                        <span class="badge-destructive">Expirado</span>
                     @else
-                        <span class="badge badge-ok">Válido</span>
+                        <span class="badge-secondary bg-emerald-600 text-white dark:bg-emerald-700">Válido</span>
                     @endif
                 </div>
                 <div class="stat-box">
@@ -89,10 +93,10 @@
         @else
             <p class="text-warn">No hay token OAuth almacenado. Instala la App Local en Bitrix24 apuntando a <code>{{ url('/api/bitrix24/install') }}</code>.</p>
         @endif
-    </section>
+    </div>
 
     {{-- Section 3: Connector Setup --}}
-    <section class="card card-pad" style="margin-bottom: 1rem;">
+    <div class="card card-pad" style="margin-bottom: 1rem;">
         <h3 class="bx-sec-title">Configurar Conector en Bitrix24</h3>
         <small class="bx-help muted">Ejecuta el registro, activación y configuración del conector Botmaker WhatsApp en el Canal Abierto. Equivale al comando <code>php artisan bitrix24:setup-connector</code>.</small>
 
@@ -106,10 +110,10 @@
                 {{ $setupMessage }}
             </div>
         @endif
-    </section>
+    </div>
 
     {{-- Section 4: Connection Tests --}}
-    <section class="card card-pad" style="margin-bottom: 1rem;">
+    <div class="card card-pad" style="margin-bottom: 1rem;">
         <h3 class="bx-sec-title">Probar conexión</h3>
         <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
             <button type="button" class="btn" wire:click="testOAuthConnection" wire:loading.attr="disabled" wire:target="testOAuthConnection">Test OAuth Token</button>
@@ -123,13 +127,13 @@
                 <span style="color: {{ $testOk ? '#166534' : '#b91c1c' }};">{{ $testMessage }}</span>
             </div>
         @endif
-    </section>
+    </div>
 
     {{-- Section 5: Legacy v1 (Collapsed) --}}
-    <section class="card card-pad" style="margin-bottom: 1rem;">
+    <div class="card card-pad" style="margin-bottom: 1rem;">
         <div style="display:flex; align-items:center; justify-content:space-between; cursor:pointer;" wire:click="toggleLegacy">
             <h3 class="bx-sec-title" style="margin:0;">
-                <span class="badge badge-legacy">Legacy v1</span>
+                <span class="badge-outline border-amber-500/80 text-amber-900 dark:text-amber-100">Legacy v1</span>
                 Webhook CRM (crm.lead.add)
             </h3>
             <span style="font-size:1.2rem; color:var(--app-muted);">{{ $showLegacy ? '▲' : '▼' }}</span>
@@ -168,7 +172,7 @@
                 </div>
             </div>
         @endif
-    </section>
+    </div>
 </div>
 
 <style>
@@ -177,10 +181,6 @@
     .bx-dot { width: .75rem; height: .75rem; border-radius: 999px; display: inline-block; }
     .bx-dot--ok { background: #16a34a; }
     .bx-dot--bad { background: #dc2626; }
-    .badge { padding: .2rem .45rem; border-radius: .45rem; font-size: .78rem; }
-    .badge-ok { background: #dcfce7; color: #166534; }
-    .badge-bad { background: #fee2e2; color: #b91c1c; }
-    .badge-legacy { background: #fef3c7; color: #92400e; margin-right: .4rem; }
     .stat-box { border: 1px solid var(--app-border); border-radius: .6rem; padding: .65rem; }
     .text-warn { color: #92400e; margin-top: .75rem; }
 </style>

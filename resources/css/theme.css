@@ -1,0 +1,27 @@
+/**
+ * Shell del layout: puente a tokens semánticos de Basecoat.
+ * Así `data-theme` y la clase `dark` unifican panel, manual y auth con la misma paleta.
+ *
+ * Import: tailwindcss → basecoat-css → theme.css → themes/_index.css (ver app.css).
+ * - `--app-*`: alias legados usados por estilos en Blade; siguen a `--background`, `--card`, etc.
+ * - `--sidebar-bg` / `--sidebar-row` / `--sidebar-active`: alias para bloques custom (settings, etc.).
+ */
+
+html {
+    /* Alineado con basecoat-css (nav usa esta variable). */
+    --sidebar-width: 16rem;
+    --app-bg: var(--background);
+    --app-surface: var(--card);
+    --app-text: var(--foreground);
+    --app-muted: var(--muted-foreground);
+    --app-border: var(--border);
+    --app-row: var(--muted);
+    --sidebar-bg: var(--sidebar);
+    --sidebar-row: var(--sidebar-accent);
+    --sidebar-active: color-mix(in oklch, var(--sidebar-primary) 22%, var(--sidebar));
+}
+
+/* Login / registro: siempre modo claro del tema activo (sin clase dark en <html>). */
+html.auth-layout {
+    color-scheme: light;
+}

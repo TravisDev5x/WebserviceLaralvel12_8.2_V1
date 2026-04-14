@@ -8,14 +8,18 @@
     </div>
 
     @if ($successMessage)
-        <section class="card card-pad" style="margin-bottom: 1rem; border-left: 4px solid #16a34a;"><p style="margin:0;">{{ $successMessage }}</p></section>
+        <div class="alert mb-4" role="status">
+            <h2 class="text-base font-semibold m-0">{{ $successMessage }}</h2>
+        </div>
     @endif
     @if ($errorMessage)
-        <section class="card card-pad" style="margin-bottom: 1rem; border-left: 4px solid #dc2626;"><p style="margin:0;">{{ $errorMessage }}</p></section>
+        <div class="alert-destructive mb-4" role="alert">
+            <h2 class="text-base font-semibold m-0">{{ $errorMessage }}</h2>
+        </div>
     @endif
     <p class="muted" style="margin:0 0 1rem; font-size:.88rem;">Este token se valida contra la cabecera <code>X-Botmaker-Signature</code> del endpoint <code>/api/webhook/botmaker</code>.</p>
 
-    <section class="card card-pad" style="margin-bottom:1rem;">
+    <div class="card card-pad" style="margin-bottom:1rem;">
         <h3 style="margin:0 0 .75rem; font-size:1rem;">@if($editingId) Editar @else Nuevo @endif registro</h3>
         <div class="grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
             <div>
@@ -47,9 +51,9 @@
             @if($editingId)<button type="button" class="btn" wire:click="cancelEdit">Cancelar</button>@endif
             <button type="button" class="btn" wire:click="startCreate">Limpiar formulario</button>
         </div>
-    </section>
+    </div>
 
-    <section class="card card-pad">
+    <div class="card card-pad">
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:.5rem; margin-bottom:.75rem;">
             <h3 style="margin:0; font-size:1rem;">Listado</h3>
         </div>
@@ -80,7 +84,7 @@
                             <td style="display:flex; flex-wrap:wrap; gap:.25rem;">
                                 <button type="button" class="btn btn-sm" wire:click="edit({{ $row->id }})">Editar</button>
                                 <button type="button" class="btn btn-sm" wire:click="toggleActive({{ $row->id }})">{{ $row->is_active ? 'Desactivar' : 'Activar' }}</button>
-                                <button type="button" class="btn btn-sm btn-danger" wire:click="confirmDelete({{ $row->id }})">Eliminar</button>
+                                <button type="button" class="btn btn-sm btn-destructive" wire:click="confirmDelete({{ $row->id }})">Eliminar</button>
                             </td>
                         </tr>
                     @endforeach
@@ -90,7 +94,7 @@
                 </tbody>
             </table>
         </div>
-    </section>
+    </div>
 
     @if($deleteId)
         <div style="position:fixed; inset:0; background:rgba(0,0,0,.45); display:flex; align-items:center; justify-content:center; z-index:50;">
@@ -99,7 +103,7 @@
                 <p>¿Eliminar este registro? Esta acción no se puede deshacer.</p>
                 <div style="display:flex; justify-content:flex-end; gap:.5rem;">
                     <button type="button" class="btn" wire:click="cancelDelete">Cancelar</button>
-                    <button type="button" class="btn btn-danger" wire:click="deleteConfirmed">Eliminar</button>
+                    <button type="button" class="btn btn-destructive" wire:click="deleteConfirmed">Eliminar</button>
                 </div>
             </div>
         </div>

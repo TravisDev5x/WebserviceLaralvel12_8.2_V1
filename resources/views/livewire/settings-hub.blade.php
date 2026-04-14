@@ -10,7 +10,7 @@
         @if($isAdmin)
         <a href="{{ url('/monitor/settings/botmaker') }}" class="card card-pad settings-hub-card" style="text-decoration: none; color: inherit; display: block; border: 1px solid var(--app-border); transition: border-color .15s;">
             <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
-                <span class="settings-hub-icon" aria-hidden="true"><i data-lucide="message-circle"></i></span>
+                <span class="settings-hub-icon" aria-hidden="true"><x-lucide-message-circle /></span>
                 <div style="min-width: 0; flex: 1;">
                     <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
                         <h3 style="margin: 0; font-size: 1.05rem;">Conexión Botmaker</h3>
@@ -23,7 +23,7 @@
         </a>
         <a href="{{ url('/monitor/settings/bitrix24') }}" class="card card-pad settings-hub-card" style="text-decoration: none; color: inherit; display: block; border: 1px solid var(--app-border);">
             <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
-                <span class="settings-hub-icon" aria-hidden="true"><i data-lucide="contact"></i></span>
+                <span class="settings-hub-icon" aria-hidden="true"><x-lucide-contact /></span>
                 <div style="min-width: 0; flex: 1;">
                     <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
                         <h3 style="margin: 0; font-size: 1.05rem;">Conexión Bitrix24</h3>
@@ -37,7 +37,7 @@
         </a>
         <a href="{{ url('/monitor/settings/tokens') }}" class="card card-pad settings-hub-card" style="text-decoration: none; color: inherit; display: block; border: 1px solid var(--app-border);">
             <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
-                <span class="settings-hub-icon" aria-hidden="true"><i data-lucide="shield"></i></span>
+                <span class="settings-hub-icon" aria-hidden="true"><x-lucide-shield /></span>
                 <div style="min-width: 0; flex: 1;">
                     <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
                         <h3 style="margin: 0; font-size: 1.05rem;">Webhooks autorizados</h3>
@@ -49,7 +49,7 @@
         </a>
         <a href="{{ url('/monitor/settings/retry') }}" class="card card-pad settings-hub-card" style="text-decoration: none; color: inherit; display: block; border: 1px solid var(--app-border);">
             <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
-                <span class="settings-hub-icon" aria-hidden="true"><i data-lucide="timer"></i></span>
+                <span class="settings-hub-icon" aria-hidden="true"><x-lucide-timer /></span>
                 <div style="min-width: 0; flex: 1;">
                     <h3 style="margin: 0 0 0.35rem; font-size: 1.05rem;">Reintentos y rendimiento</h3>
                     <p class="muted" style="margin: 0; font-size: 0.88rem; line-height: 1.45;">Intervalos de reintento, timeouts y cola de procesamiento.</p>
@@ -58,7 +58,7 @@
         </a>
         <a href="{{ url('/monitor/settings/test') }}" class="card card-pad settings-hub-card" style="text-decoration: none; color: inherit; display: block; border: 1px solid var(--app-border);">
             <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
-                <span class="settings-hub-icon" aria-hidden="true"><i data-lucide="play-circle"></i></span>
+                <span class="settings-hub-icon" aria-hidden="true"><x-lucide-play-circle /></span>
                 <div style="min-width: 0; flex: 1;">
                     <h3 style="margin: 0 0 0.35rem; font-size: 1.05rem;">Pruebas de integración</h3>
                     <p class="muted" style="margin: 0; font-size: 0.88rem; line-height: 1.45;">Verifica conectividad con Botmaker y Bitrix24.</p>
@@ -70,7 +70,7 @@
         @if(user_can('mappings.manage'))
         <a href="{{ url('/monitor/field-mappings') }}" class="card card-pad settings-hub-card" style="text-decoration: none; color: inherit; display: block; border: 1px solid var(--app-border);">
             <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
-                <span class="settings-hub-icon" aria-hidden="true"><i data-lucide="git-compare-arrows"></i></span>
+                <span class="settings-hub-icon" aria-hidden="true"><x-lucide-git-compare-arrows /></span>
                 <div style="min-width: 0; flex: 1;">
                     <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
                         <h3 style="margin: 0; font-size: 1.05rem;">Mapeo de campos</h3>
@@ -85,9 +85,9 @@
     </div>
 
     @if(!$isAdmin)
-        <section class="card card-pad" style="margin-top: 1rem;">
+        <div class="card card-pad" style="margin-top: 1rem;">
             <p class="muted" style="margin: 0;">Las conexiones de plataforma, tokens, reintentos y pruebas de integración solo las configura un administrador.</p>
-        </section>
+        </div>
     @endif
 </div>
 
