@@ -439,8 +439,9 @@
                     data-side="right"
                     onclick="document.dispatchEvent(new CustomEvent('basecoat:sidebar-collapse'))"
                 >
-                    <span class="sidebar-collapse-icon-expanded inline-flex"><x-lucide-panel-left-close class="size-5 shrink-0" aria-hidden="true" /></span>
-                    <span class="sidebar-collapse-icon-collapsed hidden inline-flex"><x-lucide-panel-left class="size-5 shrink-0" aria-hidden="true" /></span>
+                    {{-- sidebar-close / sidebar-open: compatibles con blade-lucide-icons más viejos; panel-left-close falla en servidor sin SVG reciente. --}}
+                    <span class="sidebar-collapse-icon-expanded inline-flex"><x-lucide-sidebar-close class="size-5 shrink-0" aria-hidden="true" /></span>
+                    <span class="sidebar-collapse-icon-collapsed hidden inline-flex"><x-lucide-sidebar-open class="size-5 shrink-0" aria-hidden="true" /></span>
                 </button>
             </header>
             <section class="scrollbar">
