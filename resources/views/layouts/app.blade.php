@@ -412,7 +412,7 @@
 </head>
 <body>
     @php
-        // Definir siempre en ámbito global del layout: con Livewire + <x-lucide> dentro del footer,
+        // Definir siempre en ámbito global del layout: con Livewire + iconos en el footer,
         // @php() anidado en @if puede dejar $accountUser indefinido en vistas compiladas (500 en servidor).
         $accountUser = auth()->check() ? auth()->user() : null;
         $accountName = 'Cuenta';
@@ -439,9 +439,9 @@
                     data-side="right"
                     onclick="document.dispatchEvent(new CustomEvent('basecoat:sidebar-collapse'))"
                 >
-                    {{-- sidebar-close / sidebar-open: compatibles con blade-lucide-icons más viejos; panel-left-close falla en servidor sin SVG reciente. --}}
-                    <span class="sidebar-collapse-icon-expanded inline-flex"><x-lucide-sidebar-close class="size-5 shrink-0" aria-hidden="true" /></span>
-                    <span class="sidebar-collapse-icon-collapsed hidden inline-flex"><x-lucide-sidebar-open class="size-5 shrink-0" aria-hidden="true" /></span>
+                    {{-- x-svg-lucide: SVG en repo; no depende de mallardduck/blade-lucide-icons en el servidor. --}}
+                    <span class="sidebar-collapse-icon-expanded inline-flex"><x-svg-lucide name="sidebar-close" class="size-5 shrink-0" aria-hidden="true" /></span>
+                    <span class="sidebar-collapse-icon-collapsed hidden inline-flex"><x-svg-lucide name="sidebar-open" class="size-5 shrink-0" aria-hidden="true" /></span>
                 </button>
             </header>
             <section class="scrollbar">
@@ -459,16 +459,16 @@
                         <h3 id="group-label-monitoreo">Monitoreo</h3>
                         <ul>
                             @if($canMonitor)
-                                <li><a href="{{ url('/monitor') }}" aria-label="Tablero" data-tooltip="Tablero" data-side="right" @if(request()->is('monitor')) aria-current="page" @endif><x-lucide-layout-dashboard class="size-4 shrink-0" aria-hidden="true" /><span class="sidebar-link-label" aria-hidden="true">Tablero</span></a></li>
-                                <li><a href="{{ url('/monitor/manual') }}" aria-label="Manual de integración" data-tooltip="Manual de integración" data-side="right" @if(request()->is('monitor/manual')) aria-current="page" @endif><x-lucide-book-open class="size-4 shrink-0" aria-hidden="true" /><span class="sidebar-link-label" aria-hidden="true">Manual de integración</span></a></li>
+                                <li><a href="{{ url('/monitor') }}" aria-label="Tablero" data-tooltip="Tablero" data-side="right" @if(request()->is('monitor')) aria-current="page" @endif><x-svg-lucide name="layout-dashboard" class="size-4 shrink-0" aria-hidden="true" /><span class="sidebar-link-label" aria-hidden="true">Tablero</span></a></li>
+                                <li><a href="{{ url('/monitor/manual') }}" aria-label="Manual de integración" data-tooltip="Manual de integración" data-side="right" @if(request()->is('monitor/manual')) aria-current="page" @endif><x-svg-lucide name="book-open" class="size-4 shrink-0" aria-hidden="true" /><span class="sidebar-link-label" aria-hidden="true">Manual de integración</span></a></li>
                             @endif
                             @if($canLogs)
-                                <li><a href="{{ url('/monitor/logs') }}" aria-label="Registros de Webhooks" data-tooltip="Registros de Webhooks" data-side="right" @if(request()->is('monitor/logs*')) aria-current="page" @endif><x-lucide-list-collapse class="size-4 shrink-0" aria-hidden="true" /><span class="sidebar-link-label" aria-hidden="true">Registros de Webhooks</span></a></li>
+                                <li><a href="{{ url('/monitor/logs') }}" aria-label="Registros de Webhooks" data-tooltip="Registros de Webhooks" data-side="right" @if(request()->is('monitor/logs*')) aria-current="page" @endif><x-svg-lucide name="list-collapse" class="size-4 shrink-0" aria-hidden="true" /><span class="sidebar-link-label" aria-hidden="true">Registros de Webhooks</span></a></li>
                             @endif
                             @if($canFailed)
                                 <li>
                                     <a href="{{ url('/monitor/failed') }}" aria-label="Webhooks fallidos" data-tooltip="Webhooks fallidos" data-side="right" @if(request()->is('monitor/failed*')) aria-current="page" @endif>
-                                        <x-lucide-shield-alert class="size-4 shrink-0" aria-hidden="true" />
+                                        <x-svg-lucide name="shield-alert" class="size-4 shrink-0" aria-hidden="true" />
                                         <span class="sidebar-link-label" aria-hidden="true">Webhooks Fallidos</span>
                                         @if($fp > 0)<span class="sidebar-nav-badge" title="Pendientes">{{ $fp > 99 ? '99+' : $fp }}</span>@endif
                                     </a>
@@ -482,32 +482,32 @@
                     <div role="group" aria-labelledby="group-label-configuracion">
                         <h3 id="group-label-configuracion">Configuración</h3>
                         <ul>
-                            <li><a href="{{ url('/monitor/settings') }}" aria-label="Centro de configuración" data-tooltip="Centro de configuración" data-side="right" @if(request()->is('monitor/settings') && ! request()->is('monitor/settings/*')) aria-current="page" @endif><x-lucide-layout-grid class="size-4 shrink-0" aria-hidden="true" /><span class="sidebar-link-label" aria-hidden="true">Centro de configuración</span></a></li>
+                            <li><a href="{{ url('/monitor/settings') }}" aria-label="Centro de configuración" data-tooltip="Centro de configuración" data-side="right" @if(request()->is('monitor/settings') && ! request()->is('monitor/settings/*')) aria-current="page" @endif><x-svg-lucide name="layout-grid" class="size-4 shrink-0" aria-hidden="true" /><span class="sidebar-link-label" aria-hidden="true">Centro de configuración</span></a></li>
                             <li>
                                 <a href="{{ url('/monitor/settings/botmaker') }}" aria-label="Conexión Botmaker" data-tooltip="Conexión Botmaker" data-side="right" @if(request()->is('monitor/settings/botmaker')) aria-current="page" @endif>
-                                    <x-lucide-message-circle class="size-4 shrink-0" aria-hidden="true" />
+                                    <x-svg-lucide name="message-circle" class="size-4 shrink-0" aria-hidden="true" />
                                     <span class="sidebar-link-label" aria-hidden="true">Conexión Botmaker</span>
                                     <span class="sidebar-health sidebar-health--{{ ($sidebarHealthBotmaker ?? false) ? 'ok' : 'bad' }}" title="Estado configuración"></span>
                                 </a>
                             </li>
                             <li>
                                 <a href="{{ url('/monitor/settings/bitrix24') }}" aria-label="Conexión Bitrix24" data-tooltip="Conexión Bitrix24" data-side="right" @if(request()->is('monitor/settings/bitrix24')) aria-current="page" @endif>
-                                    <x-lucide-contact class="size-4 shrink-0" aria-hidden="true" />
+                                    <x-svg-lucide name="contact" class="size-4 shrink-0" aria-hidden="true" />
                                     <span class="sidebar-link-label" aria-hidden="true">Conexión Bitrix24</span>
                                     <span class="sidebar-health sidebar-health--{{ ($sidebarHealthBitrix ?? false) ? 'ok' : 'bad' }}" title="Estado configuración"></span>
                                 </a>
                             </li>
-                            <li><a href="{{ route('monitor.tokens') }}" aria-label="Webhooks autorizados" data-tooltip="Webhooks autorizados" data-side="right" @if(request()->is('monitor/settings/tokens')) aria-current="page" @endif><x-lucide-key class="size-4 shrink-0" aria-hidden="true" /><span class="sidebar-link-label" aria-hidden="true">Webhooks autorizados</span></a></li>
-                            @if($canMappings)<li><a href="{{ url('/monitor/field-mappings') }}" aria-label="Mapeo de campos" data-tooltip="Mapeo de campos" data-side="right" @if(request()->is('monitor/field-mappings*')) aria-current="page" @endif><x-lucide-git-compare-arrows class="size-4 shrink-0" aria-hidden="true" /><span class="sidebar-link-label" aria-hidden="true">Mapeo de campos</span></a></li>@endif
-                            <li><a href="{{ url('/monitor/settings/retry') }}" aria-label="Reintentos" data-tooltip="Reintentos" data-side="right" @if(request()->is('monitor/settings/retry')) aria-current="page" @endif><x-lucide-timer class="size-4 shrink-0" aria-hidden="true" /><span class="sidebar-link-label" aria-hidden="true">Reintentos</span></a></li>
-                            <li><a href="{{ route('integration-tests.panel') }}" aria-label="Pruebas de integración" data-tooltip="Pruebas de integración" data-side="right" @if(request()->is('monitor/settings/test') || request()->is('monitor/integration-probes*')) aria-current="page" @endif><x-lucide-flask-conical class="size-4 shrink-0" aria-hidden="true" /><span class="sidebar-link-label" aria-hidden="true">Pruebas de integración</span></a></li>
+                            <li><a href="{{ route('monitor.tokens') }}" aria-label="Webhooks autorizados" data-tooltip="Webhooks autorizados" data-side="right" @if(request()->is('monitor/settings/tokens')) aria-current="page" @endif><x-svg-lucide name="key" class="size-4 shrink-0" aria-hidden="true" /><span class="sidebar-link-label" aria-hidden="true">Webhooks autorizados</span></a></li>
+                            @if($canMappings)<li><a href="{{ url('/monitor/field-mappings') }}" aria-label="Mapeo de campos" data-tooltip="Mapeo de campos" data-side="right" @if(request()->is('monitor/field-mappings*')) aria-current="page" @endif><x-svg-lucide name="git-compare-arrows" class="size-4 shrink-0" aria-hidden="true" /><span class="sidebar-link-label" aria-hidden="true">Mapeo de campos</span></a></li>@endif
+                            <li><a href="{{ url('/monitor/settings/retry') }}" aria-label="Reintentos" data-tooltip="Reintentos" data-side="right" @if(request()->is('monitor/settings/retry')) aria-current="page" @endif><x-svg-lucide name="timer" class="size-4 shrink-0" aria-hidden="true" /><span class="sidebar-link-label" aria-hidden="true">Reintentos</span></a></li>
+                            <li><a href="{{ route('integration-tests.panel') }}" aria-label="Pruebas de integración" data-tooltip="Pruebas de integración" data-side="right" @if(request()->is('monitor/settings/test') || request()->is('monitor/integration-probes*')) aria-current="page" @endif><x-svg-lucide name="flask-conical" class="size-4 shrink-0" aria-hidden="true" /><span class="sidebar-link-label" aria-hidden="true">Pruebas de integración</span></a></li>
                         </ul>
                     </div>
                 @elseif($canSettings && ! $isAdmin)
                     <div role="group" aria-labelledby="group-label-configuracion-op">
                         <h3 id="group-label-configuracion-op">Configuración</h3>
                         <ul>
-                            <li><a href="{{ url('/monitor/settings') }}" aria-label="Centro de configuración" data-tooltip="Centro de configuración" data-side="right" @if(request()->is('monitor/settings')) aria-current="page" @endif><x-lucide-layout-grid class="size-4 shrink-0" aria-hidden="true" /><span class="sidebar-link-label" aria-hidden="true">Centro de configuración</span></a></li>
+                            <li><a href="{{ url('/monitor/settings') }}" aria-label="Centro de configuración" data-tooltip="Centro de configuración" data-side="right" @if(request()->is('monitor/settings')) aria-current="page" @endif><x-svg-lucide name="layout-grid" class="size-4 shrink-0" aria-hidden="true" /><span class="sidebar-link-label" aria-hidden="true">Centro de configuración</span></a></li>
                         </ul>
                     </div>
                 @endif
@@ -516,7 +516,7 @@
                     <div role="group" aria-labelledby="group-label-sistema">
                         <h3 id="group-label-sistema">Sistema</h3>
                         <ul>
-                            <li><a href="{{ url('/monitor/access-control') }}" aria-label="Usuarios, roles y permisos" data-tooltip="Usuarios, roles y permisos" data-side="right" @if(request()->is('monitor/access-control*')) aria-current="page" @endif><x-lucide-users-round class="size-4 shrink-0" aria-hidden="true" /><span class="sidebar-link-label" aria-hidden="true">Usuarios, roles y permisos</span></a></li>
+                            <li><a href="{{ url('/monitor/access-control') }}" aria-label="Usuarios, roles y permisos" data-tooltip="Usuarios, roles y permisos" data-side="right" @if(request()->is('monitor/access-control*')) aria-current="page" @endif><x-svg-lucide name="users-round" class="size-4 shrink-0" aria-hidden="true" /><span class="sidebar-link-label" aria-hidden="true">Usuarios, roles y permisos</span></a></li>
                         </ul>
                     </div>
                 @endif
@@ -536,23 +536,23 @@
                         data-side="right"
                     >
                         <span class="sidebar-account-collapsed-only shrink-0" aria-hidden="true">
-                            <x-lucide-circle-user class="size-4" />
+                            <x-svg-lucide name="circle-user" class="size-4" />
                         </span>
                         <span class="sidebar-account-summary flex min-w-0 flex-1 flex-col items-start gap-0.5 leading-tight">
                             <span class="truncate font-medium text-sidebar-foreground">{{ $accountName }}</span>
                             <span class="text-sidebar-foreground/70 truncate text-xs font-normal">{{ $accountSubtitle }}</span>
                         </span>
-                        <x-lucide-chevrons-up-down class="sidebar-account-chevron size-4 shrink-0 text-sidebar-foreground/70" aria-hidden="true" />
+                        <x-svg-lucide name="chevrons-up-down" class="sidebar-account-chevron size-4 shrink-0 text-sidebar-foreground/70" aria-hidden="true" />
                     </button>
                     <div id="sidebar-account-popover" data-popover aria-hidden="true" class="min-w-56" data-side="top" data-align="end">
                         <div role="menu" id="sidebar-account-menu" aria-labelledby="sidebar-account-trigger">
                             <a href="{{ route('profile.edit') }}" role="menuitem" id="sidebar-menu-profile" class="inline-flex w-full items-center gap-2">
-                                <x-lucide-circle-user class="size-4 shrink-0" aria-hidden="true" />
+                                <x-svg-lucide name="circle-user" class="size-4 shrink-0" aria-hidden="true" />
                                 Mi perfil
                             </a>
                             <form method="POST" action="{{ route('logout') }}" id="sidebar-logout-form" class="m-0 hidden">@csrf</form>
                             <button type="submit" form="sidebar-logout-form" role="menuitem" id="sidebar-menu-logout" class="inline-flex w-full items-center gap-2">
-                                <x-lucide-log-out class="size-4 shrink-0" aria-hidden="true" />
+                                <x-svg-lucide name="log-out" class="size-4 shrink-0" aria-hidden="true" />
                                 Cerrar sesión
                             </button>
                         </div>
@@ -572,12 +572,12 @@
                 </div>
                 <div class="flex items-center gap-2">
                     <button type="button" id="sidebar-mobile-toggle" class="btn-icon-ghost menu-toggle-btn size-8" onclick="document.dispatchEvent(new CustomEvent('basecoat:sidebar', { detail: { id: 'main-navigation' } }))" aria-label="Abrir menu lateral">
-                        <x-lucide-menu class="size-5 shrink-0" aria-hidden="true" />
+                        <x-svg-lucide name="menu" class="size-5 shrink-0" aria-hidden="true" />
                     </button>
                     @include('partials.theme-color-picker')
                     <button type="button" id="theme-toggle" aria-label="Cambiar tema" data-tooltip="Cambiar tema" data-side="bottom" onclick="document.dispatchEvent(new CustomEvent('basecoat:theme'))" class="btn-icon-outline size-8">
-                        <span class="hidden dark:block"><x-lucide-sun class="size-4" /></span>
-                        <span class="block dark:hidden"><x-lucide-moon class="size-4" /></span>
+                        <span class="hidden dark:block"><x-svg-lucide name="sun" class="size-4" /></span>
+                        <span class="block dark:hidden"><x-svg-lucide name="moon" class="size-4" /></span>
                     </button>
                 </div>
             </div>

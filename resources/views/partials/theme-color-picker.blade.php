@@ -20,7 +20,7 @@
         data-tooltip="Tema de color"
         data-side="bottom"
     >
-        <x-lucide-palette class="size-5 shrink-0" aria-hidden="true" />
+        <x-svg-lucide name="palette" class="size-5 shrink-0" aria-hidden="true" />
     </button>
     <div id="theme-color-popover" data-popover aria-hidden="true" class="min-w-52" data-side="bottom" data-align="end">
         <div role="menu" id="theme-color-menu" aria-labelledby="theme-color-trigger" class="flex flex-col gap-0.5 p-1">

@@ -7,7 +7,7 @@
             @foreach($items as $index => $item)
                 @if($index > 0)
                     <li class="app-breadcrumb-sep" aria-hidden="true">
-                        <x-lucide-chevron-right class="app-breadcrumb-chevron" />
+                        <x-svg-lucide name="chevron-right" class="app-breadcrumb-chevron" />
                     </li>
                 @endif
                 <li class="app-breadcrumb-item">

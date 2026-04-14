@@ -132,7 +132,7 @@
                 </div>
             </div>
             <button class="btn btn-primary" wire:click="openCreateUser" type="button" data-tooltip="Registrar un nuevo usuario">
-                <span style="display:inline-flex; align-items:center; gap:.35rem;"><x-lucide-user-plus class="size-4 shrink-0" aria-hidden="true" />Nuevo usuario</span>
+                <span style="display:inline-flex; align-items:center; gap:.35rem;"><x-svg-lucide name="user-plus" class="size-4 shrink-0" aria-hidden="true" />Nuevo usuario</span>
             </button>
         </div>
         <div class="acm-filters-grid">
@@ -173,7 +173,7 @@
             </div>
             <div class="acm-clear-wrap">
                 <button class="btn" wire:click="clearUserFilters" type="button" data-tooltip="Limpiar todos los filtros">
-                    <span style="display:inline-flex; align-items:center; gap:.35rem;"><x-lucide-eraser class="size-4 shrink-0" aria-hidden="true" />Limpiar filtros</span>
+                    <span style="display:inline-flex; align-items:center; gap:.35rem;"><x-svg-lucide name="eraser" class="size-4 shrink-0" aria-hidden="true" />Limpiar filtros</span>
                 </button>
             </div>
         </div>
@@ -246,21 +246,21 @@
                         <td>
                             <div class="acm-table-actions">
                                 <button class="btn btn-sm" wire:click="editUser({{ $user->id }})" type="button" data-tooltip="Editar datos del usuario" aria-label="Editar usuario">
-                                    <span style="display:inline-flex; align-items:center;"><x-lucide-pencil class="size-4 shrink-0" aria-hidden="true" /></span>
+                                    <span style="display:inline-flex; align-items:center;"><x-svg-lucide name="pencil" class="size-4 shrink-0" aria-hidden="true" /></span>
                                 </button>
                                 <button class="btn btn-sm" wire:click="openPasswordEditor({{ $user->id }})" type="button" data-tooltip="Cambiar contraseña" aria-label="Cambiar contraseña">
-                                    <span style="display:inline-flex; align-items:center;"><x-lucide-key-round class="size-4 shrink-0" aria-hidden="true" /></span>
+                                    <span style="display:inline-flex; align-items:center;"><x-svg-lucide name="key-round" class="size-4 shrink-0" aria-hidden="true" /></span>
                                 </button>
                                 @if(! $user->trashed())
                                     <button class="btn btn-sm" wire:click="toggleUserStatus({{ $user->id }})" type="button" data-tooltip="{{ $user->is_active ? 'Desactivar temporalmente' : 'Activar temporalmente' }}" aria-label="{{ $user->is_active ? 'Desactivar temporalmente' : 'Activar temporalmente' }}">
-                                        <span style="display:inline-flex; align-items:center;">@if($user->is_active)<x-lucide-pause-circle class="size-4 shrink-0" aria-hidden="true" />@else<x-lucide-play-circle class="size-4 shrink-0" aria-hidden="true" />@endif</span>
+                                        <span style="display:inline-flex; align-items:center;">@if($user->is_active)<x-svg-lucide name="pause-circle" class="size-4 shrink-0" aria-hidden="true" />@else<x-svg-lucide name="play-circle" class="size-4 shrink-0" aria-hidden="true" />@endif</span>
                                     </button>
                                     <button class="btn btn-sm btn-destructive" wire:click="askDeactivateUser({{ $user->id }})" type="button" data-tooltip="Dar de baja (soft delete)" aria-label="Dar de baja">
-                                        <span style="display:inline-flex; align-items:center;"><x-lucide-user-x class="size-4 shrink-0" aria-hidden="true" /></span>
+                                        <span style="display:inline-flex; align-items:center;"><x-svg-lucide name="user-x" class="size-4 shrink-0" aria-hidden="true" /></span>
                                     </button>
                                 @else
                                     <button class="btn btn-sm" wire:click="askRestoreUser({{ $user->id }})" type="button" data-tooltip="Restaurar usuario" aria-label="Restaurar usuario">
-                                        <span style="display:inline-flex; align-items:center;"><x-lucide-rotate-ccw class="size-4 shrink-0" aria-hidden="true" /></span>
+                                        <span style="display:inline-flex; align-items:center;"><x-svg-lucide name="rotate-ccw" class="size-4 shrink-0" aria-hidden="true" /></span>
                                     </button>
                                 @endif
                             </div>
@@ -382,7 +382,7 @@
         <div class="page-header" style="margin-bottom:.75rem;">
             <h3 class="page-title">Catálogo de roles y permisos</h3>
             <button class="btn" wire:click="newRole" type="button" data-tooltip="Crear nuevo rol">
-                <span style="display:inline-flex; align-items:center; gap:.35rem;"><x-lucide-shield-plus class="size-4 shrink-0" aria-hidden="true" />Nuevo rol</span>
+                <span style="display:inline-flex; align-items:center; gap:.35rem;"><x-svg-lucide name="shield-plus" class="size-4 shrink-0" aria-hidden="true" />Nuevo rol</span>
             </button>
         </div>
 
@@ -406,7 +406,7 @@
         <div style="margin-top:.75rem; display:flex; gap:.75rem; align-items:center;">
             <label style="display:inline-flex; gap:.35rem; align-items:center;"><input type="checkbox" wire:model.live="roleIsActive"> Rol activo</label>
             <button class="btn btn-primary" wire:click="saveRole" type="button" data-tooltip="Guardar cambios del rol">
-                <span style="display:inline-flex; align-items:center; gap:.35rem;"><x-lucide-save class="size-4 shrink-0" aria-hidden="true" />Guardar rol</span>
+                <span style="display:inline-flex; align-items:center; gap:.35rem;"><x-svg-lucide name="save" class="size-4 shrink-0" aria-hidden="true" />Guardar rol</span>
             </button>
         </div>
 
@@ -422,7 +422,7 @@
                         <td>{{ $role->slug }}</td>
                         <td>{{ $role->description }}</td>
                         <td>{{ $role->is_active ? 'Sí' : 'No' }}</td>
-                        <td><button class="btn" wire:click="editRole({{ $role->id }})" type="button" data-tooltip="Editar rol" aria-label="Editar rol"><span style="display:inline-flex; align-items:center;"><x-lucide-pencil class="size-4 shrink-0" aria-hidden="true" /></span></button></td>
+                        <td><button class="btn" wire:click="editRole({{ $role->id }})" type="button" data-tooltip="Editar rol" aria-label="Editar rol"><span style="display:inline-flex; align-items:center;"><x-svg-lucide name="pencil" class="size-4 shrink-0" aria-hidden="true" /></span></button></td>
                     </tr>
                 @endforeach
                 @else

@@ -111,8 +111,8 @@
                     onclick="document.dispatchEvent(new CustomEvent('basecoat:theme'))"
                     class="btn-icon-outline size-8"
                 >
-                    <span class="hidden dark:block"><x-lucide-sun class="size-4" /></span>
-                    <span class="block dark:hidden"><x-lucide-moon class="size-4" /></span>
+<span class="hidden dark:block"><x-svg-lucide name="sun" class="size-4" /></span>
+                        <span class="block dark:hidden"><x-svg-lucide name="moon" class="size-4" /></span>
                 </button>
             </div>
         </div>

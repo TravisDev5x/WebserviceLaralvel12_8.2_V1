@@ -142,20 +142,20 @@
 
     @if(session('profile_ok'))
         <div class="profile-alert profile-alert--ok" role="status">
-            <x-lucide-check-circle class="shrink-0" aria-hidden="true" />
+            <x-svg-lucide name="check-circle" class="shrink-0" aria-hidden="true" />
             <span>{{ session('profile_ok') }}</span>
         </div>
     @endif
     @if(session('password_ok'))
         <div class="profile-alert profile-alert--ok" role="status">
-            <x-lucide-check-circle class="shrink-0" aria-hidden="true" />
+            <x-svg-lucide name="check-circle" class="shrink-0" aria-hidden="true" />
             <span>{{ session('password_ok') }}</span>
         </div>
     @endif
 
     <div class="card card-pad profile-section">
         <header class="profile-section-head">
-            <span class="profile-section-icon" aria-hidden="true"><x-lucide-user /></span>
+            <span class="profile-section-icon" aria-hidden="true"><x-svg-lucide name="user" /></span>
             <div>
                 <h3>Datos personales</h3>
                 <p class="muted profile-section-desc">Tu nombre es el único dato editable en esta pantalla. Correo, número de empleado y rol los gestiona un administrador.</p>
@@ -191,7 +191,7 @@
 
     <div class="card card-pad profile-section">
         <header class="profile-section-head">
-            <span class="profile-section-icon" aria-hidden="true"><x-lucide-key-round /></span>
+            <span class="profile-section-icon" aria-hidden="true"><x-svg-lucide name="key-round" /></span>
             <div>
                 <h3>Seguridad</h3>
                 <p class="muted profile-section-desc">Usa una contraseña larga y distinta de otros sitios. Tras cambiarla, sigue usando tu correo o número de empleado para entrar.</p>

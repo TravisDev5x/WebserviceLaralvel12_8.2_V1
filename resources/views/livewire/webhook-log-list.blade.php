@@ -6,10 +6,10 @@
         </div>
         <div style="display:flex; gap:.5rem;">
             <button class="btn" wire:click="exportCsv" type="button" data-tooltip="Descargar resultados en CSV">
-                <span style="display:inline-flex; align-items:center; gap:.35rem;"><x-lucide-file-down class="size-4 shrink-0" aria-hidden="true" />Exportar CSV</span>
+                <span style="display:inline-flex; align-items:center; gap:.35rem;"><x-svg-lucide name="file-down" class="size-4 shrink-0" aria-hidden="true" />Exportar CSV</span>
             </button>
             <button class="btn" wire:click="exportExcel" type="button" data-tooltip="Descargar resultados en Excel">
-                <span style="display:inline-flex; align-items:center; gap:.35rem;"><x-lucide-sheet class="size-4 shrink-0" aria-hidden="true" />Exportar Excel</span>
+                <span style="display:inline-flex; align-items:center; gap:.35rem;"><x-svg-lucide name="sheet" class="size-4 shrink-0" aria-hidden="true" />Exportar Excel</span>
             </button>
         </div>
     </div>
