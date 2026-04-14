@@ -26,6 +26,7 @@ class CheckPermission
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }
 
-        return redirect('/monitor')->with('error', 'No tienes permisos para acceder a esta sección.');
+        // No redirigir a /monitor: esa ruta también exige permisos y provoca bucle (a veces 500 en el proxy).
+        return redirect()->route('profile.edit')->with('error', 'No tienes permisos para acceder a esta sección.');
     }
 }

@@ -38,7 +38,7 @@ class EnsureRoleOps
                 abort(403, 'No tienes permisos para acceder a esta sección.');
             }
 
-            return redirect('/monitor')->with('error', 'No tienes permisos para acceder a esta sección.');
+            return redirect()->route('profile.edit')->with('error', 'No tienes permisos para acceder a esta sección.');
         }
 
         return $next($request);
