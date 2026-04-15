@@ -74,6 +74,18 @@ class ProcessBotmakerPayload implements ShouldQueue
         }
 
         try {
+            // Solo reenviar mensajes del usuario final.
+            $messageFrom = strtolower((string) data_get($payload, 'messages.0.from', 'unknown'));
+            if ($messageFrom !== 'user') {
+                $webhookLog->update([
+                    'status' => WebhookLog::STATUS_SENT,
+                    'response_body' => "Filtered: message from '{$messageFrom}' (only 'user' forwarded)",
+                    'processing_ms' => (int) round((microtime(true) - $startedAt) * 1000),
+                ]);
+
+                return;
+            }
+
             $phone = (string) ($payload['contactId'] ?? $payload['whatsappNumber'] ?? $payload['phone'] ?? '');
             $firstName = (string) ($payload['firstName'] ?? '');
             $lastName = (string) ($payload['lastName'] ?? '');

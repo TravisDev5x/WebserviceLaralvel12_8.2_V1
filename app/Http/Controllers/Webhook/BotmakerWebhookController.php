@@ -18,6 +18,7 @@ class BotmakerWebhookController extends Controller
     {
         $payload = $request->all();
         $summary = $this->extractSummaryFields($payload);
+        $eventType = (string) ($payload['type'] ?? 'unknown');
 
         $log = WebhookLog::logIncoming(
             direction: WebhookLog::DIRECTION_BOTMAKER_TO_BITRIX,
@@ -35,6 +36,46 @@ class BotmakerWebhookController extends Controller
                 'error' => 'Invalid signature',
                 'correlation_id' => $log->correlation_id,
             ], Response::HTTP_UNAUTHORIZED);
+        }
+
+        // Solo procesar mensajes. Eventos de status/event se registran y no se reenvían.
+        if ($eventType === 'status') {
+            $log->markAsSent(
+                httpStatus: Response::HTTP_OK,
+                responseBody: 'Status event logged (not forwarded)',
+            );
+
+            return response()->json([
+                'status' => 'logged',
+                'type' => 'status',
+                'correlation_id' => $log->correlation_id,
+            ], Response::HTTP_OK);
+        }
+
+        if ($eventType === 'event') {
+            $log->markAsSent(
+                httpStatus: Response::HTTP_OK,
+                responseBody: 'Platform event logged (not forwarded)',
+            );
+
+            return response()->json([
+                'status' => 'logged',
+                'type' => 'event',
+                'correlation_id' => $log->correlation_id,
+            ], Response::HTTP_OK);
+        }
+
+        if ($eventType !== 'message') {
+            $log->markAsSent(
+                httpStatus: Response::HTTP_OK,
+                responseBody: "Unsupported event type '{$eventType}' (not forwarded)",
+            );
+
+            return response()->json([
+                'status' => 'ignored',
+                'type' => $eventType,
+                'correlation_id' => $log->correlation_id,
+            ], Response::HTTP_OK);
         }
 
         if ($summary['phone'] === '') {

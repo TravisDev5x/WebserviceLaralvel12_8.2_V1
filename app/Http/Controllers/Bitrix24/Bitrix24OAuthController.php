@@ -173,6 +173,24 @@ class Bitrix24OAuthController extends Controller
             ]);
         }
 
+        // Ignorar eventos de líneas distintas a la configurada en este middleware.
+        $configuredLineId = (string) config_dynamic('bitrix24.line_id', config('services.bitrix24.line_id', '6'));
+        $eventLineId = trim((string) ($data['LINE'] ?? $data['line'] ?? ''));
+        if ($eventLineId !== '' && $configuredLineId !== '' && $eventLineId !== $configuredLineId) {
+            $log->markAsSent(
+                httpStatus: Response::HTTP_OK,
+                responseBody: "Ignored: LINE {$eventLineId} != configured {$configuredLineId}",
+            );
+
+            return response()->json([
+                'status' => 'ignored',
+                'reason' => 'line_mismatch',
+                'event_line_id' => $eventLineId,
+                'configured_line_id' => $configuredLineId,
+                'correlation_id' => $log->correlation_id,
+            ], Response::HTTP_OK);
+        }
+
         $messages = $data['MESSAGES'] ?? $data['messages'] ?? [];
 
         if (! is_array($messages) || $messages === []) {

@@ -149,7 +149,8 @@ final class BotmakerService
 
     private static function stripBbCode(string $text): string
     {
-        $text = preg_replace('/\[br\]/i', "\n", $text);
+        $text = str_replace(["\r\n", "\r"], "\n", $text);
+        $text = preg_replace('/\[(?:br|br\/)\]/i', "\n", $text);
         $text = preg_replace('/\[\/?[a-zA-Z][a-zA-Z0-9]*(?:=[^\]]*?)?\]/u', '', $text);
         $text = trim($text);
 
@@ -162,7 +163,9 @@ final class BotmakerService
                 }
             }
 
-            $text = preg_replace('/^[A-ZÁ-Ú\s]+:\s*\n/u', '', $text);
+            // Quita prefijo de agente en primera línea: "NOMBRE APELLIDO:\n"
+            // Incluye letras, números, espacios y algunos signos frecuentes.
+            $text = preg_replace('/^[\p{L}\p{N}\s._-]+:\s*\n/u', '', $text);
             $text = trim($text);
         }
 

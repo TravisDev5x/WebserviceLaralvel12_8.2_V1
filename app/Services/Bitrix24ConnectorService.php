@@ -198,6 +198,21 @@ class Bitrix24ConnectorService
     }
 
     /**
+     * event.get — lista handlers registrados.
+     *
+     * @return array<string, mixed>
+     */
+    public function getBoundEvents(string $event = ''): array
+    {
+        $params = [];
+        if ($event !== '') {
+            $params['event'] = $event;
+        }
+
+        return $this->callRest('event.get', $params, 'get_bound_events');
+    }
+
+    /**
      * Executes a REST API call to Bitrix24 using OAuth token.
      *
      * @param  array<string, mixed>  $params
